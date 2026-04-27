@@ -1,4 +1,4 @@
-setwd("~/Trabajo-Profesional/Javeriana/Code")
+setwd("~/Trabajo-Profesional/Javeriana")
 
 # ==============================================================================
 # ENCUESTA ANUAL MANUFACTURERA (EAM) — DANE
