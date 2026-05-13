@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
   out.width = '100%',
   dpi = 600
 )
+source(if (file.exists("Code/_paths.R")) "Code/_paths.R" else "_paths.R")
 ```
 
 # Resumen Ejecutivo
@@ -30,7 +31,7 @@ Este documento presenta un análisis integral de la evolución de la industria m
 ## Cantidad de Establecimientos Únicos
 
 ```{r fig1, fig.cap="Evolución temporal de establecimientos únicos"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig1.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig1.png"))
 ```
 
 La cantidad de establecimientos únicos muestra una tendencia creciente hasta 2010, alcanzando un pico cercano a los 10,000 establecimientos. Posteriormente se observa un descenso sostenido, reflejando posibles procesos de consolidación industrial y desafíos económicos del sector manufacturero.
@@ -38,7 +39,7 @@ La cantidad de establecimientos únicos muestra una tendencia creciente hasta 20
 ## Evolución por Sector Económico
 
 ```{r fig2, fig.cap="Evolución anual de establecimientos únicos por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig2.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig2.png"))
 ```
 
 El sector de alimentos y bebidas lidera consistentemente en número de establecimientos, seguido por confecciones y muebles. Se evidencia una diversificación sectorial estable a lo largo del período analizado, con reducción generalizada post-2015 en la mayoría de sectores.
@@ -46,7 +47,7 @@ El sector de alimentos y bebidas lidera consistentemente en número de estableci
 ## Participación Sectorial
 
 ```{r fig3, fig.cap="Participación anual de establecimientos por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig3.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig3.png"))
 ```
 
 La estructura porcentual del sector manufacturero se mantiene relativamente estable en el tiempo. Alimentos y bebidas representa aproximadamente el 20% del total, confecciones alrededor del 15%, evidenciando una composición industrial consistente y diversificada.
@@ -54,7 +55,7 @@ La estructura porcentual del sector manufacturero se mantiene relativamente esta
 ## Valor Agregado por Sector
 
 ```{r fig4, fig.cap="Evolución del valor agregado nominal por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig4.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig4.png"))
 ```
 
 El valor agregado muestra un crecimiento significativo post-2020, especialmente en alimentos y bebidas, que alcanza los 50 mil millones. Refinación y químicos también experimenta un crecimiento notable, reflejando la importancia estratégica de estos sectores en la economía nacional.
@@ -62,7 +63,7 @@ El valor agregado muestra un crecimiento significativo post-2020, especialmente 
 ## Personal Ocupado por Sector
 
 ```{r fig5, fig.cap="Evolución del personal total por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig5.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig5.png"))
 ```
 
 Alimentos y bebidas es el principal empleador del sector manufacturero, con cerca de 200,000 trabajadores en 2024. Confecciones y refinación química también representan fuentes importantes de empleo, aunque con tendencias variables según ciclos económicos.
@@ -70,7 +71,7 @@ Alimentos y bebidas es el principal empleador del sector manufacturero, con cerc
 ## Productividad Laboral por Sector
 
 ```{r fig6, fig.cap="Productividad laboral anual por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig6.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig6.png"))
 ```
 
 La productividad laboral muestra alta heterogeneidad entre sectores. Refinación química presenta los niveles más altos, superando 300,000 unidades en años recientes. Esta disparidad refleja diferentes niveles de intensidad de capital y tecnología entre industrias.
@@ -80,7 +81,7 @@ La productividad laboral muestra alta heterogeneidad entre sectores. Refinación
 ## Establecimientos por Región
 
 ```{r fig7, fig.cap="Evolución anual de establecimientos únicos por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig7.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig7.png"))
 ```
 
 La región Andina concentra la mayor cantidad de establecimientos, alcanzando cerca de 8,000 en su punto máximo. Las regiones Pacífica, Caribe y Orinoquía mantienen participaciones significativamente menores, evidenciando la alta concentración geográfica de la actividad manufacturera.
@@ -88,7 +89,7 @@ La región Andina concentra la mayor cantidad de establecimientos, alcanzando ce
 ## Participación Regional
 
 ```{r fig8, fig.cap="Participación anual de establecimientos por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig8.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig8.png"))
 ```
 
 La región Andina representa consistentemente más del 70% de los establecimientos manufactureros del país. La Pacífica mantiene alrededor del 15%, mientras Caribe y Orinoquía participan con porcentajes menores, mostrando una estructura regional estable.
@@ -96,7 +97,7 @@ La región Andina representa consistentemente más del 70% de los establecimient
 ## Valor Agregado Regional
 
 ```{r fig9, fig.cap="Evolución del valor agregado nominal por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig9.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig9.png"))
 ```
 
 El valor agregado de la región Andina experimenta un crecimiento exponencial post-2020, superando los 90 mil millones. Las regiones Pacífica y Caribe muestran crecimientos más moderados, consolidando la brecha de desarrollo industrial entre regiones.
@@ -104,7 +105,7 @@ El valor agregado de la región Andina experimenta un crecimiento exponencial po
 ## Personal Ocupado Regional
 
 ```{r fig10, fig.cap="Evolución del personal total por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig10.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig10.png"))
 ```
 
 La región Andina emplea aproximadamente 580,000 personas en el sector manufacturero. Pacífica y Caribe registran niveles de empleo significativamente menores, reflejando las diferencias en escala de producción industrial entre las regiones del país.
@@ -112,7 +113,7 @@ La región Andina emplea aproximadamente 580,000 personas en el sector manufactu
 ## Productividad Laboral Regional
 
 ```{r fig11, fig.cap="Productividad laboral anual por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig11.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig11.png"))
 ```
 
 La productividad laboral presenta incrementos notables en todas las regiones durante 2022-2023, con Orinoquía y Caribe liderando. Este fenómeno sugiere procesos de modernización tecnológica y mejora en la eficiencia productiva regional.
@@ -122,7 +123,7 @@ La productividad laboral presenta incrementos notables en todas las regiones dur
 ## Establecimientos por Región y Sector
 
 ```{r fig12, fig.cap="Evolución anual de establecimientos únicos por región y sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig12.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig12.png"))
 ```
 
 En la Andina predominan confecciones y alimentos, mientras en Pacífica destaca alimentos. Cada región muestra especialización sectorial particular, con la Andina presentando mayor diversificación industrial comparada con las demás regiones.
@@ -130,7 +131,7 @@ En la Andina predominan confecciones y alimentos, mientras en Pacífica destaca 
 ## Valor Agregado por Región y Sector
 
 ```{r fig13, fig.cap="Evolución del valor agregado nominal por región y sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig13.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig13.png"))
 ```
 
 Alimentos en la región Andina domina la generación de valor agregado, alcanzando niveles superiores a 30 mil millones. En Orinoquía, el crecimiento reciente en alimentos indica potencial emergente de esta región en sectores específicos.
@@ -138,7 +139,7 @@ Alimentos en la región Andina domina la generación de valor agregado, alcanzan
 ## Personal Ocupado por Región y Sector
 
 ```{r fig14, fig.cap="Evolución del personal total por región y sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig14.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig14.png"))
 ```
 
 Alimentos y confecciones concentran el mayor empleo en la región Andina, con más de 120,000 y 70,000 trabajadores respectivamente. Las demás regiones presentan estructuras de empleo más concentradas en pocos sectores específicos.
@@ -146,7 +147,7 @@ Alimentos y confecciones concentran el mayor empleo en la región Andina, con m�
 ## Productividad Laboral por Región y Sector
 
 ```{r fig15, fig.cap="Productividad laboral anual por región y sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig15.png")
+knitr::include_graphics(project_path("Paper", "figures", "fig15.png"))
 ```
 
 La productividad sectorial varía significativamente entre regiones. Refinación química en Caribe y Orinoquía muestra picos notables superiores a 600,000, mientras sectores tradicionales mantienen niveles más estables, reflejando diferencias en intensidad tecnológica.

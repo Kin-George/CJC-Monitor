@@ -1,4 +1,6 @@
-setwd("~/Trabajo-Profesional/Javeriana")
+source(if (file.exists("Code/_paths.R")) "Code/_paths.R" else "_paths.R")
+setwd(PROJECT_ROOT)
+ensure_project_dirs()
 # Productividad laboral Calculo sectorial y  regional
 # Definicion: Productividad laboral: Medida que relaciona el valor agregado y el total de personal ocupado.
 #Mide la eficiencia laboral e indica que en promedio, cada empleado produjo determinado monto de
@@ -273,9 +275,9 @@ tabla_sector_anual <- base_stats %>%
     porcentaje_establecimientos = establecimientos_unicos / total_establecimientos
   )
 
-# Guardar tablas
-write.xlsx(tabla_total_anual, "Outputs/tables/tabla_total_anual.xlsx")
-write.xlsx(tabla_sector_anual, "Outputs/tables/tabla_sector_anual.xlsx")
+# Guardar tablas en Outputs/ y Paper/
+save_project_table(tabla_total_anual, "tabla_total_anual.xlsx")
+save_project_table(tabla_sector_anual, "tabla_sector_anual.xlsx")
 
 #--------------------------------------------
 # 4) Tema simple para gráficos
@@ -319,7 +321,7 @@ tabla_sector_anual <- tabla_sector_anual %>%
 #--------------------------------------------
 
 # 5.1 Cantidad anual total de establecimientos únicos
-ggplot(tabla_total_anual, aes(x = ANIO, y = establecimientos_unicos)) +
+fig1 <- ggplot(tabla_total_anual, aes(x = ANIO, y = establecimientos_unicos)) +
   geom_line(linewidth = 0.9) +
   geom_point(size = 1.8) +
   scale_y_continuous(labels = scales::comma) +
@@ -329,9 +331,10 @@ ggplot(tabla_total_anual, aes(x = ANIO, y = establecimientos_unicos)) +
     y = "Establecimientos"
   ) +
   tema_simple
+save_project_figure(fig1, "fig1.png")
 
 # 5.2 Evolución anual de establecimientos únicos por sector
-ggplot(tabla_sector_anual, aes(x = ANIO, y = establecimientos_unicos, color = SECTOR_HOM)) +
+fig2 <- ggplot(tabla_sector_anual, aes(x = ANIO, y = establecimientos_unicos, color = SECTOR_HOM)) +
   geom_line(linewidth = 1) +
   geom_point(size = 1.8) +
   scale_color_manual(values = colores_sectores) +
@@ -343,9 +346,10 @@ ggplot(tabla_sector_anual, aes(x = ANIO, y = establecimientos_unicos, color = SE
     y = "Establecimientos"
   ) +
   tema_simple
+save_project_figure(fig2, "fig2.png")
 
 # 5.3 Porcentaje anual de establecimientos por sector
-ggplot(tabla_sector_anual, aes(x = factor(ANIO), y = porcentaje_establecimientos, fill = SECTOR_HOM)) +
+fig3 <- ggplot(tabla_sector_anual, aes(x = factor(ANIO), y = porcentaje_establecimientos, fill = SECTOR_HOM)) +
   geom_col(width = 0.85) +
   scale_fill_manual(values = colores_sectores) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
@@ -357,9 +361,10 @@ ggplot(tabla_sector_anual, aes(x = factor(ANIO), y = porcentaje_establecimientos
   ) +
   tema_simple +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+save_project_figure(fig3, "fig3.png")
 
 # 5.4 Valor agregado total por sector y año
-ggplot(tabla_sector_anual, aes(x = ANIO, y = valor_agregado_total, color = SECTOR_HOM)) +
+fig4 <- ggplot(tabla_sector_anual, aes(x = ANIO, y = valor_agregado_total, color = SECTOR_HOM)) +
   geom_line(linewidth = 1) +
   geom_point(size = 1.8) +
   scale_color_manual(values = colores_sectores) +
@@ -371,9 +376,10 @@ ggplot(tabla_sector_anual, aes(x = ANIO, y = valor_agregado_total, color = SECTO
     y = "Valor agregado"
   ) +
   tema_simple
+save_project_figure(fig4, "fig4.png")
 
 # 5.5 Personal total por sector y año
-ggplot(tabla_sector_anual, aes(x = ANIO, y = personal_total, color = SECTOR_HOM)) +
+fig5 <- ggplot(tabla_sector_anual, aes(x = ANIO, y = personal_total, color = SECTOR_HOM)) +
   geom_line(linewidth = 1) +
   geom_point(size = 1.8) +
   scale_color_manual(values = colores_sectores) +
@@ -385,9 +391,10 @@ ggplot(tabla_sector_anual, aes(x = ANIO, y = personal_total, color = SECTOR_HOM)
     y = "Personal total"
   ) +
   tema_simple
+save_project_figure(fig5, "fig5.png")
 
 # 5.6 Productividad laboral total anual
-ggplot(tabla_sector_anual, aes(x = ANIO, y = productividad_laboral, color = SECTOR_HOM)) +
+fig6 <- ggplot(tabla_sector_anual, aes(x = ANIO, y = productividad_laboral, color = SECTOR_HOM)) +
   geom_line(linewidth = 1) +
   geom_point(size = 1.8) +
   scale_color_manual(values = colores_sectores) +
@@ -399,6 +406,7 @@ ggplot(tabla_sector_anual, aes(x = ANIO, y = productividad_laboral, color = SECT
     y = "Productividad laboral"
   ) +
   tema_simple
+save_project_figure(fig6, "fig6.png")
 
 # Productividad a nivel de regiones
 #--------------------------------------------
@@ -600,7 +608,7 @@ tema_simple <- theme_minimal(base_size = 12) +
     axis.title = element_text(face = "bold")
   )
 
-ggplot(tabla_region_anual, aes(x = ANIO, y = establecimientos_unicos, color = region)) +
+fig7 <- ggplot(tabla_region_anual, aes(x = ANIO, y = establecimientos_unicos, color = region)) +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
   scale_color_manual(values = colores_regiones) +
@@ -611,8 +619,9 @@ ggplot(tabla_region_anual, aes(x = ANIO, y = establecimientos_unicos, color = re
     y = "Establecimientos"
   ) +
   tema_simple
+save_project_figure(fig7, "fig7.png")
 
-ggplot(tabla_region_anual, aes(x = factor(ANIO), y = porcentaje_establecimientos, fill = region)) +
+fig8 <- ggplot(tabla_region_anual, aes(x = factor(ANIO), y = porcentaje_establecimientos, fill = region)) +
   geom_col(width = 0.85) +
   scale_fill_manual(values = colores_regiones) +
   scale_y_continuous(labels = percent_format(accuracy = 1)) +
@@ -623,8 +632,9 @@ ggplot(tabla_region_anual, aes(x = factor(ANIO), y = porcentaje_establecimientos
   ) +
   tema_simple +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+save_project_figure(fig8, "fig8.png")
 
-ggplot(tabla_region_anual, aes(x = ANIO, y = valor_agregado_total, color = region)) +
+fig9 <- ggplot(tabla_region_anual, aes(x = ANIO, y = valor_agregado_total, color = region)) +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
   scale_color_manual(values = colores_regiones) +
@@ -635,8 +645,9 @@ ggplot(tabla_region_anual, aes(x = ANIO, y = valor_agregado_total, color = regio
     y = "Valor agregado"
   ) +
   tema_simple
+save_project_figure(fig9, "fig9.png")
 
-ggplot(tabla_region_anual, aes(x = ANIO, y = personal_total, color = region)) +
+fig10 <- ggplot(tabla_region_anual, aes(x = ANIO, y = personal_total, color = region)) +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
   scale_color_manual(values = colores_regiones) +
@@ -647,8 +658,9 @@ ggplot(tabla_region_anual, aes(x = ANIO, y = personal_total, color = region)) +
     y = "Personal total"
   ) +
   tema_simple
+save_project_figure(fig10, "fig10.png")
 
-ggplot(tabla_region_anual, aes(x = ANIO, y = productividad_laboral, color = region)) +
+fig11 <- ggplot(tabla_region_anual, aes(x = ANIO, y = productividad_laboral, color = region)) +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
   scale_color_manual(values = colores_regiones) +
@@ -659,6 +671,7 @@ ggplot(tabla_region_anual, aes(x = ANIO, y = productividad_laboral, color = regi
     y = "Productividad laboral"
   ) +
   tema_simple
+save_project_figure(fig11, "fig11.png")
 
 # Por region y sector
 #--------------------------------------------
@@ -759,7 +772,7 @@ tema_simple <- theme_minimal(base_size = 12) +
     strip.text = element_text(face = "bold")
   )
 
-ggplot(tabla_region_sector_anual, aes(x = ANIO, y = establecimientos_unicos, color = SECTOR_HOM)) +
+fig12 <- ggplot(tabla_region_sector_anual, aes(x = ANIO, y = establecimientos_unicos, color = SECTOR_HOM)) +
   geom_line(linewidth = 1) +
   geom_point(size = 1.6) +
   facet_wrap(~ region, scales = "free_y") +
@@ -772,8 +785,9 @@ ggplot(tabla_region_sector_anual, aes(x = ANIO, y = establecimientos_unicos, col
     y = "Establecimientos"
   ) +
   tema_simple
+save_project_figure(fig12, "fig12.png", width = 11, height = 6.5)
 
-ggplot(tabla_region_sector_anual, aes(x = factor(ANIO), y = porcentaje_establecimientos, fill = SECTOR_HOM)) +
+fig12b <- ggplot(tabla_region_sector_anual, aes(x = factor(ANIO), y = porcentaje_establecimientos, fill = SECTOR_HOM)) +
   geom_col(width = 0.85) +
   facet_wrap(~ region) +
   scale_fill_manual(values = colores_sectores) +
@@ -786,8 +800,9 @@ ggplot(tabla_region_sector_anual, aes(x = factor(ANIO), y = porcentaje_estableci
   ) +
   tema_simple +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+save_project_figure(fig12b, "fig12b_participacion_region_sector.png", width = 11, height = 6.5)
 
-ggplot(tabla_region_sector_anual, aes(x = ANIO, y = valor_agregado_total, color = SECTOR_HOM)) +
+fig13 <- ggplot(tabla_region_sector_anual, aes(x = ANIO, y = valor_agregado_total, color = SECTOR_HOM)) +
   geom_line(linewidth = 1) +
   geom_point(size = 1.6) +
   facet_wrap(~ region, scales = "free_y") +
@@ -800,8 +815,9 @@ ggplot(tabla_region_sector_anual, aes(x = ANIO, y = valor_agregado_total, color 
     y = "Valor agregado"
   ) +
   tema_simple
+save_project_figure(fig13, "fig13.png", width = 11, height = 6.5)
 
-ggplot(tabla_region_sector_anual, aes(x = ANIO, y = personal_total, color = SECTOR_HOM)) +
+fig14 <- ggplot(tabla_region_sector_anual, aes(x = ANIO, y = personal_total, color = SECTOR_HOM)) +
   geom_line(linewidth = 1) +
   geom_point(size = 1.6) +
   facet_wrap(~ region, scales = "free_y") +
@@ -814,8 +830,9 @@ ggplot(tabla_region_sector_anual, aes(x = ANIO, y = personal_total, color = SECT
     y = "Personal total"
   ) +
   tema_simple
+save_project_figure(fig14, "fig14.png", width = 11, height = 6.5)
 
-ggplot(tabla_region_sector_anual, aes(x = ANIO, y = productividad_laboral, color = SECTOR_HOM)) +
+fig15 <- ggplot(tabla_region_sector_anual, aes(x = ANIO, y = productividad_laboral, color = SECTOR_HOM)) +
   geom_line(linewidth = 1) +
   geom_point(size = 1.6) +
   facet_wrap(~ region, scales = "free_y") +
@@ -828,6 +845,7 @@ ggplot(tabla_region_sector_anual, aes(x = ANIO, y = productividad_laboral, color
     y = "Productividad laboral"
   ) +
   tema_simple
+save_project_figure(fig15, "fig15.png", width = 11, height = 6.5)
 
 # ============================================================================
 # Script completo en R para procesar datos GEIH y generar visualizaciones
