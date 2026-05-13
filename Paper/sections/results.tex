@@ -8,3 +8,26 @@ Present the main results.
   \caption{Evolution of unique establishments}
   \label{fig:establishments}
 \end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig2.png}
+  \caption{Evolution of unique establishments by sector}
+  \label{fig:establishments-sector}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig7.png}
+  \caption{Evolution of unique establishments by region}
+  \label{fig:establishments-region}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Annual national summary}
+  \label{tab:total-annual}
+  \resizebox{\textwidth}{!}{%
+    \csvautotabular{\tablepath tabla_total_anual.csv}
+  }
+\end{table}
