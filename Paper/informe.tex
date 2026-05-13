@@ -9,11 +9,11 @@
 \usepackage{geometry}
 \usepackage{hyperref}
 \usepackage{natbib}
-\usepackage{csvsimple}
 
 \geometry{margin=1in}
-\graphicspath{{figures/}}
-\newcommand{\tablepath}{tables/}
+\graphicspath{{Paper/figures/}{figures/}}
+\newcommand{\sectionpath}{Paper/sections/}
+\newcommand{\tablepath}{Paper/tables/}
 
 \title{Informe CJC Monitor}
 \author{Centro Javeriano de Competitividad}
@@ -27,12 +27,12 @@
 
 Escriba aqui los principales mensajes del informe.
 
-\input{sections/data}
-\input{sections/methodology}
-\input{sections/results}
-\input{sections/conclusion}
+\input{\sectionpath data}
+\input{\sectionpath methodology}
+\input{\sectionpath results}
+\input{\sectionpath conclusion}
 
 \bibliographystyle{apalike}
-\bibliography{references}
+\bibliography{Paper/references}
 
 \end{document}

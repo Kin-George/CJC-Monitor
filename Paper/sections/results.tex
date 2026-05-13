@@ -27,7 +27,11 @@ Present the main results.
   \centering
   \caption{Annual national summary}
   \label{tab:total-annual}
-  \resizebox{\textwidth}{!}{%
-    \csvautotabular{\tablepath tabla_total_anual.csv}
-  }
+  \begin{tabular}{lrrrr}
+    \toprule
+    Year & Establishments & Value added & Employment & Productivity \\
+    \midrule
+    2024 & -- & -- & -- & -- \\
+    \bottomrule
+  \end{tabular}
 \end{table}

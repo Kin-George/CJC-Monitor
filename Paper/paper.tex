@@ -9,11 +9,11 @@
 \usepackage{geometry}
 \usepackage{hyperref}
 \usepackage{natbib}
-\usepackage{csvsimple}
 
 \geometry{margin=1in}
-\graphicspath{{figures/}}
-\newcommand{\tablepath}{tables/}
+\graphicspath{{Paper/figures/}{figures/}}
+\newcommand{\sectionpath}{Paper/sections/}
+\newcommand{\tablepath}{Paper/tables/}
 
 \title{CJC Monitor}
 \author{Centro Javeriano de Competitividad}
@@ -27,13 +27,13 @@
 This paper summarizes the motivation, data, methods, and main findings of the CJC Monitor project.
 \end{abstract}
 
-\input{sections/introduction}
-\input{sections/data}
-\input{sections/methodology}
-\input{sections/results}
-\input{sections/conclusion}
+\input{\sectionpath introduction}
+\input{\sectionpath data}
+\input{\sectionpath methodology}
+\input{\sectionpath results}
+\input{\sectionpath conclusion}
 
 \bibliographystyle{apalike}
-\bibliography{references}
+\bibliography{Paper/references}
 
 \end{document}
