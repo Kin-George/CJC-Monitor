@@ -9,10 +9,10 @@
 \usepackage{geometry}
 \usepackage{hyperref}
 \usepackage{natbib}
+\usepackage{longtable}
 
 \geometry{margin=1in}
 \graphicspath{{Paper/figures/}{figures/}}
-\newcommand{\sectionpath}{Paper/sections/}
 \newcommand{\tablepath}{Paper/tables/}
 
 \title{CJC Monitor}
@@ -27,11 +27,11 @@
 This paper summarizes the motivation, data, methods, and main findings of the CJC Monitor project.
 \end{abstract}
 
-\input{\sectionpath introduction}
-\input{\sectionpath data}
-\input{\sectionpath methodology}
-\input{\sectionpath results}
-\input{\sectionpath conclusion}
+\input{Paper/sections/introduction}
+\input{Paper/sections/data}
+\input{Paper/sections/methodology}
+\input{Paper/sections/results}
+\input{Paper/sections/conclusion}
 
 \bibliographystyle{apalike}
 \bibliography{Paper/references}
