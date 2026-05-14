@@ -8,7 +8,7 @@ library(stringr)
 library(readr)
 library(tibble)
 setwd("~/Trabajo-Profesional/Javeriana")
-
+ruta_graficos <- "Paper\figures"  # <-- cambia esta ruta por la que tú quieras
 options(scipen = 999)
 
 #========================================================
@@ -2138,7 +2138,7 @@ g_2008_2025_tamano <- graficar_2008_2025_tamano(
 g_2008_2025_tamano
 
 # Nivel educativo
-nivel_elegido <- "Media"
+nivel_elegido <- "Superior o universitaria"
 
 # Opciones:
 # "Ninguno"
@@ -2163,7 +2163,7 @@ g_nivel_educativo
 
 # Informalidad
 
-formalidad_elegida <- "Formal"
+formalidad_elegida <- "Informal"
 
 df_formalidad <- formalidad_size_2008_2025 %>%
   filter(formalidad_label == formalidad_elegida)
@@ -2193,7 +2193,7 @@ g_sexo_tamano_facet <- graficar_2008_2025_tamano(
 g_sexo_tamano_facet
 
 # Sector
-sector_elegido <- "Organizaciones extraterritoriales"
+sector_elegido <- "Agricultura, ganadería, silvicultura y pesca"
 
 # Puedes revisar opciones con:
 sectores_disponibles
