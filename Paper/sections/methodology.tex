@@ -1,3 +1,104 @@
 \section{Methodology}
 
-Describe the empirical strategy and main indicators.
+\subsection{Descriptive Premiums}
+
+We begin by documenting the raw firm-size gradient in real hourly labor income.
+For each firm-size group \(g\) and year \(t\), we compute the weighted mean:
+
+\[
+  \bar{w}_{gt} =
+  \frac{\sum_{i \in (g,t)} fex_{it} w_{it}^{real}}
+       {\sum_{i \in (g,t)} fex_{it}},
+\]
+
+where \(fex_{it}\) is the GEIH expansion factor. We also compute the employment
+share of each firm-size group:
+
+\[
+  s_{gt} =
+  \frac{\sum_{i \in (g,t)} fex_{it}}
+       {\sum_{i \in t} fex_{it}}.
+\]
+
+These two objects are used in the descriptive figures: the vertical position of
+each point shows real hourly labor income, and the bubble size shows the share of
+employment represented by each firm-size group. For the comparison between 2008
+and 2025, the descriptive difference for group \(g\) is:
+
+\[
+  Diff_g = 100 \times
+  \left(\frac{\bar{w}_{g,2025}}{\bar{w}_{g,2008}} - 1\right).
+\]
+
+\subsection{Econometric Specification}
+
+The main econometric exercise estimates the conditional firm-size wage premium
+in a log-wage model. The baseline specification is:
+
+\[
+  \ln(w_{it}^{real}) =
+  \alpha
+  + \sum_{g \neq g_0} \beta_g \mathbf{1}\{Size_{it}=g\}
+  + X_{it}'\gamma
+  + \lambda_{s(i) \times t}
+  + \varepsilon_{it},
+\]
+
+where \(w_{it}^{real}\) is real hourly labor income for worker \(i\) in year
+\(t\), \(Size_{it}\) is the harmonized firm-size category, and \(g_0\) is the
+reference group. We use firms with 2-3 workers as the reference category. This
+choice avoids using solo workers as the omitted category, since solo workers may
+mix wage employment and self-employment dynamics that differ from standard
+employment relationships.
+
+The vector \(X_{it}\) includes a female-worker indicator, education dummies, and
+a formal-employment indicator. The fixed effect \(\lambda_{s(i) \times t}\)
+absorbs sector-year conditions, allowing each broad sector to have its own wage
+level in each year. This is important because large firms are not randomly
+distributed across sectors, and sectoral shocks may be correlated with both wages
+and firm size. The model is estimated with GEIH expansion weights, and standard
+errors are clustered by sector.
+
+The coefficients \(\beta_g\) are log-point differences relative to the 2-3 worker
+reference group. For interpretation, we transform them into percentage premiums:
+
+\[
+  Premium_g = 100 \times \left(\exp(\hat{\beta}_g)-1\right).
+\]
+
+Confidence intervals are transformed in the same way:
+
+\[
+  CI_g =
+  \left[
+  100 \times \left(\exp(\hat{\beta}_g - 1.96\,se(\hat{\beta}_g))-1\right),
+  100 \times \left(\exp(\hat{\beta}_g + 1.96\,se(\hat{\beta}_g))-1\right)
+  \right].
+\]
+
+The graphical test of statistical significance is therefore direct: if the 95\%
+confidence interval for a firm-size group excludes zero, the conditional premium
+is statistically significant at the 5\% level. If the interval crosses zero, the
+estimated premium is not statistically distinguishable from zero at conventional
+levels.
+
+\subsection{Extensions}
+
+The same framework can be extended to study the evolution of the premium over
+time by interacting firm-size categories with year indicators:
+
+\[
+  \ln(w_{it}^{real}) =
+  \alpha
+  + \sum_{g \neq g_0}\sum_t
+    \beta_{gt}\mathbf{1}\{Size_{it}=g\}\mathbf{1}\{Year_i=t\}
+  + X_{it}'\gamma
+  + \lambda_{s(i) \times t}
+  + \varepsilon_{it}.
+\]
+
+This dynamic specification produces a sequence of firm-size premiums by year and
+can be used to assess whether the premium has widened, narrowed, or remained
+stable. Additional robustness checks can add region-year or occupation-year
+fixed effects once those variables are fully harmonized in the person-level
+panel.
