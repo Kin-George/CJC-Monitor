@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
   out.width = '75%',
   dpi = 600
 )
+source(if (file.exists("Code/_paths.R")) "Code/_paths.R" else "_paths.R")
 ```
 
 ```{r}
@@ -33,9 +34,14 @@ library(ggrepel)
 # Ruta base
 setwd("~/Trabajo-Profesional/Javeriana")
 
+
 # Cargar datos
 consolidadosector <- read_excel("Datos/Processed/consolidadosector.xlsx")
 geih_2025 <- read_excel("Datos/Processed/INGLABO_secciones_tamano_empresa_2025.xlsx")
+
+# Análisis Nacional
+
+knitr::include_graphics(project_path("Paper", "figures", "fig1.png"))
 ```
 
 ```{r}
@@ -48,6 +54,7 @@ wmean_safe <- function(x, w) {
   if (sum(ok) == 0) return(NA_real_)
   weighted.mean(x[ok], w[ok])
 }
+
 
 #========================================================
 # Función segura para correlación ponderada
@@ -248,6 +255,7 @@ df_emp <- geih_2025 %>%
       )
     )
   )
+
 ```
 
 
@@ -263,7 +271,6 @@ g1_participacion_sector <- grafico_barras_mejorado(
   formato = "porcentaje"
 )
 
-g1_participacion_sector
 ```
 
 - El empleo no está distribuido de manera uniforme entre los sectores.
@@ -280,7 +287,6 @@ g2_ingreso_hora_sector <- grafico_barras_mejorado(
   formato = "numero"
 )
 
-g2_ingreso_hora_sector
 ```
 
 - Los sectores que más empleo concentran no necesariamente son los que tienen mejores ingresos por hora.

@@ -1,0 +1,39 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, english]{babel}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{longtable}
+
+\geometry{margin=1in}
+\graphicspath{{Paper/figures/}{figures/}}
+\newcommand{\tablepath}{Paper/tables/}
+
+\title{CJC Monitor}
+\author{Centro Javeriano de Competitividad}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper summarizes the motivation, data, methods, and main findings of the CJC Monitor project.
+\end{abstract}
+
+\input{Paper/sections/introduction}
+\input{Paper/sections/data}
+\input{Paper/sections/methodology}
+\input{Paper/sections/results}
+\input{Paper/sections/conclusion}
+
+\bibliographystyle{apalike}
+\bibliography{Paper/references}
+
+\end{document}

@@ -1,4 +1,6 @@
-setwd("~/Trabajo-Profesional/Javeriana")
+source(if (file.exists("Code/_paths.R")) "Code/_paths.R" else "_paths.R")
+setwd(PROJECT_ROOT)
+ensure_project_dirs()
 # Productividad laboral Calculo sectorial y  regional
 # Definicion: Productividad laboral: Medida que relaciona el valor agregado y el total de personal ocupado.
 #Mide la eficiencia laboral e indica que en promedio, cada empleado produjo determinado monto de
@@ -477,5 +479,5 @@ colnames(eam_2024_ciiu2)<-c("CIIU", "Sector", "Nac_Mujeres_Cat1", "Nac_Hombres_C
                             "TotalMoney_Cat1", "TotalMoney_Cat2", "TotalMoney_Cat3", "TotalMoney",
                             "ValorAgregado", "PERTOTAL", "PERTEMP", "PERPERMA", "#Establecimientos", "#Empresas")
 # Hacer los diferentes calculos
-write.xlsx(eam_2024_ciiu2, "EAM_2024Sectores2.xlsx")
+save_project_table(eam_2024_ciiu2, "EAM_2024Sectores2.xlsx")
 
