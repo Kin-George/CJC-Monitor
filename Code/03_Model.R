@@ -211,6 +211,82 @@ ggsave(
   dpi = 300
 )
 
+g_beta_tamano <- ggplot(
+  betas_tamano,
+  aes(
+    x = tamano_empresa,
+    y = estimate
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.7
+  ) +
+  geom_errorbar(
+    aes(
+      ymin = conf.low,
+      ymax = conf.high,
+      color = significativo
+    ),
+    width = 0.15,
+    linewidth = 0.9
+  ) +
+  geom_point(
+    aes(color = significativo),
+    size = 3.8
+  ) +
+  geom_label(
+    aes(
+      label = sprintf("%.3f", estimate)
+    ),
+    fill = "black",
+    color = "white",
+    fontface = "bold",
+    size = 3.6,
+    vjust = -0.8,
+    linewidth = 0.15,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(
+    values = c(
+      "TRUE" = "darkblue",
+      "FALSE" = "gray55"
+    ),
+    labels = c(
+      "TRUE" = "Significativo al 5%",
+      "FALSE" = "No significativo"
+    )
+  ) +
+  scale_y_continuous(
+    labels = number_format(accuracy = 0.01),
+    expand = expansion(mult = c(0.12, 0.18))
+  ) +
+  labs(
+    title = "Firm-size coefficients in the full specification",
+    subtitle = "Column (4): gender, education, formality, and sector-year fixed effects",
+    x = "Tamaño de empresa",
+    y = "Coeficiente estimado en log puntos",
+    color = NULL
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom"
+  )
+
+ggsave(
+  filename = "Paper/figures/fig58.png",
+  plot = g_beta_tamano,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
 
 #========================================================
 # 4. Tabla de regresion tipo paper
