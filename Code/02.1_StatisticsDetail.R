@@ -17,11 +17,360 @@ library(viridis)
 library(grid)
 library(haven)
 library(openxlsx)
+library(tidyr)
+library(readxl)
 # Tablas con lo disponible
 # Productividad laboral = Valor agregado real / total de personal ocupado 
-# 1. Estadisticas descriptivas de la base de datos
 
+# Entender la EAM - Replica boletin tecnico
 eam_2024 <- read_dta("Datos/Raw/EAM/EAM_2024.dta")
+# Grafico 1. Resumen de variables principales (Billones de pesos)
+resumen_eam <- eam_2024 %>%
+  summarise(
+    Producción_Bruta = sum(PRODBR2, na.rm = TRUE),
+    Consumo_Intermedio = sum(CONSIN2, na.rm = TRUE),
+    Valor_Agregado = sum(VALAGRI, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "Variable",
+    values_to = "Valor_pesos"
+  ) %>%
+  mutate(
+    Valor_billones = Valor_pesos / 1e9
+  )
+
+
+ggplot(resumen_eam, aes(x = Valor_billones, y = Variable, fill = Variable)) +
+  geom_col(height = 0.6) +
+  geom_text(
+    aes(label = round(Valor_billones, 1)),
+    hjust = -0.1,
+    size = 4
+  ) +
+  labs(
+    title = "EAM 2024 – Resumen de variables principales",
+    subtitle = "Billones de pesos corrientes",
+    x = "Billones de pesos corrientes",
+    y = NULL
+  ) +
+  scale_x_continuous(
+    labels = label_number(decimal.mark = ",", big.mark = ".", accuracy = 0.1),
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold"),
+    axis.text.y = element_text(face = "bold")
+  )
+
+### Conclusion: Las variables de valor agregado y otras, estan en MILES DE PESOS.
+
+# Numero de establecimientos
+resumen_empleo_eam <- eam_2024 %>%
+  summarise(
+    establecimientos = n_distinct(nordest),
+    
+    total_empleados = sum(PERTOTAL, na.rm = TRUE),
+    
+    empleados_directos = sum(PPERYTEM, na.rm = TRUE),
+    
+    empleados_permanentes = sum(PERSOCU, na.rm = TRUE),
+    
+    empleados_temporales_directos = sum(PERTEM3, na.rm = TRUE),
+    
+    empleados_empresas_especializadas = sum(
+      c4r4c7t+c4r4c8t,
+      na.rm = TRUE
+    ),
+    
+    aprendices = sum(c4r6tm + c4r6th, na.rm = TRUE),
+    
+    propietarios = sum(c4r4c1t + c4r4c2t, na.rm = TRUE)
+  )
+
+resumen_empleo_eam
+# No da exacto pero estos son los calculos correctos.
+
+# Gráfico 3. Remuneraciones causadas: sueldos, salarios y prestaciones
+
+resumen_remuneraciones <- eam_2024 %>%
+  summarise(
+    Prestaciones = sum(PRESPYTE, na.rm = TRUE),
+    `Sueldos y salarios` = sum(SALPEYTE, na.rm = TRUE),
+    Remuneraciones = sum(Prestaciones+`Sueldos y salarios`, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "Variable",
+    values_to = "Valor_pesos"
+  ) %>%
+  mutate(
+    Valor_billones = Valor_pesos / 1e9,
+    Variable = factor(
+      Variable,
+      levels = c("Remuneraciones", "Sueldos y salarios", "Prestaciones")
+    )
+  )
+
+ggplot(resumen_remuneraciones, aes(x = Variable, y = Valor_billones, fill = Variable)) +
+  geom_col(width = 0.45) +
+  geom_text(
+    aes(label = label_number(decimal.mark = ",", accuracy = 0.1)(Valor_billones)),
+    vjust = -0.4,
+    size = 4
+  ) +
+  labs(
+    title = "EAM 2024 – Remuneraciones causadas",
+    subtitle = "Sueldos, salarios y prestaciones. Billones de pesos corrientes",
+    x = NULL,
+    y = "Billones de pesos"
+  ) +
+  scale_y_continuous(
+    labels = label_number(decimal.mark = ",", big.mark = ".", accuracy = 0.1),
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold"),
+    axis.text.x = element_text(face = "bold")
+  )
+
+### Da muy similar.
+
+# Cuadro producción bruta por grupo industrial CIIU Rev.4
+ciiu_dic <- read_excel("DocumentacionAuxiliar/Estructura-detallada-CIIU-4AC-2022.xlsx")
+
+# Filtrar manufacturas: desde SECCIÓN C hasta antes de SECCIÓN D
+fila_inicio <- which(ciiu_dic$`División` == "SECCIÓN C")
+fila_fin <- which(ciiu_dic$`División` == "SECCIÓN D") - 1
+
+ciiu_manufacturas <- ciiu_dic[fila_inicio:fila_fin, ] %>%
+  slice(-1)
+
+# OJO: llenar División y Grupo, pero NO Clase
+ciiu_manufacturas_fill <- ciiu_manufacturas %>%
+  fill(`División`, Grupo, .direction = "down")
+
+# Diccionario clase 4 dígitos -> grupo 3 dígitos
+ciiu_clase_grupo <- ciiu_manufacturas_fill %>%
+  filter(!is.na(Clase)) %>%
+  select(
+    CIIU_4d = Clase,
+    CIIU_3d = Grupo
+  ) %>%
+  distinct(CIIU_4d, .keep_all = TRUE)
+
+# Descripción del grupo a 3 dígitos
+ciiu_grupos <- ciiu_manufacturas %>%
+  filter(!is.na(Grupo)) %>%
+  select(
+    CIIU_3d = Grupo,
+    DescripcionGrupo = `Descripción`
+  ) %>%
+  distinct(CIIU_3d, .keep_all = TRUE)
+
+# Pegar a EAM
+eam_2024_grupo <- eam_2024 %>%
+  mutate(
+    CIIU_4d = stringr::str_pad(as.character(ciiu4), 4, pad = "0")
+  ) %>%
+  left_join(ciiu_clase_grupo, by = "CIIU_4d") %>%
+  left_join(ciiu_grupos, by = "CIIU_3d")
+
+# Ya tenemos la seccion de manufactura
+
+# Cuadro 1. Producción bruta por grupo industrial CIIU Rev.4
+
+cuadro_1_base <- eam_2024_grupo %>%
+  group_by(CIIU_3d, DescripcionGrupo) %>%
+  summarise(
+    Produccion_bruta = sum(PRODBR2, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    Produccion_bruta_millones = Produccion_bruta / 1000
+  ) %>%
+  arrange(desc(Produccion_bruta_millones))
+
+total_prod <- sum(cuadro_1_base$Produccion_bruta_millones, na.rm = TRUE)
+
+cuadro_1_base <- cuadro_1_base %>%
+  mutate(
+    Part_pct = 100 * Produccion_bruta_millones / total_prod
+  )
+
+cuadro_1_top <- cuadro_1_base %>%
+  slice_head(n = 17)
+
+cuadro_1_resto <- cuadro_1_base %>%
+  slice(-(1:17)) %>%
+  summarise(
+    CIIU_3d = "",
+    DescripcionGrupo = "Resto de industria",
+    Produccion_bruta_millones = sum(Produccion_bruta_millones, na.rm = TRUE),
+    Part_pct = sum(Part_pct, na.rm = TRUE)
+  )
+
+cuadro_1_total <- tibble(
+  CIIU_3d = "Total",
+  DescripcionGrupo = "",
+  Produccion_bruta_millones = total_prod,
+  Part_pct = 100
+)
+
+cuadro_1 <- bind_rows(
+  cuadro_1_total,
+  cuadro_1_top,
+  cuadro_1_resto
+) %>%
+  mutate(
+    Produccion_bruta_millones = round(Produccion_bruta_millones, 0),
+    Part_pct = round(Part_pct, 1)
+  ) %>%
+  rename(
+    `Grupo industrial CIIU Rev.4` = CIIU_3d,
+    Descripción = DescripcionGrupo,
+    `Millones de pesos Producción bruta` = Produccion_bruta_millones,
+    `Part.%` = Part_pct
+  )
+
+# No se por que no da igual
+
+# =====================================================
+# CUADRO 2. Personal ocupado con descripción
+# =====================================================
+
+cuadro_2_base <- eam_2024_grupo %>%
+  group_by(CIIU_3d, DescripcionGrupo) %>%
+  summarise(
+    Personal_ocupado = sum(PERTOTAL, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Personal_ocupado))
+
+total_personal <- sum(cuadro_2_base$Personal_ocupado, na.rm = TRUE)
+
+cuadro_2_base <- cuadro_2_base %>%
+  mutate(
+    Part_pct = 100 * Personal_ocupado / total_personal
+  )
+
+cuadro_2_top <- cuadro_2_base %>%
+  slice_head(n = 18)
+
+cuadro_2_resto <- cuadro_2_base %>%
+  slice(-(1:18)) %>%
+  summarise(
+    CIIU_3d = "",
+    DescripcionGrupo = "Resto de industria",
+    Personal_ocupado = sum(Personal_ocupado, na.rm = TRUE),
+    Part_pct = sum(Part_pct, na.rm = TRUE)
+  )
+
+cuadro_2_total <- tibble(
+  CIIU_3d = "Total",
+  DescripcionGrupo = "",
+  Personal_ocupado = total_personal,
+  Part_pct = 100
+)
+
+cuadro_2 <- bind_rows(
+  cuadro_2_total,
+  cuadro_2_top,
+  cuadro_2_resto
+) %>%
+  mutate(
+    Personal_ocupado = round(Personal_ocupado, 0),
+    Part_pct = round(Part_pct, 1)
+  ) %>%
+  rename(
+    `Grupo industrial CIIU Rev.4` = CIIU_3d,
+    Descripción = DescripcionGrupo,
+    `Personal ocupado` = Personal_ocupado,
+    `Part.%` = Part_pct
+  )
+
+# =====================================================
+# GRÁFICO 8. Valor agregado con descripción
+# =====================================================
+
+grafico_8_base <- eam_2024_grupo %>%
+  group_by(CIIU_3d, DescripcionGrupo) %>%
+  summarise(
+    Valor_agregado = sum(VALAGRI, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    Part_pct = 100 * Valor_agregado / sum(Valor_agregado, na.rm = TRUE)
+  ) %>%
+  arrange(desc(Part_pct))
+
+grafico_8_top <- grafico_8_base %>%
+  slice_head(n = 17)
+
+grafico_8_resto <- grafico_8_base %>%
+  slice(-(1:17)) %>%
+  summarise(
+    CIIU_3d = "",
+    DescripcionGrupo = "Resto de industria",
+    Valor_agregado = sum(Valor_agregado, na.rm = TRUE),
+    Part_pct = sum(Part_pct, na.rm = TRUE)
+  )
+
+grafico_8_data <- bind_rows(
+  grafico_8_top,
+  grafico_8_resto
+) %>%
+  mutate(
+    Part_pct = round(Part_pct, 1),
+    DescripcionGrupo = factor(DescripcionGrupo, levels = rev(DescripcionGrupo))
+  )
+
+ggplot(grafico_8_data, aes(x = Part_pct, y = DescripcionGrupo, fill = DescripcionGrupo)) +
+  geom_col(height = 0.6) +
+  geom_text(
+    aes(label = label_number(decimal.mark = ",", accuracy = 0.1)(Part_pct)),
+    hjust = -0.1,
+    size = 3.8
+  ) +
+  labs(
+    title = "EAM 2024 – Grupos industriales con mayor participación en valor agregado",
+    subtitle = "Total nacional",
+    x = "Porcentaje",
+    y = "Grupos industriales"
+  ) +
+  scale_x_continuous(
+    labels = label_number(decimal.mark = ",", accuracy = 0.1),
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold"),
+    axis.text.y = element_text(face = "bold")
+  )
+
+# Estadisticas descriptivas de establecimientos que reportan 0, no reportan y si reportan 
+resumen_valor_agregado_est <- eam_2024 %>%
+  summarise(
+    total_establecimientos = n_distinct(nordest),
+    
+    establecimientos_valor_agregado_missing = n_distinct(nordest[is.na(VALAGRI)]),
+    
+    establecimientos_valor_agregado_cero = n_distinct(nordest[!is.na(VALAGRI) & VALAGRI == 0]),
+    
+    establecimientos_valor_agregado_positivo = n_distinct(nordest[!is.na(VALAGRI) & VALAGRI > 0]),
+    
+    establecimientos_valor_agregado_negativo = n_distinct(nordest[!is.na(VALAGRI) & VALAGRI < 0])
+  )
+
+resumen_valor_agregado_est
+
+
+
 # Quedarme con variables relevantes
 # Grupos seleccionados
 # Profesional, tecnico o tecnologo

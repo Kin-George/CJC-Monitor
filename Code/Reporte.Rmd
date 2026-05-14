@@ -1,10 +1,10 @@
 ---
-title: "Análisis de la Industria Manufacturera Colombiana"
-author: "Reporte Estadístico"
+title: "Cuando el tamaño importa: empleo e ingresos por hora en Colombia"
+author: "Una mirada sectorial al trabajo, los ingresos y el tamaño de las empresas en 2025"
 date: "`r Sys.Date()`"
 output: 
   html_document:
-    theme: flatly
+    theme: cerulean
     toc: true
     toc_float: true
     number_sections: true
@@ -15,150 +15,481 @@ knitr::opts_chunk$set(
   echo = FALSE,
   message = FALSE,
   warning = FALSE,
-  fig.align = 'center',
-  out.width = '100%',
+  fig.align = 'left',
+  out.width = '75%',
   dpi = 600
 )
 ```
 
-# Resumen Ejecutivo
+```{r}
+library(dplyr)
+library(stringr)
+library(scales)
+library(ggplot2)
+library(readxl)
+library(tidyr)
+library(ggrepel)
 
-Este documento presenta un análisis integral de la evolución de la industria manufacturera en Colombia, abarcando aspectos de establecimientos, producción, empleo y productividad a nivel nacional y regional.
+# Ruta base
+setwd("~/Trabajo-Profesional/Javeriana")
 
-# Análisis Nacional
-
-## Cantidad de Establecimientos Únicos
-
-```{r fig1, fig.cap="Evolución temporal de establecimientos únicos"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig1.png")
+# Cargar datos
+consolidadosector <- read_excel("Datos/Processed/consolidadosector.xlsx")
+geih_2025 <- read_excel("Datos/Processed/INGLABO_secciones_tamano_empresa_2025.xlsx")
 ```
 
-La cantidad de establecimientos únicos muestra una tendencia creciente hasta 2010, alcanzando un pico cercano a los 10,000 establecimientos. Posteriormente se observa un descenso sostenido, reflejando posibles procesos de consolidación industrial y desafíos económicos del sector manufacturero.
+```{r}
+#========================================================
+# Función segura para promedio ponderado
+#========================================================
 
-## Evolución por Sector Económico
+wmean_safe <- function(x, w) {
+  ok <- !is.na(x) & !is.na(w) & w > 0
+  if (sum(ok) == 0) return(NA_real_)
+  weighted.mean(x[ok], w[ok])
+}
 
-```{r fig2, fig.cap="Evolución anual de establecimientos únicos por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig2.png")
+#========================================================
+# Función segura para correlación ponderada
+#========================================================
+
+wcor_safe <- function(x, y, w) {
+  ok <- !is.na(x) & !is.na(y) & !is.na(w) & w > 0
+  
+  x <- x[ok]
+  y <- y[ok]
+  w <- w[ok]
+  
+  if (length(x) < 3) return(NA_real_)
+  if (length(unique(x)) < 3) return(NA_real_)
+  if (length(unique(y)) < 3) return(NA_real_)
+  
+  mx <- weighted.mean(x, w)
+  my <- weighted.mean(y, w)
+  
+  cov_xy <- sum(w * (x - mx) * (y - my)) / sum(w)
+  var_x  <- sum(w * (x - mx)^2) / sum(w)
+  var_y  <- sum(w * (y - my)^2) / sum(w)
+  
+  if (var_x == 0 | var_y == 0) return(NA_real_)
+  
+  cov_xy / sqrt(var_x * var_y)
+}
+
+#========================================================
+# Etiquetas cortas para sectores CIIU
+#========================================================
+
+crear_sector_corto <- function(seccion) {
+  case_when(
+    seccion == "A" ~ "A - Agro y pesca",
+    seccion == "B" ~ "B - Minas",
+    seccion == "C" ~ "C - Manufactura",
+    seccion == "D" ~ "D - Electricidad y gas",
+    seccion == "E" ~ "E - Agua y residuos",
+    seccion == "F" ~ "F - Construcción",
+    seccion == "G" ~ "G - Comercio",
+    seccion == "H" ~ "H - Transporte",
+    seccion == "I" ~ "I - Alojamiento y comida",
+    seccion == "J" ~ "J - Información y comunicaciones",
+    seccion == "K" ~ "K - Finanzas y seguros",
+    seccion == "L" ~ "L - Inmobiliarias",
+    seccion == "M" ~ "M - Profesionales y técnicas",
+    seccion == "N" ~ "N - Servicios administrativos",
+    seccion == "O" ~ "O - Administración pública",
+    seccion == "P" ~ "P - Educación",
+    seccion == "Q" ~ "Q - Salud y asistencia social",
+    seccion == "R" ~ "R - Arte y recreación",
+    seccion == "S" ~ "S - Otros servicios",
+    seccion == "T" ~ "T - Hogares empleadores",
+    seccion == "U" ~ "U - Org. extraterritoriales",
+    TRUE ~ seccion
+  )
+}
+
+#========================================================
+# Función para gráficos de barras con labels cortos
+#========================================================
+
+grafico_barras_mejorado <- function(data, variable, titulo, subtitulo = NULL,
+                                    xlab = NULL, formato = c("numero", "porcentaje")) {
+  
+  formato <- match.arg(formato)
+  
+  df_plot <- data %>%
+    mutate(
+      valor = {{ variable }},
+      rank_top = min_rank(desc(valor)),
+      rank_bottom = min_rank(valor),
+      grupo_color = case_when(
+        rank_top <= 5 ~ "Top 5",
+        rank_bottom <= 5 ~ "Bottom 5",
+        TRUE ~ "Resto"
+      )
+    ) %>%
+    arrange(valor) %>%
+    mutate(
+      sector_label_corto = factor(sector_label_corto, levels = sector_label_corto)
+    )
+  
+  if (formato == "porcentaje") {
+    df_plot <- df_plot %>%
+      mutate(etiqueta = percent(valor, accuracy = 0.1))
+    
+    escala_y <- scale_y_continuous(
+      labels = label_percent(accuracy = 0.1),
+      expand = expansion(mult = c(0, 0.18))
+    )
+  } else {
+    df_plot <- df_plot %>%
+      mutate(etiqueta = comma(valor, accuracy = 1))
+    
+    escala_y <- scale_y_continuous(
+      labels = label_comma(),
+      expand = expansion(mult = c(0, 0.18))
+    )
+  }
+  
+  ggplot(df_plot, aes(x = sector_label_corto, y = valor, fill = grupo_color)) +
+    geom_col(width = 0.72) +
+    geom_text(
+      aes(label = etiqueta),
+      hjust = -0.08,
+      size = 3.2
+    ) +
+    coord_flip(clip = "off") +
+    escala_y +
+    scale_fill_manual(
+      values = c(
+        "Top 5" = "darkgreen",
+        "Bottom 5" = "darkred",
+        "Resto" = "grey70"
+      )
+    ) +
+    labs(
+      title = titulo,
+      subtitle = subtitulo,
+      x = xlab,
+      y = NULL,
+      fill = NULL
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      plot.title = element_text(face = "bold", size = 14),
+      plot.subtitle = element_text(size = 11),
+      axis.text.y = element_text(size = 9),
+      axis.text.x = element_text(size = 10),
+      legend.position = "none",
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.margin = margin(5.5, 35, 5.5, 5.5)
+    )
+}
 ```
 
-El sector de alimentos y bebidas lidera consistentemente en número de establecimientos, seguido por confecciones y muebles. Se evidencia una diversificación sectorial estable a lo largo del período analizado, con reducción generalizada post-2015 en la mayoría de sectores.
+```{r}
+#========================================================
+# Base consolidada por sector
+#========================================================
 
-## Participación Sectorial
+cs <- consolidadosector %>%
+  mutate(
+    seccion = `Sección`,
+    descripcion = `Descripción de sección`,
+    trabajadores = as.numeric(`Trabajadores expandidos`),
+    ingreso_hora_prom = as.numeric(`Ingreso laboral por hora promedio`),
+    participacion_trabajadores = trabajadores / sum(trabajadores, na.rm = TRUE),
+    sector_label_corto = crear_sector_corto(seccion)
+  )
 
-```{r fig3, fig.cap="Participación anual de establecimientos por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig3.png")
+#========================================================
+# Base desagregada por sector y tamaño de empresa
+#========================================================
+
+df_emp <- geih_2025 %>%
+  mutate(
+    seccion = `Sección`,
+    descripcion = `Descripción de sección`,
+    sector_label_corto = crear_sector_corto(seccion),
+    
+    tamano_cod = as.numeric(`Código tamaño empresa`),
+    tamano_empresa = `Tamaño empresa P3069`,
+    
+    trabajadores = as.numeric(`Trabajadores expandidos`),
+    peso_trab = trabajadores,
+    
+    ingreso_hora_prom = as.numeric(`Ingreso laboral por hora promedio`),
+    ingreso_hora_med = as.numeric(`Ingreso laboral por hora mediano`),
+    ingreso_mensual_prom = as.numeric(`IngresoPromMensualPromedio`),
+    ingreso_mensual_med = as.numeric(`IngresoMedMensual`)
+  ) %>%
+  filter(
+    !is.na(tamano_cod),
+    !is.na(ingreso_hora_prom),
+    !is.na(peso_trab),
+    peso_trab > 0,
+    tamano_cod >= 1,
+    tamano_cod <= 10
+  ) %>%
+  mutate(
+    tamano_empresa = factor(
+      tamano_empresa,
+      levels = c(
+        "Trabaja solo",
+        "2 a 3 personas",
+        "4 a 5 personas",
+        "6 a 10 personas",
+        "11 a 19 personas",
+        "20 a 30 personas",
+        "31 a 50 personas",
+        "51 a 100 personas",
+        "101 a 200 personas",
+        "201 o más personas"
+      )
+    )
+  )
 ```
 
-La estructura porcentual del sector manufacturero se mantiene relativamente estable en el tiempo. Alimentos y bebidas representa aproximadamente el 20% del total, confecciones alrededor del 15%, evidenciando una composición industrial consistente y diversificada.
 
-## Valor Agregado por Sector
+## Participación de trabajadores por sector
 
-```{r fig4, fig.cap="Evolución del valor agregado nominal por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig4.png")
+```{r}
+g1_participacion_sector <- grafico_barras_mejorado(
+  data = cs,
+  variable = participacion_trabajadores,
+  titulo = "Participación de cada sector en el total de trabajadores",
+  subtitulo = "Top 5 en verde, bottom 5 en rojo",
+  xlab = "Sector",
+  formato = "porcentaje"
+)
+
+g1_participacion_sector
 ```
 
-El valor agregado muestra un crecimiento significativo post-2020, especialmente en alimentos y bebidas, que alcanza los 50 mil millones. Refinación y químicos también experimenta un crecimiento notable, reflejando la importancia estratégica de estos sectores en la economía nacional.
+- El empleo no está distribuido de manera uniforme entre los sectores.
 
-## Personal Ocupado por Sector
+## Ingreso laboral por hora promedio por sector
 
-```{r fig5, fig.cap="Evolución del personal total por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig5.png")
+```{r}
+g2_ingreso_hora_sector <- grafico_barras_mejorado(
+  data = cs,
+  variable = ingreso_hora_prom,
+  titulo = "Ingreso laboral por hora promedio por sector",
+  subtitulo = "Top 5 en verde, bottom 5 en rojo",
+  xlab = "Sector",
+  formato = "numero"
+)
+
+g2_ingreso_hora_sector
 ```
 
-Alimentos y bebidas es el principal empleador del sector manufacturero, con cerca de 200,000 trabajadores en 2024. Confecciones y refinación química también representan fuentes importantes de empleo, aunque con tendencias variables según ciclos económicos.
+- Los sectores que más empleo concentran no necesariamente son los que tienen mejores ingresos por hora.
 
-## Productividad Laboral por Sector
 
-```{r fig6, fig.cap="Productividad laboral anual por sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig6.png")
+## Participación del empleo por tamaño de empresa
+
+```{r}
+trab_por_tamano <- df_emp %>%
+  group_by(tamano_cod, tamano_empresa) %>%
+  summarise(
+    ingreso_hora_prom = wmean_safe(ingreso_hora_prom, peso_trab),
+    trabajadores = sum(peso_trab, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    participacion = trabajadores / sum(trabajadores, na.rm = TRUE)
+  )
+
+g3_participacion_tamano <- ggplot(
+  trab_por_tamano,
+  aes(x = tamano_empresa, y = participacion)
+) +
+  geom_col(fill = "darkgreen", width = 0.72) +
+  geom_text(
+    aes(label = percent(participacion, accuracy = 0.1)),
+    vjust = -0.25,
+    size = 3.5
+  ) +
+  scale_y_continuous(
+    labels = percent,
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "Participación del empleo por tamaño de empresa",
+    subtitle = "Distribución del total de trabajadores",
+    x = "Tamaño de empresa",
+    y = "Participación"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+g3_participacion_tamano
 ```
 
-La productividad laboral muestra alta heterogeneidad entre sectores. Refinación química presenta los niveles más altos, superando 300,000 unidades en años recientes. Esta disparidad refleja diferentes niveles de intensidad de capital y tecnología entre industrias.
+- No es lo mismo trabajar solo o en una unidad de pocas personas que hacerlo en una empresa de más de cien trabajadores.
 
-# Análisis Regional
+## Composición del empleo por tamaño dentro de cada sector
 
-## Establecimientos por Región
+```{r}
+df_part_sector <- df_emp %>%
+  group_by(seccion, descripcion, sector_label_corto) %>%
+  mutate(
+    trabajadores_sector = sum(trabajadores, na.rm = TRUE),
+    part_dentro_sector = trabajadores / trabajadores_sector
+  ) %>%
+  ungroup()
 
-```{r fig7, fig.cap="Evolución anual de establecimientos únicos por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig7.png")
+g4_heatmap_composicion <- ggplot(
+  df_part_sector,
+  aes(x = tamano_empresa, y = sector_label_corto, fill = part_dentro_sector)
+) +
+  geom_tile(color = "white") +
+  geom_text(
+    aes(label = percent(part_dentro_sector, accuracy = 0.1)),
+    size = 2.6
+  ) +
+  scale_fill_gradient(
+    low = "grey95",
+    high = "darkgreen",
+    labels = percent
+  ) +
+  labs(
+    title = "Composición del empleo por tamaño de empresa dentro de cada sector",
+    subtitle = "",
+    x = "Tamaño de empresa",
+    y = "Sector",
+    fill = "Participación"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    panel.grid = element_blank()
+  )
+
+g4_heatmap_composicion
 ```
 
-La región Andina concentra la mayor cantidad de establecimientos, alcanzando cerca de 8,000 en su punto máximo. Las regiones Pacífica, Caribe y Orinoquía mantienen participaciones significativamente menores, evidenciando la alta concentración geográfica de la actividad manufacturera.
+- El cruce entre sector y tamaño de empresa permite ver que no todos los sectores tienen la misma estructura.
 
-## Participación Regional
+##  Correlación entre tamaño de empresa e ingreso laboral por hora por sector
 
-```{r fig8, fig.cap="Participación anual de establecimientos por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig8.png")
+```{r}
+indicadores_escala <- df_emp %>%
+  group_by(seccion, descripcion, sector_label_corto) %>%
+  group_modify(~ {
+    
+    d <- .x %>%
+      filter(
+        !is.na(tamano_cod),
+        !is.na(ingreso_hora_prom),
+        !is.na(peso_trab),
+        peso_trab > 0
+      )
+    
+    n_cat <- n_distinct(d$tamano_cod)
+    
+    corr_spearman <- if (n_cat >= 3) {
+      cor(
+        d$tamano_cod,
+        d$ingreso_hora_prom,
+        method = "spearman",
+        use = "complete.obs"
+      )
+    } else {
+      NA_real_
+    }
+    
+    pendiente_pond <- if (n_cat >= 3) {
+      coef(
+        lm(
+          ingreso_hora_prom ~ tamano_cod,
+          data = d,
+          weights = peso_trab
+        )
+      )[2]
+    } else {
+      NA_real_
+    }
+    
+    tibble(
+      n_categorias = n_cat,
+      trabajadores_total = sum(d$peso_trab, na.rm = TRUE),
+      corr_spearman = corr_spearman,
+      pendiente_ponderada = pendiente_pond
+    )
+    
+  }) %>%
+  ungroup() %>%
+  mutate(
+    clasificacion = case_when(
+      is.na(corr_spearman) ~ "Información insuficiente",
+      corr_spearman >= 0.25 ~ "Relación positiva",
+      corr_spearman <= -0.25 ~ "Relación negativa",
+      TRUE ~ "Relación débil"
+    )
+  )
+
+corr_plot <- indicadores_escala %>%
+  filter(!is.na(corr_spearman)) %>%
+  mutate(
+    sector_label_corto = factor(
+      sector_label_corto,
+      levels = sector_label_corto[order(corr_spearman)]
+    )
+  )
+
+g5_correlacion_tamano_ingreso <- ggplot(
+  corr_plot,
+  aes(x = sector_label_corto, y = corr_spearman, fill = clasificacion)
+) +
+  geom_col(width = 0.72) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_text(
+    aes(label = round(corr_spearman, 2)),
+    hjust = ifelse(corr_plot$corr_spearman >= 0, -0.15, 1.15),
+    size = 3.4
+  ) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(
+    limits = c(-1, 1),
+    breaks = seq(-1, 1, 0.25)
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Relación positiva" = "darkgreen",
+      "Relación negativa" = "darkred",
+      "Relación débil" = "grey70",
+      "Información insuficiente" = "grey40"
+    )
+  ) +
+  labs(
+    title = "Correlación entre tamaño de empresa e ingreso laboral por hora",
+    subtitle = "Correlación Spearman por sector",
+    x = "Sector",
+    y = "Correlación Spearman",
+    fill = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11),
+    legend.position = "top",
+    axis.text.y = element_text(size = 9),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(5.5, 35, 5.5, 5.5)
+  )
+
+g5_correlacion_tamano_ingreso
 ```
 
-La región Andina representa consistentemente más del 70% de los establecimientos manufactureros del país. La Pacífica mantiene alrededor del 15%, mientras Caribe y Orinoquía participan con porcentajes menores, mostrando una estructura regional estable.
-
-## Valor Agregado Regional
-
-```{r fig9, fig.cap="Evolución del valor agregado nominal por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig9.png")
-```
-
-El valor agregado de la región Andina experimenta un crecimiento exponencial post-2020, superando los 90 mil millones. Las regiones Pacífica y Caribe muestran crecimientos más moderados, consolidando la brecha de desarrollo industrial entre regiones.
-
-## Personal Ocupado Regional
-
-```{r fig10, fig.cap="Evolución del personal total por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig10.png")
-```
-
-La región Andina emplea aproximadamente 580,000 personas en el sector manufacturero. Pacífica y Caribe registran niveles de empleo significativamente menores, reflejando las diferencias en escala de producción industrial entre las regiones del país.
-
-## Productividad Laboral Regional
-
-```{r fig11, fig.cap="Productividad laboral anual por región"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig11.png")
-```
-
-La productividad laboral presenta incrementos notables en todas las regiones durante 2022-2023, con Orinoquía y Caribe liderando. Este fenómeno sugiere procesos de modernización tecnológica y mejora en la eficiencia productiva regional.
-
-# Análisis Cruzado: Región-Sector
-
-## Establecimientos por Región y Sector
-
-```{r fig12, fig.cap="Evolución anual de establecimientos únicos por región y sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig12.png")
-```
-
-En la Andina predominan confecciones y alimentos, mientras en Pacífica destaca alimentos. Cada región muestra especialización sectorial particular, con la Andina presentando mayor diversificación industrial comparada con las demás regiones.
-
-## Valor Agregado por Región y Sector
-
-```{r fig13, fig.cap="Evolución del valor agregado nominal por región y sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig13.png")
-```
-
-Alimentos en la región Andina domina la generación de valor agregado, alcanzando niveles superiores a 30 mil millones. En Orinoquía, el crecimiento reciente en alimentos indica potencial emergente de esta región en sectores específicos.
-
-## Personal Ocupado por Región y Sector
-
-```{r fig14, fig.cap="Evolución del personal total por región y sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig14.png")
-```
-
-Alimentos y confecciones concentran el mayor empleo en la región Andina, con más de 120,000 y 70,000 trabajadores respectivamente. Las demás regiones presentan estructuras de empleo más concentradas en pocos sectores específicos.
-
-## Productividad Laboral por Región y Sector
-
-```{r fig15, fig.cap="Productividad laboral anual por región y sector"}
-knitr::include_graphics("~/Trabajo-Profesional/Javeriana/Outputs/Figures/fig15.png")
-```
-
-La productividad sectorial varía significativamente entre regiones. Refinación química en Caribe y Orinoquía muestra picos notables superiores a 600,000, mientras sectores tradicionales mantienen niveles más estables, reflejando diferencias en intensidad tecnológica.
-
-# Conclusiones
-
-1. **Concentración geográfica**: La región Andina domina la actividad manufacturera nacional en todos los indicadores analizados.
-
-2. **Liderazgo sectorial**: Alimentos y bebidas es el sector más relevante tanto en número de establecimientos como en generación de empleo y valor agregado.
-
-3. **Tendencias recientes**: Se observa un crecimiento acelerado del valor agregado post-2020, contrastando con una reducción en el número de establecimientos.
-
-4. **Productividad heterogénea**: Existen grandes disparidades de productividad entre sectores y regiones, sugiriendo oportunidades de mejora y transferencia tecnológica.
-
-5. **Desafíos estructurales**: La tendencia decreciente en establecimientos desde 2010 plantea interrogantes sobre la sostenibilidad y competitividad del sector manufacturero.
+- El tamaño importa, pero no de la misma manera en todos los sectores.
