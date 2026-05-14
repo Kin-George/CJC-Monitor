@@ -287,9 +287,157 @@ ggsave(
   dpi = 300
 )
 
+#========================================================
+# 4. Premium salarial por tamano de empresa y ano
+#========================================================
+
+m_dynamic <- feols(
+  log_ingreso_hora_real ~
+    i(anio, tamano_empresa, ref2 = "Solo") +
+    mujer +
+    i(educacion, ref = "Básica secundaria") +
+    formal |
+    sector^anio,
+  weights = ~ fex,
+  cluster = ~ sector,
+  data = geih_model
+)
+
+dynamic_terms <- tidy(
+  m_dynamic,
+  conf.int = TRUE,
+  conf.level = 0.95
+) %>%
+  filter(str_detect(term, "^anio::"))
+
+dynamic_parts <- str_match(
+  dynamic_terms$term,
+  "^anio::([^:]+):tamano_empresa::(.+)$"
+)
+
+betas_tamano_anio <- dynamic_terms %>%
+  mutate(
+    anio = as.integer(dynamic_parts[, 2]),
+    tamano_empresa = dynamic_parts[, 3],
+
+    # Transformacion de log puntos a porcentaje
+    premium = 100 * (exp(estimate) - 1),
+    ci_low = 100 * (exp(conf.low) - 1),
+    ci_high = 100 * (exp(conf.high) - 1),
+
+    significativo = ci_low > 0 | ci_high < 0,
+
+    tamano_empresa = factor(
+      tamano_empresa,
+      levels = c(
+        "2-3",
+        "4-5",
+        "6-10",
+        "11-19",
+        "20-30",
+        "31-50",
+        "51-100",
+        "101+"
+      )
+    )
+  ) %>%
+  filter(!is.na(anio), !is.na(tamano_empresa)) %>%
+  arrange(tamano_empresa, anio)
+
+betas_tamano_anio %>%
+  select(
+    anio,
+    tamano_empresa,
+    estimate,
+    premium,
+    ci_low,
+    ci_high,
+    significativo,
+    p.value
+  )
+
+g_premium_tamano_anio <- ggplot(
+  betas_tamano_anio,
+  aes(
+    x = anio,
+    y = premium,
+    group = tamano_empresa
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.5
+  ) +
+  geom_ribbon(
+    aes(
+      ymin = ci_low,
+      ymax = ci_high
+    ),
+    fill = "darkblue",
+    alpha = 0.12,
+    color = NA
+  ) +
+  geom_line(
+    color = "darkblue",
+    linewidth = 0.9
+  ) +
+  geom_point(
+    aes(shape = significativo),
+    color = "darkblue",
+    size = 2
+  ) +
+  facet_wrap(~ tamano_empresa, ncol = 4) +
+  scale_shape_manual(
+    values = c(
+      "TRUE" = 16,
+      "FALSE" = 1
+    ),
+    labels = c(
+      "TRUE" = "Significativo al 5%",
+      "FALSE" = "No significativo"
+    )
+  ) +
+  scale_x_continuous(
+    breaks = seq(
+      min(betas_tamano_anio$anio, na.rm = TRUE),
+      max(betas_tamano_anio$anio, na.rm = TRUE),
+      by = 4
+    )
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0.12, 0.12))
+  ) +
+  labs(
+    title = "Firm size wage premium over time in Colombia",
+    subtitle = "Year-specific premiums relative to solo workers. Full specification with 95% confidence intervals",
+    x = "Año",
+    y = "Premium salarial frente a trabajadores solos (%)",
+    shape = NULL
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+
+ggsave(
+  filename = "Paper/figures/fig59.png",
+  plot = g_premium_tamano_anio,
+  width = 12,
+  height = 7,
+  dpi = 300
+)
+
 
 #========================================================
-# 4. Tabla de regresion tipo paper
+# 5. Tabla de regresion tipo paper
 #========================================================
 
 format_coef <- function(x, p) {
