@@ -51,6 +51,17 @@ m_fe <- feols(
   data = geih_model
 )
 
+m_demog <- feols(
+  log_ingreso_hora_real ~
+    i(tamano_empresa, ref = "Solo") +
+    mujer +
+    i(educacion, ref = "Básica secundaria") |
+    sector^anio,
+  weights = ~ fex,
+  cluster = ~ sector,
+  data = geih_model
+)
+
 m_full <- feols(
   log_ingreso_hora_real ~
     i(tamano_empresa, ref = "Solo") +
@@ -227,7 +238,8 @@ format_obs <- function(x) {
 model_list <- list(
   "(1)" = m_raw,
   "(2)" = m_fe,
-  "(3)" = m_full
+  "(3)" = m_demog,
+  "(4)" = m_full
 )
 
 size_levels <- c("2-3", "4-5", "6-10", "11-19", "20-30", "31-50", "51-100", "101+")
@@ -266,19 +278,20 @@ r2_vals <- vapply(model_list, function(m) as.numeric(fitstat(m, "r2")), numeric(
 regression_table <- c(
   "\\begin{table}[htbp]",
   "  \\centering",
-  "  \\caption{Firm-size wage premium regressions}",
+  "  \\caption{Firm-size wage premium regressions: the role of formality}",
   "  \\label{tab:firm-size-wage-premium-regressions}",
   "  \\small",
-  "  \\begin{tabular}{lccc}",
+  "  \\begin{tabular}{lcccc}",
   "    \\toprule",
-  "    & \\multicolumn{3}{c}{Dependent variable: log real hourly labor income} \\\\",
-  "    \\cmidrule(lr){2-4}",
-  "    & (1) & (2) & (3) \\\\",
+  "    & \\multicolumn{4}{c}{Dependent variable: log real hourly labor income} \\\\",
+  "    \\cmidrule(lr){2-5}",
+  "    & (1) & (2) & (3) & (4) \\\\",
   "    \\midrule",
   table_rows,
   "    \\midrule",
-  "    Individual controls & No & No & Yes \\\\",
-  "    Sector-year fixed effects & No & Yes & Yes \\\\",
+  "    Gender and education controls & No & No & Yes & Yes \\\\",
+  "    Formality control & No & No & No & Yes \\\\",
+  "    Sector-year fixed effects & No & Yes & Yes & Yes \\\\",
   paste0("    Observations & ", paste(format_obs(n_obs), collapse = " & "), " \\\\"),
   paste0("    $R^2$ & ", paste(sprintf('%.3f', r2_vals), collapse = " & "), " \\\\"),
   "    \\bottomrule",
@@ -286,7 +299,7 @@ regression_table <- c(
   "  \\vspace{0.3em}",
   "  \\begin{minipage}{0.95\\textwidth}",
   "  \\footnotesize",
-  "  Notes: The omitted category is solo workers. All columns use the same estimation sample and GEIH expansion weights. Standard errors, clustered by sector, are reported in parentheses. Individual controls include gender, education, and labor formality. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
+  "  Notes: The omitted category is solo workers. All columns use the same estimation sample and GEIH expansion weights. Standard errors, clustered by sector, are reported in parentheses. Gender and education controls include a female-worker indicator and education dummies. Column (4) adds labor formality. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
   "  \\end{minipage}",
   "\\end{table}"
 )
