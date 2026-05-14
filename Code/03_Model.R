@@ -22,7 +22,7 @@ geih <- geih %>%
 
 m1 <- feols(
   log_ingreso_hora_real ~ 
-    i(tamano_empresa, ref = "2-3") +
+    i(tamano_empresa, ref = "Solo") +
     mujer +
     i(educacion, ref = "Básica secundaria") +
     formal |
@@ -57,7 +57,7 @@ betas_tamano <- tidy(
     tamano_empresa = factor(
       tamano_empresa,
       levels = c(
-        "Solo",
+        "2-3",
         "4-5",
         "6-10",
         "11-19",
@@ -145,9 +145,9 @@ g_premium_tamano <- ggplot(
   ) +
   labs(
     title = "Firm size wage premium en Colombia",
-    subtitle = "Premium salarial frente a empresas de 2-3 trabajadores. Intervalos de confianza al 95%",
+    subtitle = "Premium salarial frente a trabajadores solos. Intervalos de confianza al 95%",
     x = "Tamaño de empresa",
-    y = "Premium salarial estimado (%)",
+    y = "Premium salarial frente a trabajadores solos (%)",
     color = NULL
   ) +
   theme_classic(base_size = 13) +
@@ -159,7 +159,15 @@ g_premium_tamano <- ggplot(
     legend.position = "bottom"
   )
 
-g_premium_tamano
+dir.create("Paper/figures", recursive = TRUE, showWarnings = FALSE)
+
+ggsave(
+  filename = "Paper/figures/fig57.png",
+  plot = g_premium_tamano,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
 
 
 
