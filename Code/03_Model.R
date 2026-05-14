@@ -6,7 +6,7 @@ library(stringr)
 library(ggplot2)
 library(scales)
 
-# Moedelo enfoque personas
+# Modelo enfoque personas
 geih <- read_dta(
   "Datos/Processed/GEIH_base_modelo_personas_2008_2025.dta"
 )
@@ -20,8 +20,39 @@ geih <- geih %>%
     formalidad = as.factor(formalidad)
   )
 
-m1 <- feols(
-  log_ingreso_hora_real ~ 
+# Usamos una muestra comun para que las columnas de la tabla sean comparables.
+geih_model <- geih %>%
+  filter(
+    !is.na(log_ingreso_hora_real),
+    !is.na(tamano_empresa),
+    !is.na(mujer),
+    !is.na(educacion),
+    !is.na(formal),
+    !is.na(sector),
+    !is.na(anio),
+    !is.na(fex),
+    fex > 0
+  )
+
+m_raw <- feols(
+  log_ingreso_hora_real ~
+    i(tamano_empresa, ref = "Solo"),
+  weights = ~ fex,
+  cluster = ~ sector,
+  data = geih_model
+)
+
+m_fe <- feols(
+  log_ingreso_hora_real ~
+    i(tamano_empresa, ref = "Solo") |
+    sector^anio,
+  weights = ~ fex,
+  cluster = ~ sector,
+  data = geih_model
+)
+
+m_full <- feols(
+  log_ingreso_hora_real ~
     i(tamano_empresa, ref = "Solo") +
     mujer +
     i(educacion, ref = "Básica secundaria") +
@@ -29,31 +60,31 @@ m1 <- feols(
     sector^anio,
   weights = ~ fex,
   cluster = ~ sector,
-  data = geih %>% filter(!is.na(formal))
+  data = geih_model
 )
 
-summary(m1)
+summary(m_full)
 
 #========================================================
 # 1. Extraer coeficientes de tamaño de empresa
 #========================================================
 
 betas_tamano <- tidy(
-  m1,
+  m_full,
   conf.int = TRUE,
   conf.level = 0.95
 ) %>%
   filter(str_detect(term, "^tamano_empresa::")) %>%
   mutate(
     tamano_empresa = str_remove(term, "^tamano_empresa::"),
-    
-    # Transformación de log puntos a porcentaje
+
+    # Transformacion de log puntos a porcentaje
     premium = 100 * (exp(estimate) - 1),
     ci_low = 100 * (exp(conf.low) - 1),
     ci_high = 100 * (exp(conf.high) - 1),
-    
+
     significativo = ci_low > 0 | ci_high < 0,
-    
+
     tamano_empresa = factor(
       tamano_empresa,
       levels = c(
@@ -88,7 +119,7 @@ betas_tamano %>%
 
 
 #========================================================
-# 3. Gráfico del premium salarial por tamaño de empresa
+# 3. Grafico del premium salarial por tamaño de empresa
 #========================================================
 
 g_premium_tamano <- ggplot(
@@ -170,4 +201,95 @@ ggsave(
 )
 
 
+#========================================================
+# 4. Tabla de regresion tipo paper
+#========================================================
 
+format_coef <- function(x, p) {
+  stars <- case_when(
+    is.na(p) ~ "",
+    p < 0.01 ~ "***",
+    p < 0.05 ~ "**",
+    p < 0.10 ~ "*",
+    TRUE ~ ""
+  )
+  paste0(sprintf("%.3f", x), stars)
+}
+
+format_se <- function(x) {
+  paste0("(", sprintf("%.3f", x), ")")
+}
+
+format_obs <- function(x) {
+  format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
+}
+
+model_list <- list(
+  "(1)" = m_raw,
+  "(2)" = m_fe,
+  "(3)" = m_full
+)
+
+size_levels <- c("2-3", "4-5", "6-10", "11-19", "20-30", "31-50", "51-100", "101+")
+size_terms <- paste0("tamano_empresa::", size_levels)
+size_labels <- paste0("Firm size: ", size_levels)
+
+table_rows <- c()
+
+for (i in seq_along(size_terms)) {
+  coefs <- c()
+  ses <- c()
+
+  for (model_name in names(model_list)) {
+    model_tidy <- tidy(model_list[[model_name]])
+    model_row <- model_tidy %>% filter(term == size_terms[i])
+
+    if (nrow(model_row) == 0) {
+      coefs <- c(coefs, "")
+      ses <- c(ses, "")
+    } else {
+      coefs <- c(coefs, format_coef(model_row$estimate, model_row$p.value))
+      ses <- c(ses, format_se(model_row$std.error))
+    }
+  }
+
+  table_rows <- c(
+    table_rows,
+    paste0("    ", size_labels[i], " & ", paste(coefs, collapse = " & "), " \\\\"),
+    paste0("     & ", paste(ses, collapse = " & "), " \\\\")
+  )
+}
+
+n_obs <- vapply(model_list, nobs, numeric(1))
+r2_vals <- vapply(model_list, function(m) as.numeric(fitstat(m, "r2")), numeric(1))
+
+regression_table <- c(
+  "\\begin{table}[htbp]",
+  "  \\centering",
+  "  \\caption{Firm-size wage premium regressions}",
+  "  \\label{tab:firm-size-wage-premium-regressions}",
+  "  \\small",
+  "  \\begin{tabular}{lccc}",
+  "    \\toprule",
+  "    & \\multicolumn{3}{c}{Dependent variable: log real hourly labor income} \\\\",
+  "    \\cmidrule(lr){2-4}",
+  "    & (1) & (2) & (3) \\\\",
+  "    \\midrule",
+  table_rows,
+  "    \\midrule",
+  "    Individual controls & No & No & Yes \\\\",
+  "    Sector-year fixed effects & No & Yes & Yes \\\\",
+  paste0("    Observations & ", paste(format_obs(n_obs), collapse = " & "), " \\\\"),
+  paste0("    $R^2$ & ", paste(sprintf('%.3f', r2_vals), collapse = " & "), " \\\\"),
+  "    \\bottomrule",
+  "  \\end{tabular}",
+  "  \\vspace{0.3em}",
+  "  \\begin{minipage}{0.95\\textwidth}",
+  "  \\footnotesize",
+  "  Notes: The omitted category is solo workers. All columns use the same estimation sample and GEIH expansion weights. Standard errors, clustered by sector, are reported in parentheses. Individual controls include gender, education, and labor formality. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
+  "  \\end{minipage}",
+  "\\end{table}"
+)
+
+dir.create("Paper/sections", recursive = TRUE, showWarnings = FALSE)
+writeLines(regression_table, "Paper/sections/regression_firm_size_table.tex")
