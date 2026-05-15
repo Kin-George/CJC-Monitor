@@ -36,16 +36,16 @@ The main econometric exercise estimates the conditional firm-size wage premium
 in a log-wage model. The baseline specification is:
 
 \[
-  \ln(w_{it}^{real}) =
+  \ln(w_{ist}^{real}) =
   \alpha
-  + \sum_{g \neq g_0} \beta_g \mathbf{1}\{Size_{it}=g\}
-  + X_{it}'\gamma
-  + \lambda_{s(i) \times t}
-  + \varepsilon_{it},
+  + \sum_{g \neq g_0} \beta_g \mathbf{1}\{Size_{ist}=g\}
+  + X_{ist}'\gamma
+  + \lambda_{s \times t}
+  + \varepsilon_{ist},
 \]
 
-where \(w_{it}^{real}\) is real hourly labor income for worker \(i\) in year
-\(t\), \(Size_{it}\) is the harmonized firm-size category, and \(g_0\) is the
+where \(w_{ist}^{real}\) is real hourly labor income for worker \(i\) in sector \(s\) in year
+\(t\), \(Size_{ist}\) is the harmonized firm-size category, and \(g_0\) is the
 reference group. We use solo workers as the reference category. This choice makes
 the coefficient path directly interpretable as the wage premium associated with
 moving from individual work to increasingly larger firms. Because solo workers
@@ -53,8 +53,8 @@ may combine self-employment and very small-scale wage employment, we interpret
 the estimates as conditional gaps relative to the bottom of the firm-size
 distribution rather than as pure firm effects.
 
-The vector \(X_{it}\) includes a female-worker indicator, education dummies, and
-a formal-employment indicator. The fixed effect \(\lambda_{s(i) \times t}\)
+The vector \(X_{ist}\) includes a female-worker indicator, education dummies, and
+a formal-employment indicator. The fixed effect \(\lambda_{s \times t}\)
 absorbs sector-year conditions, allowing each broad sector to have its own wage
 level in each year. This is important because large firms are not randomly
 distributed across sectors, and sectoral shocks may be correlated with both wages
@@ -97,12 +97,12 @@ The same framework can be extended to study the evolution of the premium over
 time by interacting firm-size categories with year indicators:
 
 \[
-  \ln(w_{it}^{real}) =
+  \ln(w_{ist}^{real}) =
   \alpha
   + \sum_{g \neq g_0}\sum_t
-    \beta_{gt}\mathbf{1}\{Size_{it}=g\}\mathbf{1}\{Year_i=t\}
+    \beta_{gt}\mathbf{1}\{Size_{ist}=g\}\mathbf{1}\{Year_i=t\}
   + X_{it}'\gamma
-  + \lambda_{s(i) \times t}
+  + \lambda_{s \times t}
   + \varepsilon_{it}.
 \]
 
