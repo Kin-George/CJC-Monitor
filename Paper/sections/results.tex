@@ -1,21 +1,71 @@
 \section{Results}
 
-Table~\ref{tab:firm-size-wage-premium-regressions} reports the baseline
-firm-size wage premium estimates. Figure~\ref{fig:firm-size-wage-premium-over-time}
-extends the full specification by interacting firm-size categories with year
-dummies, keeping solo workers as the omitted category in each year. Thus, each
-coefficient measures the wage premium for a given firm-size category in a given
-year, conditional on gender, education, formality, and sector-year fixed effects.
-The estimates show that the firm-size premium is positive throughout the sample
-period, with the largest categories displaying both higher point estimates and
-wider confidence intervals. Table~\ref{tab:firm-size-premium-trend-test}
-formally tests whether each premium increased over time by interacting firm-size
-categories with a linear year trend. Figure~\ref{fig:firm-size-premium-trend-test}
-plots those trend coefficients and their confidence intervals. The estimated
-trend coefficients are positive for all firm-size categories, but the one-sided
-tests do not reject a zero trend at the 5 percent level.
+Table~\ref{tab:firm-size-wage-premium-regressions} reports the main regression
+results. Column (1) shows the raw log-wage gradient by firm size. The coefficient
+for firms with 101 or more workers is 1.017 log points, consistent with the large
+raw wage premium shown in the descriptive statistics. Column (2) adds
+sector-year fixed effects, reducing the coefficient for 101+ firms to 0.818 log
+points. Column (3) adds gender and education controls, lowering the coefficient
+to 0.586. Column (4) adds formality, reducing the coefficient further to 0.299.
+This pattern is informative: a large part of the raw firm-size wage gap is
+associated with observable worker composition, sector-year structure, and
+especially formality, but a positive and statistically significant conditional
+premium remains.
 
 \input{Paper/sections/regression_firm_size_table}
+
+Figure~\ref{fig:firm-size-wage-premium} transforms the coefficients from the full
+specification into percentage premiums. Relative to solo workers, the conditional
+premium is 18.3 percent for firms with 2--3 workers, about 30 percent for firms
+with 4--10 workers, 23--28 percent for intermediate size categories, and 34.8
+percent for firms with 101 or more workers. All confidence intervals exclude
+zero. Figure~\ref{fig:firm-size-beta-coefficients} reports the same estimates in
+log points, which is the scale of the econometric model.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig57.png}
+  \caption{Conditional firm-size wage premium relative to solo workers}
+  \label{fig:firm-size-wage-premium}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig58.png}
+  \caption{Firm-size coefficients in the full specification}
+  \label{fig:firm-size-beta-coefficients}
+\end{figure}
+
+\clearpage
+
+Figure~\ref{fig:firm-size-wage-premium-over-time} estimates the full
+specification separately by interacting firm-size categories with year
+indicators. The conditional premium is positive throughout the sample period in
+all firm-size categories. The largest firms display the highest premiums in most
+years, although the confidence intervals are wider for these categories.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig59.png}
+  \caption{Conditional firm-size wage premium over time}
+  \label{fig:firm-size-wage-premium-over-time}
+\end{figure}
+
+Table~\ref{tab:firm-size-premium-trend-test} formally tests whether the premium
+increased over time using a linear trend interacted with firm-size categories.
+The estimated trend coefficients are positive for all size categories. The
+implied increase between 2008 and 2025 ranges from 3.8 percent for firms with
+20--30 workers to 8.7 percent for firms with 101 or more workers. However, the
+one-sided tests do not reject a zero trend at the 5 percent level. Thus, the
+current evidence supports a positive conditional firm-size wage premium, but the
+evidence that this premium has increased over time is suggestive rather than
+statistically conclusive.
+
 \input{Paper/sections/regression_firm_size_trend_test}
-\input{Paper/sections/generated_figures}
-\input{Paper/sections/generated_tables}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig60.png}
+  \caption{Trend test for the firm-size wage premium}
+  \label{fig:firm-size-premium-trend-test}
+\end{figure}
