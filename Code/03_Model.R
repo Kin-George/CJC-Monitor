@@ -32,6 +32,10 @@ geih_model <- geih %>%
     !is.na(anio),
     !is.na(fex),
     fex > 0
+  ) %>%
+  mutate(
+    anio_num = as.integer(as.character(anio)),
+    year_trend = anio_num - min(anio_num, na.rm = TRUE)
   )
 
 m_raw <- feols(
@@ -435,9 +439,203 @@ ggsave(
   dpi = 300
 )
 
+#========================================================
+# 5. Test de tendencia del premium salarial
+#========================================================
+
+m_trend <- feols(
+  log_ingreso_hora_real ~
+    i(tamano_empresa, ref = "Solo") +
+    i(tamano_empresa, year_trend, ref = "Solo") +
+    mujer +
+    i(educacion, ref = "Básica secundaria") +
+    formal |
+    sector^anio,
+  weights = ~ fex,
+  cluster = ~ sector,
+  data = geih_model
+)
+
+trend_horizon <- max(geih_model$year_trend, na.rm = TRUE)
+
+trend_terms <- tidy(
+  m_trend,
+  conf.int = TRUE,
+  conf.level = 0.95
+) %>%
+  filter(str_detect(term, ":year_trend$") | str_detect(term, "^year_trend:"))
+
+trend_size_a <- str_match(
+  trend_terms$term,
+  "^tamano_empresa::(.+):year_trend$"
+)
+
+trend_size_b <- str_match(
+  trend_terms$term,
+  "^year_trend:tamano_empresa::(.+)$"
+)
+
+trend_test <- trend_terms %>%
+  mutate(
+    tamano_empresa = coalesce(trend_size_a[, 2], trend_size_b[, 2]),
+    p_increase = case_when(
+      estimate >= 0 ~ p.value / 2,
+      TRUE ~ 1 - p.value / 2
+    ),
+    period_change_log_points = estimate * trend_horizon,
+    period_change_percent = 100 * (exp(period_change_log_points) - 1),
+    significant_increase = p_increase < 0.05,
+    tamano_empresa = factor(
+      tamano_empresa,
+      levels = c(
+        "2-3",
+        "4-5",
+        "6-10",
+        "11-19",
+        "20-30",
+        "31-50",
+        "51-100",
+        "101+"
+      )
+    )
+  ) %>%
+  filter(!is.na(tamano_empresa)) %>%
+  arrange(tamano_empresa)
+
+trend_test %>%
+  select(
+    tamano_empresa,
+    estimate,
+    std.error,
+    p_increase,
+    period_change_log_points,
+    period_change_percent,
+    significant_increase
+  )
+
+g_trend_test <- ggplot(
+  trend_test,
+  aes(
+    x = tamano_empresa,
+    y = estimate * 100
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.7
+  ) +
+  geom_errorbar(
+    aes(
+      ymin = conf.low * 100,
+      ymax = conf.high * 100,
+      color = significant_increase
+    ),
+    width = 0.15,
+    linewidth = 0.9
+  ) +
+  geom_point(
+    aes(color = significant_increase),
+    size = 3.8
+  ) +
+  geom_label(
+    aes(
+      label = sprintf("%.2f", estimate * 100)
+    ),
+    fill = "black",
+    color = "white",
+    fontface = "bold",
+    size = 3.6,
+    vjust = -0.8,
+    linewidth = 0.15,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(
+    values = c(
+      "TRUE" = "darkblue",
+      "FALSE" = "gray55"
+    ),
+    labels = c(
+      "TRUE" = "Aumento significativo al 5%",
+      "FALSE" = "No significativo"
+    )
+  ) +
+  scale_y_continuous(
+    labels = number_format(accuracy = 0.1),
+    expand = expansion(mult = c(0.12, 0.18))
+  ) +
+  labs(
+    title = "Test of whether the firm size wage premium increased",
+    subtitle = "Slope of the year trend by firm-size category. One-sided test: premium increasing over time",
+    x = "Tamaño de empresa",
+    y = "Cambio anual del premium (log puntos x 100)",
+    color = NULL
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom"
+  )
+
+ggsave(
+  filename = "Paper/figures/fig60.png",
+  plot = g_trend_test,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
+trend_table_rows <- c()
+
+for (i in seq_len(nrow(trend_test))) {
+  trend_table_rows <- c(
+    trend_table_rows,
+    paste0(
+      "    ",
+      trend_test$tamano_empresa[i],
+      " & ",
+      sprintf("%.4f", trend_test$estimate[i]),
+      " & ",
+      sprintf("(%.4f)", trend_test$std.error[i]),
+      " & ",
+      sprintf("%.3f", trend_test$p_increase[i]),
+      " & ",
+      sprintf("%.1f\\%%", trend_test$period_change_percent[i]),
+      " \\\\"
+    )
+  )
+}
+
+trend_test_table <- c(
+  "\\begin{table}[htbp]",
+  "  \\centering",
+  "  \\caption{Testing whether the firm-size wage premium increased over time}",
+  "  \\label{tab:firm-size-premium-trend-test}",
+  "  \\small",
+  "  \\begin{tabular}{lcccc}",
+  "    \\toprule",
+  "    Firm size & Annual trend & S.E. & $p$-value & Implied 2008--2025 change \\\\",
+  "    \\midrule",
+  trend_table_rows,
+  "    \\bottomrule",
+  "  \\end{tabular}",
+  "  \\vspace{0.3em}",
+  "  \\begin{minipage}{0.95\\textwidth}",
+  "  \\footnotesize",
+  "  Notes: The annual trend is the coefficient on the interaction between firm-size category and a linear year trend, with solo workers as the omitted category. The specification controls for gender, education, formality, and sector-year fixed effects, and uses GEIH expansion weights. Standard errors are clustered by sector. The $p$-value corresponds to the one-sided test that the premium increased over time. The final column reports $100\\times[\\exp(17\\hat{\\delta})-1]$, the implied change in the firm-size wage ratio between 2008 and 2025.",
+  "  \\end{minipage}",
+  "\\end{table}"
+)
+
+writeLines(trend_test_table, "Paper/sections/regression_firm_size_trend_test.tex")
+
 
 #========================================================
-# 5. Tabla de regresion tipo paper
+# 6. Tabla de regresion tipo paper
 #========================================================
 
 format_coef <- function(x, p) {
