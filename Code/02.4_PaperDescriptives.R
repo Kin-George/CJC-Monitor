@@ -412,6 +412,66 @@ write_latex_table(
   "Paper/sections/descriptive_income_size_2025_table.tex"
 )
 
+income_comparison <- income_size %>%
+  select(
+    tamano_empresa,
+    pooled_mean_income = mean_income,
+    pooled_raw_premium = raw_premium
+  ) %>%
+  left_join(
+    income_size_2025 %>%
+      select(
+        tamano_empresa,
+        income_2025 = mean_income,
+        raw_premium_2025 = raw_premium
+      ),
+    by = "tamano_empresa"
+  )
+
+write.csv(
+  income_comparison,
+  "Paper/tables/descriptive_income_by_size_comparison.csv",
+  row.names = FALSE
+)
+
+income_comparison_rows <- paste0(
+  "    ",
+  income_comparison$tamano_empresa,
+  " & ",
+  format_money(income_comparison$pooled_mean_income),
+  " & ",
+  format_money(income_comparison$income_2025),
+  " & ",
+  format_pct_value(income_comparison$pooled_raw_premium),
+  " & ",
+  format_pct_value(income_comparison$raw_premium_2025),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Real hourly labor income by firm size: pooled sample and 2025}",
+    "  \\label{tab:descriptive-income-size-comparison}",
+    "  \\small",
+    "  \\begin{tabular}{lrrrr}",
+    "    \\toprule",
+    "    Firm size & Pooled mean & 2025 mean & Pooled premium & 2025 premium \\\\",
+    "    \\midrule",
+    income_comparison_rows,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Pooled statistics use 2008--2019 and 2021--2025. All income values are real hourly labor income in constant 2025 pesos and use GEIH expansion weights. Premiums are percent differences in weighted means relative to solo workers within each column.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_income_size_comparison_table.tex"
+)
+
 worker_balance <- geih_model %>%
   group_by(tamano_empresa) %>%
   summarise(
@@ -521,6 +581,74 @@ write_latex_table(
     "\\end{table}"
   ),
   "Paper/sections/descriptive_worker_characteristics_2025_table.tex"
+)
+
+worker_balance_comparison <- worker_balance %>%
+  select(
+    tamano_empresa,
+    women_pooled = women,
+    formal_pooled = formal,
+    higher_education_pooled = higher_education
+  ) %>%
+  left_join(
+    worker_balance_2025 %>%
+      select(
+        tamano_empresa,
+        women_2025 = women,
+        formal_2025 = formal,
+        higher_education_2025 = higher_education
+      ),
+    by = "tamano_empresa"
+  )
+
+write.csv(
+  worker_balance_comparison,
+  "Paper/tables/descriptive_worker_characteristics_by_size_comparison.csv",
+  row.names = FALSE
+)
+
+worker_balance_comparison_rows <- paste0(
+  "    ",
+  worker_balance_comparison$tamano_empresa,
+  " & ",
+  format_pct(worker_balance_comparison$women_pooled),
+  " & ",
+  format_pct(worker_balance_comparison$women_2025),
+  " & ",
+  format_pct(worker_balance_comparison$formal_pooled),
+  " & ",
+  format_pct(worker_balance_comparison$formal_2025),
+  " & ",
+  format_pct(worker_balance_comparison$higher_education_pooled),
+  " & ",
+  format_pct(worker_balance_comparison$higher_education_2025),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Worker composition by firm size: pooled sample and 2025}",
+    "  \\label{tab:descriptive-worker-characteristics-comparison}",
+    "  \\small",
+    "  \\begin{tabular}{lrrrrrr}",
+    "    \\toprule",
+    "    & \\multicolumn{2}{c}{Women} & \\multicolumn{2}{c}{Formal} & \\multicolumn{2}{c}{Higher education} \\\\",
+    "    \\cmidrule(lr){2-3} \\cmidrule(lr){4-5} \\cmidrule(lr){6-7}",
+    "    Firm size & Pooled & 2025 & Pooled & 2025 & Pooled & 2025 \\\\",
+    "    \\midrule",
+    worker_balance_comparison_rows,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Pooled statistics use 2008--2019 and 2021--2025. All statistics use GEIH expansion weights. Higher education corresponds to workers classified as superior or university educated.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_worker_characteristics_comparison_table.tex"
 )
 
 theme_paper <- theme_classic(base_size = 13) +
