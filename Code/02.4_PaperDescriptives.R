@@ -549,7 +549,7 @@ wage_groups_2025_rows <- format_wage_group_rows(wage_groups_2025)
 
 write_latex_table(
   c(
-    "\\begin{table}[htbp]",
+    "\\begin{table}[!htbp]",
     "  \\centering",
     "  \\caption{Mean real hourly labor income by firm size and worker group, 2008 and 2025}",
     "  \\label{tab:descriptive-wage-groups-mean-2008-2025}",
@@ -604,7 +604,7 @@ wage_growth_rows <- paste0(
 
 write_latex_table(
   c(
-    "\\begin{table}[htbp]",
+    "\\begin{table}[!htbp]",
     "  \\centering",
     "  \\caption{Growth in mean real hourly labor income by firm size, 2008--2025}",
     "  \\label{tab:descriptive-wage-growth-2008-2025}",
@@ -650,7 +650,7 @@ wage_medians_2025_rows <- format_wage_group_rows(wage_medians_2025)
 
 write_latex_table(
   c(
-    "\\begin{table}[htbp]",
+    "\\begin{table}[!htbp]",
     "  \\centering",
     "  \\caption{Median real hourly labor income by firm size and worker group, 2008 and 2025}",
     "  \\label{tab:descriptive-wage-groups-median-2008-2025}",
