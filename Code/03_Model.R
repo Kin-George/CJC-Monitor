@@ -1,3 +1,15 @@
+local_r_lib <- file.path(getwd(), ".Rlib")
+if (dir.exists(local_r_lib)) {
+  .libPaths(c(local_r_lib, .libPaths()))
+}
+
+local_r_config <- file.path(getwd(), ".Rconfig")
+dir.create(local_r_config, recursive = TRUE, showWarnings = FALSE)
+Sys.setenv(
+  R_USER_CONFIG_DIR = local_r_config,
+  XDG_CONFIG_HOME = local_r_config
+)
+
 library(haven)
 library(dplyr)
 library(fixest)
@@ -5,6 +17,34 @@ library(broom)
 library(stringr)
 library(ggplot2)
 library(scales)
+
+save_figure_versions <- function(base_name, plot_en, plot_es, width, height, dpi = 300) {
+  dir.create("Paper/figures", recursive = TRUE, showWarnings = FALSE)
+
+  ggsave(
+    filename = file.path("Paper/figures", paste0(base_name, "_en.png")),
+    plot = plot_en,
+    width = width,
+    height = height,
+    dpi = dpi
+  )
+
+  ggsave(
+    filename = file.path("Paper/figures", paste0(base_name, "_es.png")),
+    plot = plot_es,
+    width = width,
+    height = height,
+    dpi = dpi
+  )
+
+  ggsave(
+    filename = file.path("Paper/figures", paste0(base_name, ".png")),
+    plot = plot_en,
+    width = width,
+    height = height,
+    dpi = dpi
+  )
+}
 
 # Modelo enfoque personas
 geih <- read_dta(
@@ -172,7 +212,7 @@ g_premium_tamano <- ggplot(
     fontface = "bold",
     size = 3.8,
     vjust = -0.8,
-    label.size = 0.15,
+    linewidth = 0.15,
     show.legend = FALSE
   ) +
   scale_color_manual(
@@ -181,8 +221,8 @@ g_premium_tamano <- ggplot(
       "FALSE" = "gray55"
     ),
     labels = c(
-      "TRUE" = "Significativo al 5%",
-      "FALSE" = "No significativo"
+      "TRUE" = "Significant at 5%",
+      "FALSE" = "Not significant"
     )
   ) +
   scale_y_continuous(
@@ -190,10 +230,10 @@ g_premium_tamano <- ggplot(
     expand = expansion(mult = c(0.12, 0.18))
   ) +
   labs(
-    title = "Firm size wage premium en Colombia",
-    subtitle = "Premium salarial frente a trabajadores solos. Intervalos de confianza al 95%",
-    x = "Tamaño de empresa",
-    y = "Premium salarial frente a trabajadores solos (%)",
+    title = "Firm-size wage premium in Colombia",
+    subtitle = "Wage premium relative to solo workers. 95% confidence intervals",
+    x = "Firm size",
+    y = "Wage premium (%)",
     color = NULL
   ) +
   theme_classic(base_size = 13) +
@@ -207,9 +247,29 @@ g_premium_tamano <- ggplot(
 
 dir.create("Paper/figures", recursive = TRUE, showWarnings = FALSE)
 
-ggsave(
-  filename = "Paper/figures/fig57.png",
-  plot = g_premium_tamano,
+g_premium_tamano_es <- g_premium_tamano +
+  scale_color_manual(
+    values = c(
+      "TRUE" = "darkblue",
+      "FALSE" = "gray55"
+    ),
+    labels = c(
+      "TRUE" = "Significativo al 5%",
+      "FALSE" = "No significativo"
+    )
+  ) +
+  labs(
+    title = "Premium salarial por tama\u00f1o de empresa en Colombia",
+    subtitle = "Premium salarial frente a trabajadores solos. Intervalos de confianza al 95%",
+    x = "Tama\u00f1o de empresa",
+    y = "Premium salarial (%)",
+    color = NULL
+  )
+
+save_figure_versions(
+  base_name = "fig57",
+  plot_en = g_premium_tamano,
+  plot_es = g_premium_tamano_es,
   width = 10,
   height = 6,
   dpi = 300
@@ -259,8 +319,8 @@ g_beta_tamano <- ggplot(
       "FALSE" = "gray55"
     ),
     labels = c(
-      "TRUE" = "Significativo al 5%",
-      "FALSE" = "No significativo"
+      "TRUE" = "Significant at 5%",
+      "FALSE" = "Not significant"
     )
   ) +
   scale_y_continuous(
@@ -270,8 +330,8 @@ g_beta_tamano <- ggplot(
   labs(
     title = "Firm-size coefficients in the full specification",
     subtitle = "Column (4): gender, education, formality, and sector-year fixed effects",
-    x = "Tamaño de empresa",
-    y = "Coeficiente estimado en log puntos",
+    x = "Firm size",
+    y = "Estimated coefficient in log points",
     color = NULL
   ) +
   theme_classic(base_size = 13) +
@@ -283,9 +343,29 @@ g_beta_tamano <- ggplot(
     legend.position = "bottom"
   )
 
-ggsave(
-  filename = "Paper/figures/fig58.png",
-  plot = g_beta_tamano,
+g_beta_tamano_es <- g_beta_tamano +
+  scale_color_manual(
+    values = c(
+      "TRUE" = "darkblue",
+      "FALSE" = "gray55"
+    ),
+    labels = c(
+      "TRUE" = "Significativo al 5%",
+      "FALSE" = "No significativo"
+    )
+  ) +
+  labs(
+    title = "Coeficientes de tama\u00f1o de empresa en la especificaci\u00f3n completa",
+    subtitle = "Columna (4): g\u00e9nero, educaci\u00f3n, formalidad y efectos fijos sector-a\u00f1o",
+    x = "Tama\u00f1o de empresa",
+    y = "Coeficiente estimado en log puntos",
+    color = NULL
+  )
+
+save_figure_versions(
+  base_name = "fig58",
+  plot_en = g_beta_tamano,
+  plot_es = g_beta_tamano_es,
   width = 10,
   height = 6,
   dpi = 300
@@ -399,8 +479,8 @@ g_premium_tamano_anio <- ggplot(
       "FALSE" = 1
     ),
     labels = c(
-      "TRUE" = "Significativo al 5%",
-      "FALSE" = "No significativo"
+      "TRUE" = "Significant at 5%",
+      "FALSE" = "Not significant"
     )
   ) +
   scale_x_continuous(
@@ -415,10 +495,10 @@ g_premium_tamano_anio <- ggplot(
     expand = expansion(mult = c(0.12, 0.12))
   ) +
   labs(
-    title = "Firm size wage premium over time in Colombia",
+    title = "Firm-size wage premium over time in Colombia",
     subtitle = "Year-specific premiums relative to solo workers. Full specification with 95% confidence intervals",
-    x = "Año",
-    y = "Premium salarial frente a trabajadores solos (%)",
+    x = "Year",
+    y = "Wage premium (%)",
     shape = NULL
   ) +
   theme_classic(base_size = 12) +
@@ -431,9 +511,29 @@ g_premium_tamano_anio <- ggplot(
     legend.position = "bottom"
   )
 
-ggsave(
-  filename = "Paper/figures/fig59.png",
-  plot = g_premium_tamano_anio,
+g_premium_tamano_anio_es <- g_premium_tamano_anio +
+  scale_shape_manual(
+    values = c(
+      "TRUE" = 16,
+      "FALSE" = 1
+    ),
+    labels = c(
+      "TRUE" = "Significativo al 5%",
+      "FALSE" = "No significativo"
+    )
+  ) +
+  labs(
+    title = "Premium salarial por tama\u00f1o de empresa en el tiempo en Colombia",
+    subtitle = "Premium por a\u00f1o frente a trabajadores solos. Especificaci\u00f3n completa con intervalos de confianza al 95%",
+    x = "A\u00f1o",
+    y = "Premium salarial (%)",
+    shape = NULL
+  )
+
+save_figure_versions(
+  base_name = "fig59",
+  plot_en = g_premium_tamano_anio,
+  plot_es = g_premium_tamano_anio_es,
   width = 12,
   height = 7,
   dpi = 300
@@ -557,8 +657,8 @@ g_trend_test <- ggplot(
       "FALSE" = "gray55"
     ),
     labels = c(
-      "TRUE" = "Aumento significativo al 5%",
-      "FALSE" = "No significativo"
+      "TRUE" = "Significant increase at 5%",
+      "FALSE" = "Not significant"
     )
   ) +
   scale_y_continuous(
@@ -566,10 +666,10 @@ g_trend_test <- ggplot(
     expand = expansion(mult = c(0.12, 0.18))
   ) +
   labs(
-    title = "Test of whether the firm size wage premium increased",
+    title = "Test of whether the firm-size wage premium increased",
     subtitle = "Slope of the year trend by firm-size category. One-sided test: premium increasing over time",
-    x = "Tamaño de empresa",
-    y = "Cambio anual del premium (log puntos x 100)",
+    x = "Firm size",
+    y = "Annual premium change (log points x 100)",
     color = NULL
   ) +
   theme_classic(base_size = 13) +
@@ -581,9 +681,29 @@ g_trend_test <- ggplot(
     legend.position = "bottom"
   )
 
-ggsave(
-  filename = "Paper/figures/fig60.png",
-  plot = g_trend_test,
+g_trend_test_es <- g_trend_test +
+  scale_color_manual(
+    values = c(
+      "TRUE" = "darkblue",
+      "FALSE" = "gray55"
+    ),
+    labels = c(
+      "TRUE" = "Aumento significativo al 5%",
+      "FALSE" = "No significativo"
+    )
+  ) +
+  labs(
+    title = "Test de aumento del premium salarial por tama\u00f1o de empresa",
+    subtitle = "Pendiente de la tendencia anual por tama\u00f1o de empresa. Test unilateral: premium creciente en el tiempo",
+    x = "Tama\u00f1o de empresa",
+    y = "Cambio anual del premium (log puntos x 100)",
+    color = NULL
+  )
+
+save_figure_versions(
+  base_name = "fig60",
+  plot_en = g_trend_test,
+  plot_es = g_trend_test_es,
   width = 10,
   height = 6,
   dpi = 300

@@ -1,9 +1,42 @@
+local_r_lib <- file.path(getwd(), ".Rlib")
+if (dir.exists(local_r_lib)) {
+  .libPaths(c(local_r_lib, .libPaths()))
+}
+
 library(haven)
 library(dplyr)
 library(ggplot2)
 library(scales)
 
 options(scipen = 999)
+
+save_figure_versions <- function(base_name, plot_en, plot_es, width, height, dpi = 300) {
+  dir.create("Paper/figures", recursive = TRUE, showWarnings = FALSE)
+
+  ggsave(
+    filename = file.path("Paper/figures", paste0(base_name, "_en.png")),
+    plot = plot_en,
+    width = width,
+    height = height,
+    dpi = dpi
+  )
+
+  ggsave(
+    filename = file.path("Paper/figures", paste0(base_name, "_es.png")),
+    plot = plot_es,
+    width = width,
+    height = height,
+    dpi = dpi
+  )
+
+  ggsave(
+    filename = file.path("Paper/figures", paste0(base_name, ".png")),
+    plot = plot_en,
+    width = width,
+    height = height,
+    dpi = dpi
+  )
+}
 
 size_levels <- c(
   "Solo",
@@ -401,9 +434,19 @@ g_employment_share_time <- ggplot(
   ) +
   theme_paper
 
-ggsave(
-  "Paper/figures/fig61.png",
-  g_employment_share_time,
+g_employment_share_time_es <- g_employment_share_time +
+  labs(
+    title = "Participaci\u00f3n del empleo por tama\u00f1o de empresa en el tiempo",
+    subtitle = "Participaciones ponderadas en la muestra base de regresi\u00f3n",
+    x = "A\u00f1o",
+    y = "Participaci\u00f3n en el empleo",
+    color = "Tama\u00f1o de empresa"
+  )
+
+save_figure_versions(
+  base_name = "fig61",
+  plot_en = g_employment_share_time,
+  plot_es = g_employment_share_time_es,
   width = 10,
   height = 6,
   dpi = 300
@@ -459,9 +502,19 @@ g_raw_premium_time <- ggplot(
   ) +
   theme_paper
 
-ggsave(
-  "Paper/figures/fig62.png",
-  g_raw_premium_time,
+g_raw_premium_time_es <- g_raw_premium_time +
+  labs(
+    title = "Premium salarial bruto por tama\u00f1o de empresa en el tiempo",
+    subtitle = "Ingreso laboral horario real promedio ponderado frente a trabajadores solos",
+    x = "A\u00f1o",
+    y = "Premium bruto frente a trabajadores solos",
+    color = "Tama\u00f1o de empresa"
+  )
+
+save_figure_versions(
+  base_name = "fig62",
+  plot_en = g_raw_premium_time,
+  plot_es = g_raw_premium_time_es,
   width = 10,
   height = 6,
   dpi = 300
@@ -484,6 +537,27 @@ composition_plot <- bind_rows(
     transmute(
       tamano_empresa,
       characteristic = "Higher education",
+      value = higher_education * 100
+    )
+)
+
+composition_plot_es <- bind_rows(
+  worker_balance %>%
+    transmute(
+      tamano_empresa,
+      characteristic = "Mujeres",
+      value = women * 100
+    ),
+  worker_balance %>%
+    transmute(
+      tamano_empresa,
+      characteristic = "Formal",
+      value = formal * 100
+    ),
+  worker_balance %>%
+    transmute(
+      tamano_empresa,
+      characteristic = "Educaci\u00f3n superior",
       value = higher_education * 100
     )
 )
@@ -516,9 +590,38 @@ g_worker_composition <- ggplot(
   ) +
   theme_paper
 
-ggsave(
-  "Paper/figures/fig63.png",
-  g_worker_composition,
+g_worker_composition_es <- ggplot(
+  composition_plot_es,
+  aes(
+    x = tamano_empresa,
+    y = value,
+    color = characteristic,
+    group = characteristic
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2.8) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  scale_color_manual(
+    values = c(
+      "Mujeres" = "darkred",
+      "Formal" = "darkblue",
+      "Educaci\u00f3n superior" = "darkgreen"
+    )
+  ) +
+  labs(
+    title = "Composici\u00f3n de trabajadores por tama\u00f1o de empresa",
+    subtitle = "Participaciones ponderadas en la muestra base de regresi\u00f3n",
+    x = "Tama\u00f1o de empresa",
+    y = "Participaci\u00f3n de trabajadores",
+    color = NULL
+  ) +
+  theme_paper
+
+save_figure_versions(
+  base_name = "fig63",
+  plot_en = g_worker_composition,
+  plot_es = g_worker_composition_es,
   width = 10,
   height = 6,
   dpi = 300
