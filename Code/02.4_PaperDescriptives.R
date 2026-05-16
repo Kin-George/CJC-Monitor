@@ -328,7 +328,7 @@ write_latex_table(
   c(
     "\\begin{table}[htbp]",
     "  \\centering",
-    "  \\caption{Real hourly labor income by firm size}",
+    "  \\caption{Real hourly labor income by firm size, pooled years}",
     "  \\label{tab:descriptive-income-size}",
     "  \\small",
     "  \\begin{tabular}{lrrrrrr}",
@@ -341,11 +341,75 @@ write_latex_table(
     "  \\vspace{0.3em}",
     "  \\begin{minipage}{0.95\\textwidth}",
     "  \\footnotesize",
-    "  Notes: Incomes are real hourly labor income in constant 2025 pesos. All statistics are weighted by GEIH expansion weights. The raw premium is the percent difference in the weighted mean relative to solo workers.",
+    "  Notes: Incomes are pooled over 2008--2019 and 2021--2025 and expressed as real hourly labor income in constant 2025 pesos. All statistics are weighted by GEIH expansion weights. The raw premium is the percent difference in the weighted mean relative to solo workers.",
     "  \\end{minipage}",
     "\\end{table}"
   ),
   "Paper/sections/descriptive_income_size_table.tex"
+)
+
+income_size_2025 <- geih_model %>%
+  filter(anio == 2025) %>%
+  group_by(tamano_empresa) %>%
+  summarise(
+    mean_income = weighted_mean(ingreso_hora_real, fex),
+    p25_income = weighted_quantile(ingreso_hora_real, fex, 0.25),
+    median_income = weighted_quantile(ingreso_hora_real, fex, 0.50),
+    p75_income = weighted_quantile(ingreso_hora_real, fex, 0.75),
+    sd_income = weighted_sd(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    raw_premium = 100 * (mean_income / mean_income[tamano_empresa == "Solo"] - 1)
+  ) %>%
+  arrange(tamano_empresa)
+
+write.csv(
+  income_size_2025,
+  "Paper/tables/descriptive_income_by_size_2025.csv",
+  row.names = FALSE
+)
+
+income_rows_2025 <- paste0(
+  "    ",
+  income_size_2025$tamano_empresa,
+  " & ",
+  format_money(income_size_2025$mean_income),
+  " & ",
+  format_money(income_size_2025$p25_income),
+  " & ",
+  format_money(income_size_2025$median_income),
+  " & ",
+  format_money(income_size_2025$p75_income),
+  " & ",
+  format_money(income_size_2025$sd_income),
+  " & ",
+  format_pct_value(income_size_2025$raw_premium),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Real hourly labor income by firm size, 2025}",
+    "  \\label{tab:descriptive-income-size-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lrrrrrr}",
+    "    \\toprule",
+    "    Firm size & Mean & P25 & Median & P75 & S.D. & Raw premium \\\\",
+    "    \\midrule",
+    income_rows_2025,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Incomes use only 2025 observations and are expressed as real hourly labor income in constant 2025 pesos. All statistics are weighted by GEIH expansion weights. The raw premium is the percent difference in the weighted mean relative to solo workers in 2025.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_income_size_2025_table.tex"
 )
 
 worker_balance <- geih_model %>%
