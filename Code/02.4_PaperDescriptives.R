@@ -472,6 +472,210 @@ write_latex_table(
   "Paper/sections/descriptive_income_size_comparison_table.tex"
 )
 
+summarise_wage_groups <- function(data, statistic = c("mean", "median")) {
+  statistic <- match.arg(statistic)
+
+  stat_fun <- switch(
+    statistic,
+    mean = weighted_mean,
+    median = function(x, w) weighted_quantile(x, w, 0.50)
+  )
+
+  summarise_one <- function(df, firm_size_label) {
+    data.frame(
+      firm_size = firm_size_label,
+      all = stat_fun(df$ingreso_hora_real, df$fex),
+      men = stat_fun(df$ingreso_hora_real[df$female_worker == 0], df$fex[df$female_worker == 0]),
+      women = stat_fun(df$ingreso_hora_real[df$female_worker == 1], df$fex[df$female_worker == 1]),
+      formal = stat_fun(df$ingreso_hora_real[df$formal_worker == 1], df$fex[df$formal_worker == 1]),
+      informal = stat_fun(df$ingreso_hora_real[df$formal_worker == 0], df$fex[df$formal_worker == 0]),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  by_size <- lapply(
+    size_levels,
+    function(size) summarise_one(
+      data %>% filter(tamano_empresa == size),
+      size
+    )
+  )
+
+  bind_rows(
+    summarise_one(data, "All firm sizes"),
+    bind_rows(by_size)
+  )
+}
+
+format_wage_group_rows <- function(data) {
+  paste0(
+    "    ",
+    data$firm_size,
+    " & ",
+    format_money(data$all),
+    " & ",
+    format_money(data$men),
+    " & ",
+    format_money(data$women),
+    " & ",
+    format_money(data$formal),
+    " & ",
+    format_money(data$informal),
+    " \\\\"
+  )
+}
+
+wage_groups_2008 <- geih_model %>%
+  filter(anio == 2008) %>%
+  summarise_wage_groups(statistic = "mean") %>%
+  mutate(year = 2008)
+
+wage_groups_2025 <- geih_model %>%
+  filter(anio == 2025) %>%
+  summarise_wage_groups(statistic = "mean") %>%
+  mutate(year = 2025)
+
+wage_groups_mean_2008_2025 <- bind_rows(wage_groups_2008, wage_groups_2025) %>%
+  select(year, firm_size, all, men, women, formal, informal)
+
+write.csv(
+  wage_groups_mean_2008_2025,
+  "Paper/tables/descriptive_wage_groups_mean_2008_2025.csv",
+  row.names = FALSE
+)
+
+wage_groups_2008_rows <- format_wage_group_rows(wage_groups_2008)
+wage_groups_2025_rows <- format_wage_group_rows(wage_groups_2025)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Mean real hourly labor income by firm size and worker group, 2008 and 2025}",
+    "  \\label{tab:descriptive-wage-groups-mean-2008-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lrrrrr}",
+    "    \\toprule",
+    "    Firm size & All & Men & Women & Formal & Informal \\\\",
+    "    \\midrule",
+    "    \\multicolumn{6}{l}{\\textit{Panel A: 2008}} \\\\",
+    wage_groups_2008_rows,
+    "    \\addlinespace",
+    "    \\multicolumn{6}{l}{\\textit{Panel B: 2025}} \\\\",
+    wage_groups_2025_rows,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Values are weighted mean real hourly labor income in constant 2025 pesos. The first row pools all firm-size categories. Men and women are defined from the worker's reported sex; formal and informal are defined using the baseline formality indicator.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_wage_groups_mean_2008_2025_table.tex"
+)
+
+wage_growth_2008_2025 <- wage_groups_2008 %>%
+  select(firm_size, mean_2008 = all) %>%
+  left_join(
+    wage_groups_2025 %>%
+      select(firm_size, mean_2025 = all),
+    by = "firm_size"
+  ) %>%
+  mutate(change_percent = 100 * (mean_2025 / mean_2008 - 1))
+
+write.csv(
+  wage_growth_2008_2025,
+  "Paper/tables/descriptive_wage_growth_2008_2025.csv",
+  row.names = FALSE
+)
+
+wage_growth_rows <- paste0(
+  "    ",
+  wage_growth_2008_2025$firm_size,
+  " & ",
+  format_money(wage_growth_2008_2025$mean_2008),
+  " & ",
+  format_money(wage_growth_2008_2025$mean_2025),
+  " & ",
+  format_pct_value(wage_growth_2008_2025$change_percent),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Growth in mean real hourly labor income by firm size, 2008--2025}",
+    "  \\label{tab:descriptive-wage-growth-2008-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lrrr}",
+    "    \\toprule",
+    "    Firm size & 2008 mean & 2025 mean & Change \\\\",
+    "    \\midrule",
+    wage_growth_rows,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Values are weighted mean real hourly labor income in constant 2025 pesos. Change is the percent change in the weighted mean between 2008 and 2025.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_wage_growth_2008_2025_table.tex"
+)
+
+wage_medians_2008 <- geih_model %>%
+  filter(anio == 2008) %>%
+  summarise_wage_groups(statistic = "median") %>%
+  mutate(year = 2008)
+
+wage_medians_2025 <- geih_model %>%
+  filter(anio == 2025) %>%
+  summarise_wage_groups(statistic = "median") %>%
+  mutate(year = 2025)
+
+wage_groups_median_2008_2025 <- bind_rows(wage_medians_2008, wage_medians_2025) %>%
+  select(year, firm_size, all, men, women, formal, informal)
+
+write.csv(
+  wage_groups_median_2008_2025,
+  "Paper/tables/descriptive_wage_groups_median_2008_2025.csv",
+  row.names = FALSE
+)
+
+wage_medians_2008_rows <- format_wage_group_rows(wage_medians_2008)
+wage_medians_2025_rows <- format_wage_group_rows(wage_medians_2025)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Median real hourly labor income by firm size and worker group, 2008 and 2025}",
+    "  \\label{tab:descriptive-wage-groups-median-2008-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lrrrrr}",
+    "    \\toprule",
+    "    Firm size & All & Men & Women & Formal & Informal \\\\",
+    "    \\midrule",
+    "    \\multicolumn{6}{l}{\\textit{Panel A: 2008}} \\\\",
+    wage_medians_2008_rows,
+    "    \\addlinespace",
+    "    \\multicolumn{6}{l}{\\textit{Panel B: 2025}} \\\\",
+    wage_medians_2025_rows,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Values are weighted median real hourly labor income in constant 2025 pesos. The first row pools all firm-size categories. Men and women are defined from the worker's reported sex; formal and informal are defined using the baseline formality indicator.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_wage_groups_median_2008_2025_table.tex"
+)
+
 worker_balance <- geih_model %>%
   group_by(tamano_empresa) %>%
   summarise(
