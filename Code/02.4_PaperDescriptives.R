@@ -447,7 +447,7 @@ write_latex_table(
   c(
     "\\begin{table}[htbp]",
     "  \\centering",
-    "  \\caption{Worker characteristics by firm size}",
+    "  \\caption{Worker characteristics by firm size, pooled years}",
     "  \\label{tab:descriptive-worker-characteristics}",
     "  \\small",
     "  \\begin{tabular}{lrrrr}",
@@ -460,11 +460,67 @@ write_latex_table(
     "  \\vspace{0.3em}",
     "  \\begin{minipage}{0.95\\textwidth}",
     "  \\footnotesize",
-    "  Notes: All statistics are weighted by GEIH expansion weights. Higher education corresponds to workers classified as superior or university educated.",
+    "  Notes: Statistics are pooled over 2008--2019 and 2021--2025 and weighted by GEIH expansion weights. Higher education corresponds to workers classified as superior or university educated.",
     "  \\end{minipage}",
     "\\end{table}"
   ),
   "Paper/sections/descriptive_worker_characteristics_table.tex"
+)
+
+worker_balance_2025 <- geih_model %>%
+  filter(anio == 2025) %>%
+  group_by(tamano_empresa) %>%
+  summarise(
+    women = weighted_mean(female_worker, fex),
+    formal = weighted_mean(formal_worker, fex),
+    higher_education = weighted_mean(higher_education, fex),
+    mean_log_wage = weighted_mean(log_ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  arrange(tamano_empresa)
+
+write.csv(
+  worker_balance_2025,
+  "Paper/tables/descriptive_worker_characteristics_by_size_2025.csv",
+  row.names = FALSE
+)
+
+balance_rows_2025 <- paste0(
+  "    ",
+  worker_balance_2025$tamano_empresa,
+  " & ",
+  format_pct(worker_balance_2025$women),
+  " & ",
+  format_pct(worker_balance_2025$formal),
+  " & ",
+  format_pct(worker_balance_2025$higher_education),
+  " & ",
+  format_number(worker_balance_2025$mean_log_wage, 3),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Worker characteristics by firm size, 2025}",
+    "  \\label{tab:descriptive-worker-characteristics-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lrrrr}",
+    "    \\toprule",
+    "    Firm size & Women & Formal & Higher education & Mean log wage \\\\",
+    "    \\midrule",
+    balance_rows_2025,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Statistics use only 2025 observations and are weighted by GEIH expansion weights. Higher education corresponds to workers classified as superior or university educated.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_worker_characteristics_2025_table.tex"
 )
 
 theme_paper <- theme_classic(base_size = 13) +
