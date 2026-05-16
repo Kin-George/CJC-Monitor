@@ -868,8 +868,8 @@ employment_share_comparison <- bind_rows(
   employment_size %>%
     transmute(
       tamano_empresa,
-      period = "Pooled sample",
-      employment_share = pooled_share * 100
+      period = "2008",
+      employment_share = share_first * 100
     ),
   employment_size %>%
     transmute(
@@ -878,7 +878,7 @@ employment_share_comparison <- bind_rows(
       employment_share = share_last * 100
     )
 ) %>%
-  mutate(period = factor(period, levels = c("Pooled sample", "2025")))
+  mutate(period = factor(period, levels = c("2008", "2025")))
 
 g_employment_share_comparison <- ggplot(
   employment_share_comparison,
@@ -891,7 +891,7 @@ g_employment_share_comparison <- ggplot(
   geom_col(position = position_dodge(width = 0.75), width = 0.68) +
   scale_fill_manual(
     values = c(
-      "Pooled sample" = "darkgreen",
+      "2008" = "darkgreen",
       "2025" = "darkblue"
     )
   ) +
@@ -901,7 +901,7 @@ g_employment_share_comparison <- ggplot(
   ) +
   labs(
     title = "Employment distribution by firm size",
-    subtitle = "Weighted shares in the pooled regression sample and in 2025",
+    subtitle = "Weighted shares in 2008 and 2025",
     x = "Firm size",
     y = "Employment share",
     fill = NULL
@@ -911,17 +911,13 @@ g_employment_share_comparison <- ggplot(
 g_employment_share_comparison_es <- g_employment_share_comparison +
   scale_fill_manual(
     values = c(
-      "Pooled sample" = "darkgreen",
+      "2008" = "darkgreen",
       "2025" = "darkblue"
-    ),
-    labels = c(
-      "Pooled sample" = "Muestra agrupada",
-      "2025" = "2025"
     )
   ) +
   labs(
     title = "Distribuci\u00f3n del empleo por tama\u00f1o de empresa",
-    subtitle = "Participaciones ponderadas en la muestra agrupada y en 2025",
+    subtitle = "Participaciones ponderadas en 2008 y 2025",
     x = "Tama\u00f1o de empresa",
     y = "Participaci\u00f3n en el empleo",
     fill = NULL
@@ -937,20 +933,22 @@ save_figure_versions(
 )
 
 income_mean_comparison <- bind_rows(
-  income_comparison %>%
+  wage_groups_2008 %>%
+    filter(firm_size != "All firm sizes") %>%
     transmute(
-      tamano_empresa,
-      period = "Pooled sample",
-      mean_income = pooled_mean_income
+      tamano_empresa = factor(firm_size, levels = size_levels),
+      period = "2008",
+      mean_income = all
     ),
-  income_comparison %>%
+  wage_groups_2025 %>%
+    filter(firm_size != "All firm sizes") %>%
     transmute(
-      tamano_empresa,
+      tamano_empresa = factor(firm_size, levels = size_levels),
       period = "2025",
-      mean_income = income_2025
+      mean_income = all
     )
 ) %>%
-  mutate(period = factor(period, levels = c("Pooled sample", "2025")))
+  mutate(period = factor(period, levels = c("2008", "2025")))
 
 g_income_mean_comparison <- ggplot(
   income_mean_comparison,
@@ -963,7 +961,7 @@ g_income_mean_comparison <- ggplot(
   geom_col(position = position_dodge(width = 0.75), width = 0.68) +
   scale_fill_manual(
     values = c(
-      "Pooled sample" = "darkgreen",
+      "2008" = "darkgreen",
       "2025" = "darkblue"
     )
   ) +
@@ -973,7 +971,7 @@ g_income_mean_comparison <- ggplot(
   ) +
   labs(
     title = "Mean real hourly income by firm size",
-    subtitle = "Pooled sample and 2025, in constant 2025 pesos",
+    subtitle = "2008 and 2025, in constant 2025 pesos",
     x = "Firm size",
     y = "Mean hourly income",
     fill = NULL
@@ -983,17 +981,13 @@ g_income_mean_comparison <- ggplot(
 g_income_mean_comparison_es <- g_income_mean_comparison +
   scale_fill_manual(
     values = c(
-      "Pooled sample" = "darkgreen",
+      "2008" = "darkgreen",
       "2025" = "darkblue"
-    ),
-    labels = c(
-      "Pooled sample" = "Muestra agrupada",
-      "2025" = "2025"
     )
   ) +
   labs(
     title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa",
-    subtitle = "Muestra agrupada y 2025, en pesos constantes de 2025",
+    subtitle = "2008 y 2025, en pesos constantes de 2025",
     x = "Tama\u00f1o de empresa",
     y = "Ingreso horario promedio",
     fill = NULL
