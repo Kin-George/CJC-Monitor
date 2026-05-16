@@ -660,6 +660,304 @@ theme_paper <- theme_classic(base_size = 13) +
     legend.position = "bottom"
   )
 
+employment_share_comparison <- bind_rows(
+  employment_size %>%
+    transmute(
+      tamano_empresa,
+      period = "Pooled sample",
+      employment_share = pooled_share * 100
+    ),
+  employment_size %>%
+    transmute(
+      tamano_empresa,
+      period = "2025",
+      employment_share = share_last * 100
+    )
+) %>%
+  mutate(period = factor(period, levels = c("Pooled sample", "2025")))
+
+g_employment_share_comparison <- ggplot(
+  employment_share_comparison,
+  aes(
+    x = tamano_empresa,
+    y = employment_share,
+    fill = period
+  )
+) +
+  geom_col(position = position_dodge(width = 0.75), width = 0.68) +
+  scale_fill_manual(
+    values = c(
+      "Pooled sample" = "darkgreen",
+      "2025" = "darkblue"
+    )
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "Employment distribution by firm size",
+    subtitle = "Weighted shares in the pooled regression sample and in 2025",
+    x = "Firm size",
+    y = "Employment share",
+    fill = NULL
+  ) +
+  theme_paper
+
+g_employment_share_comparison_es <- g_employment_share_comparison +
+  scale_fill_manual(
+    values = c(
+      "Pooled sample" = "darkgreen",
+      "2025" = "darkblue"
+    ),
+    labels = c(
+      "Pooled sample" = "Muestra agrupada",
+      "2025" = "2025"
+    )
+  ) +
+  labs(
+    title = "Distribuci\u00f3n del empleo por tama\u00f1o de empresa",
+    subtitle = "Participaciones ponderadas en la muestra agrupada y en 2025",
+    x = "Tama\u00f1o de empresa",
+    y = "Participaci\u00f3n en el empleo",
+    fill = NULL
+  )
+
+save_figure_versions(
+  base_name = "fig64",
+  plot_en = g_employment_share_comparison,
+  plot_es = g_employment_share_comparison_es,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
+income_mean_comparison <- bind_rows(
+  income_comparison %>%
+    transmute(
+      tamano_empresa,
+      period = "Pooled sample",
+      mean_income = pooled_mean_income
+    ),
+  income_comparison %>%
+    transmute(
+      tamano_empresa,
+      period = "2025",
+      mean_income = income_2025
+    )
+) %>%
+  mutate(period = factor(period, levels = c("Pooled sample", "2025")))
+
+g_income_mean_comparison <- ggplot(
+  income_mean_comparison,
+  aes(
+    x = tamano_empresa,
+    y = mean_income,
+    fill = period
+  )
+) +
+  geom_col(position = position_dodge(width = 0.75), width = 0.68) +
+  scale_fill_manual(
+    values = c(
+      "Pooled sample" = "darkgreen",
+      "2025" = "darkblue"
+    )
+  ) +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "Mean real hourly income by firm size",
+    subtitle = "Pooled sample and 2025, in constant 2025 pesos",
+    x = "Firm size",
+    y = "Mean hourly income",
+    fill = NULL
+  ) +
+  theme_paper
+
+g_income_mean_comparison_es <- g_income_mean_comparison +
+  scale_fill_manual(
+    values = c(
+      "Pooled sample" = "darkgreen",
+      "2025" = "darkblue"
+    ),
+    labels = c(
+      "Pooled sample" = "Muestra agrupada",
+      "2025" = "2025"
+    )
+  ) +
+  labs(
+    title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa",
+    subtitle = "Muestra agrupada y 2025, en pesos constantes de 2025",
+    x = "Tama\u00f1o de empresa",
+    y = "Ingreso horario promedio",
+    fill = NULL
+  )
+
+save_figure_versions(
+  base_name = "fig65",
+  plot_en = g_income_mean_comparison,
+  plot_es = g_income_mean_comparison_es,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
+snapshot_2025 <- employment_size %>%
+  transmute(
+    tamano_empresa,
+    employment_share = share_last * 100
+  ) %>%
+  left_join(
+    income_size_2025 %>%
+      select(tamano_empresa, mean_income),
+    by = "tamano_empresa"
+  )
+
+income_to_share_scale <- max(snapshot_2025$employment_share, na.rm = TRUE) /
+  max(snapshot_2025$mean_income, na.rm = TRUE)
+
+g_policy_snapshot_2025 <- ggplot(
+  snapshot_2025,
+  aes(x = tamano_empresa)
+) +
+  geom_col(
+    aes(y = employment_share),
+    fill = "darkgreen",
+    alpha = 0.75,
+    width = 0.68
+  ) +
+  geom_line(
+    aes(y = mean_income * income_to_share_scale, group = 1),
+    color = "darkblue",
+    linewidth = 1.1
+  ) +
+  geom_point(
+    aes(y = mean_income * income_to_share_scale),
+    color = "darkblue",
+    size = 3
+  ) +
+  scale_y_continuous(
+    name = "Employment share",
+    labels = function(x) paste0(x, "%"),
+    sec.axis = sec_axis(
+      ~ . / income_to_share_scale,
+      name = "Mean hourly income",
+      labels = comma
+    ),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "Employment and hourly income by firm size in 2025",
+    subtitle = "Bars show employment share; points show mean real hourly income",
+    x = "Firm size"
+  ) +
+  theme_paper +
+  theme(
+    axis.title.y = element_text(color = "darkgreen", face = "bold"),
+    axis.title.y.right = element_text(color = "darkblue", face = "bold")
+  )
+
+g_policy_snapshot_2025_es <- g_policy_snapshot_2025 +
+  scale_y_continuous(
+    name = "Participaci\u00f3n en el empleo",
+    labels = function(x) paste0(x, "%"),
+    sec.axis = sec_axis(
+      ~ . / income_to_share_scale,
+      name = "Ingreso horario promedio",
+      labels = comma
+    ),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  labs(
+    title = "Empleo e ingreso horario por tama\u00f1o de empresa en 2025",
+    subtitle = "Las barras muestran participaci\u00f3n en el empleo; los puntos muestran ingreso horario real promedio",
+    x = "Tama\u00f1o de empresa"
+  )
+
+save_figure_versions(
+  base_name = "fig66",
+  plot_en = g_policy_snapshot_2025,
+  plot_es = g_policy_snapshot_2025_es,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
+composition_2025_policy <- bind_rows(
+  worker_balance_2025 %>%
+    transmute(
+      tamano_empresa,
+      characteristic = "Formal",
+      value = formal * 100
+    ),
+  worker_balance_2025 %>%
+    transmute(
+      tamano_empresa,
+      characteristic = "Higher education",
+      value = higher_education * 100
+    )
+)
+
+g_policy_composition_2025 <- ggplot(
+  composition_2025_policy,
+  aes(
+    x = tamano_empresa,
+    y = value,
+    color = characteristic,
+    group = characteristic
+  )
+) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 3) +
+  scale_color_manual(
+    values = c(
+      "Formal" = "darkblue",
+      "Higher education" = "darkgreen"
+    )
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0.08, 0.1))
+  ) +
+  labs(
+    title = "Formality and higher education by firm size in 2025",
+    subtitle = "Weighted shares in the baseline regression sample",
+    x = "Firm size",
+    y = "Share of workers",
+    color = NULL
+  ) +
+  theme_paper
+
+g_policy_composition_2025_es <- g_policy_composition_2025 +
+  scale_color_manual(
+    values = c(
+      "Formal" = "darkblue",
+      "Higher education" = "darkgreen"
+    ),
+    labels = c(
+      "Formal" = "Formal",
+      "Higher education" = "Educaci\u00f3n superior"
+    )
+  ) +
+  labs(
+    title = "Formalidad y educaci\u00f3n superior por tama\u00f1o de empresa en 2025",
+    subtitle = "Participaciones ponderadas en la muestra base de regresi\u00f3n",
+    x = "Tama\u00f1o de empresa",
+    y = "Participaci\u00f3n de trabajadores",
+    color = NULL
+  )
+
+save_figure_versions(
+  base_name = "fig67",
+  plot_en = g_policy_composition_2025,
+  plot_es = g_policy_composition_2025_es,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
 g_employment_share_time <- ggplot(
   employment_size_year,
   aes(

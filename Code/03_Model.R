@@ -120,6 +120,126 @@ m_full <- feols(
 
 summary(m_full)
 
+premium_by_specification <- bind_rows(
+  tidy(m_raw, conf.int = TRUE, conf.level = 0.95) %>%
+    mutate(specification = "Raw", specification_order = 1),
+  tidy(m_fe, conf.int = TRUE, conf.level = 0.95) %>%
+    mutate(specification = "Sector-year FE", specification_order = 2),
+  tidy(m_demog, conf.int = TRUE, conf.level = 0.95) %>%
+    mutate(specification = "+ worker controls", specification_order = 3),
+  tidy(m_full, conf.int = TRUE, conf.level = 0.95) %>%
+    mutate(specification = "+ formality", specification_order = 4)
+) %>%
+  filter(str_detect(term, "^tamano_empresa::")) %>%
+  mutate(
+    tamano_empresa = str_remove(term, "^tamano_empresa::"),
+    premium = 100 * (exp(estimate) - 1),
+    ci_low = 100 * (exp(conf.low) - 1),
+    ci_high = 100 * (exp(conf.high) - 1),
+    tamano_empresa = factor(
+      tamano_empresa,
+      levels = c(
+        "2-3",
+        "4-5",
+        "6-10",
+        "11-19",
+        "20-30",
+        "31-50",
+        "51-100",
+        "101+"
+      )
+    ),
+    specification = factor(
+      specification,
+      levels = c(
+        "Raw",
+        "Sector-year FE",
+        "+ worker controls",
+        "+ formality"
+      )
+    )
+  ) %>%
+  arrange(tamano_empresa, specification_order)
+
+write.csv(
+  premium_by_specification,
+  "Paper/tables/regression_premium_by_specification.csv",
+  row.names = FALSE
+)
+
+premium_attenuation_plot <- premium_by_specification %>%
+  filter(tamano_empresa %in% c("2-3", "6-10", "101+"))
+
+g_premium_attenuation <- ggplot(
+  premium_attenuation_plot,
+  aes(
+    x = specification,
+    y = premium,
+    color = tamano_empresa,
+    group = tamano_empresa
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  geom_text(
+    aes(label = paste0(round(premium, 1), "%")),
+    vjust = -0.75,
+    size = 3.1,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(
+    values = c(
+      "2-3" = "darkgreen",
+      "6-10" = "darkblue",
+      "101+" = "darkred"
+    )
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0.08, 0.16))
+  ) +
+  labs(
+    title = "How controls attenuate the firm-size wage premium",
+    subtitle = "Premium relative to solo workers for selected firm-size categories",
+    x = "Specification",
+    y = "Wage premium (%)",
+    color = "Firm size"
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 20, hjust = 1),
+    legend.position = "bottom"
+  )
+
+g_premium_attenuation_es <- g_premium_attenuation +
+  scale_x_discrete(
+    labels = c(
+      "Raw" = "Bruto",
+      "Sector-year FE" = "EF sector-a\u00f1o",
+      "+ worker controls" = "+ controles trabajador",
+      "+ formality" = "+ formalidad"
+    )
+  ) +
+  labs(
+    title = "C\u00f3mo los controles aten\u00faan el premium salarial por tama\u00f1o de empresa",
+    subtitle = "Premium frente a trabajadores solos para categor\u00edas seleccionadas",
+    x = "Especificaci\u00f3n",
+    y = "Premium salarial (%)",
+    color = "Tama\u00f1o de empresa"
+  )
+
+save_figure_versions(
+  base_name = "fig68",
+  plot_en = g_premium_attenuation,
+  plot_es = g_premium_attenuation_es,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
 #========================================================
 # 1. Extraer coeficientes de tamaño de empresa
 #========================================================
