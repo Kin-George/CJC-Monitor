@@ -20,9 +20,10 @@ share of each firm-size group:
        {\sum_{i \in t} fex_{it}}.
 \]
 
-These two objects are used in the descriptive figures: the vertical position of
-each point shows real hourly labor income, and the bubble size shows the share of
-employment represented by each firm-size group. For the comparison between 2008
+These two objects are used in the descriptive tables and figures. The main
+comparison figures plot the employment distribution and mean real hourly labor
+income by firm size in 2008 and 2025, while appendix figures report the full
+time path of employment shares and raw premiums. For the comparison between 2008
 and 2025, the descriptive difference for group \(g\) is:
 
 \[
@@ -99,11 +100,11 @@ time by interacting firm-size categories with year indicators:
 \[
   \ln(w_{ist}^{real}) =
   \alpha
-  + \sum_{g \neq g_0}\sum_t
-    \beta_{gt}\mathbf{1}\{Size_{ist}=g\}\mathbf{1}\{Year_i=t\}
-  + X_{it}'\gamma
+  + \sum_{g \neq g_0}\sum_{\tau}
+    \beta_{g\tau}\mathbf{1}\{Size_{ist}=g\}\mathbf{1}\{Year_{it}=\tau\}
+  + X_{ist}'\gamma
   + \lambda_{s \times t}
-  + \varepsilon_{it}.
+  + \varepsilon_{ist}.
 \]
 
 This dynamic specification produces a sequence of firm-size premiums by year and

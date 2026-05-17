@@ -44,8 +44,12 @@ specification into percentage premiums. Relative to solo workers, the conditiona
 premium is 18.3 percent for firms with 2--3 workers, about 30 percent for firms
 with 4--10 workers, 23--28 percent for intermediate size categories, and 34.8
 percent for firms with 101 or more workers. All confidence intervals exclude
-zero. Figure~\ref{fig:firm-size-beta-coefficients} reports the same estimates in
-log points, which is the scale of the econometric model.
+zero.
+\ifpolicyreport
+\else
+The corresponding log-point coefficients are reported in
+Appendix~\ref{app:additional-regression-figures}.
+\fi
 
 \begin{figure}[htbp]
   \centering
@@ -53,15 +57,6 @@ log points, which is the scale of the econometric model.
   \caption{Conditional firm-size wage premium relative to solo workers}
   \label{fig:firm-size-wage-premium}
 \end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\textwidth]{fig58_\figurelang.png}
-  \caption{Firm-size coefficients in the full specification}
-  \label{fig:firm-size-beta-coefficients}
-\end{figure}
-
-\clearpage
 
 Figure~\ref{fig:firm-size-wage-premium-over-time} estimates the full
 specification separately by interacting firm-size categories with year
@@ -99,12 +94,11 @@ categories.
 
 \input{Paper/sections/regression_firm_size_trend_test}
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\textwidth]{fig60_\figurelang.png}
-  \caption{Trend test for the firm-size wage premium}
-  \label{fig:firm-size-premium-trend-test}
-\end{figure}
+\ifpolicyreport
+\else
+The corresponding coefficient plot is reported in
+Appendix~\ref{app:additional-regression-figures}.
+\fi
 
 \subsection{Interpretation: Inequality, Efficiency, and Misallocation}
 
@@ -129,3 +123,17 @@ remains after conditioning on observed worker characteristics, formality, and
 sector-year fixed effects. Establishing the productivity channel directly would
 require matched employer-employee data or firm-level information on output,
 capital, and employment.
+
+\subsection{Limitations}
+
+Several limitations qualify the interpretation. First, firm size is reported by
+workers in a household survey, and the data do not identify employers. Second,
+the analysis cannot separate worker sorting from firm wage-setting: a remaining
+conditional premium may reflect unobserved worker ability, firm rents, internal
+labor markets, productivity differences, or match quality. Third, formality is
+both a control and a potential mechanism. Adding it to the regression is useful
+because it shows how much of the raw gradient is associated with the formal
+segment of the labor market, but it may also absorb part of the channel through
+which larger firms pay more. Finally, because the GEIH does not observe value
+added, capital, or marginal products, the evidence should be read as suggestive
+of allocative frictions rather than as a direct test of misallocation.

@@ -20,13 +20,9 @@ For the policy report, the detailed income and worker-characteristics tables use
 2025 only, because the report emphasizes the latest observed labor-market
 structure.
 \else
-\input{Paper/sections/descriptive_income_size_table}
-
-\input{Paper/sections/descriptive_worker_characteristics_table}
-
-For the paper, the detailed income and worker-characteristics tables pool all
-survey years, because the regression estimates are identified from the pooled
-2008--2019 and 2021--2025 sample.
+For the paper, detailed pooled and 2025-only income and worker-characteristics
+tables are reported in the appendix. The main text uses compact comparison
+tables to emphasize the main empirical patterns without duplicating information.
 \fi
 
 \input{Paper/sections/descriptive_income_size_comparison_table}
@@ -118,26 +114,11 @@ fully identify misallocation.
 Worker composition varies sharply with firm size. Formality and higher education
 both rise monotonically with firm size, which means that raw wage differences
 partly reflect observable worker sorting across firms.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\textwidth]{fig61_\figurelang.png}
-  \caption{Employment share by firm size over time}
-  \label{fig:descriptive-employment-share-time}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\textwidth]{fig62_\figurelang.png}
-  \caption{Raw firm-size wage premium over time, relative to solo workers}
-  \label{fig:descriptive-raw-premium-time}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\textwidth]{fig63_\figurelang.png}
-  \caption{Worker composition by firm size}
-  \label{fig:descriptive-worker-composition}
-\end{figure}
+\ifpolicyreport
+\else
+Additional descriptive figures on the full time path of employment shares, raw
+wage premiums, and worker composition are reported in
+Appendix~\ref{app:additional-descriptives}.
+\fi
 
 \clearpage
