@@ -948,57 +948,98 @@ income_mean_comparison <- bind_rows(
       mean_income = all
     )
 ) %>%
-  mutate(period = factor(period, levels = c("2008", "2025")))
+  mutate(period = factor(period, levels = c("2008", "2025"))) %>%
+  left_join(
+    employment_share_comparison %>%
+      mutate(period = factor(as.character(period), levels = c("2008", "2025"))) %>%
+      select(tamano_empresa, period, employment_share),
+    by = c("tamano_empresa", "period")
+  )
 
 g_income_mean_comparison <- ggplot(
   income_mean_comparison,
   aes(
     x = tamano_empresa,
     y = mean_income,
-    fill = period
+    color = period,
+    group = period
   )
 ) +
-  geom_col(position = position_dodge(width = 0.75), width = 0.68) +
-  scale_fill_manual(
+  geom_line(linewidth = 1) +
+  geom_point(
+    aes(size = employment_share / 100),
+    alpha = 0.75
+  ) +
+  scale_color_manual(
     values = c(
       "2008" = "darkgreen",
       "2025" = "darkblue"
     )
+  ) +
+  scale_size_area(
+    max_size = 9,
+    labels = percent_format(accuracy = 1),
+    name = "% of employment"
   ) +
   scale_y_continuous(
     labels = comma,
-    expand = expansion(mult = c(0, 0.08))
+    expand = expansion(mult = c(0.05, 0.1))
   ) +
   labs(
     title = "Mean real hourly income by firm size",
-    subtitle = "2008 and 2025, in constant 2025 pesos",
+    subtitle = "2008 and 2025; bubble size is the employment share in each year",
     x = "Firm size",
     y = "Mean hourly income",
-    fill = NULL
+    color = "Year"
   ) +
-  theme_paper
+  theme_paper +
+  theme(legend.box = "vertical")
 
-g_income_mean_comparison_es <- g_income_mean_comparison +
-  scale_fill_manual(
+g_income_mean_comparison_es <- ggplot(
+  income_mean_comparison,
+  aes(
+    x = tamano_empresa,
+    y = mean_income,
+    color = period,
+    group = period
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point(
+    aes(size = employment_share / 100),
+    alpha = 0.75
+  ) +
+  scale_color_manual(
     values = c(
       "2008" = "darkgreen",
       "2025" = "darkblue"
     )
   ) +
+  scale_size_area(
+    max_size = 9,
+    labels = percent_format(accuracy = 1),
+    name = "% del empleo"
+  ) +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0.05, 0.1))
+  ) +
   labs(
     title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa",
-    subtitle = "2008 y 2025, en pesos constantes de 2025",
+    subtitle = "2008 y 2025; la burbuja representa la participaci\u00f3n en el empleo de cada a\u00f1o",
     x = "Tama\u00f1o de empresa",
     y = "Ingreso horario promedio",
-    fill = NULL
-  )
+    color = "A\u00f1o"
+  ) +
+  theme_paper +
+  theme(legend.box = "vertical")
 
 save_figure_versions(
   base_name = "fig65",
   plot_en = g_income_mean_comparison,
   plot_es = g_income_mean_comparison_es,
-  width = 10,
-  height = 6,
+  width = 11,
+  height = 6.5,
   dpi = 300
 )
 
