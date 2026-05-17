@@ -1002,6 +1002,133 @@ save_figure_versions(
   dpi = 300
 )
 
+formality_income_comparison <- geih_model %>%
+  filter(
+    anio %in% c(2008, 2025),
+    formal %in% c(0, 1)
+  ) %>%
+  group_by(anio, formal_worker, tamano_empresa) %>%
+  summarise(
+    workers = sum(fex, na.rm = TRUE),
+    mean_income = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  group_by(anio, formal_worker) %>%
+  mutate(worker_share = workers / sum(workers, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(
+    year = factor(as.character(anio), levels = c("2008", "2025")),
+    formality_status = factor(
+      ifelse(formal_worker == 1, "Formal workers", "Informal workers"),
+      levels = c("Formal workers", "Informal workers")
+    ),
+    formality_status_es = factor(
+      ifelse(formal_worker == 1, "Trabajadores formales", "Trabajadores informales"),
+      levels = c("Trabajadores formales", "Trabajadores informales")
+    )
+  )
+
+write.csv(
+  formality_income_comparison,
+  "Paper/tables/descriptive_wage_by_formality_year_size.csv",
+  row.names = FALSE
+)
+
+g_formality_income_comparison <- ggplot(
+  formality_income_comparison,
+  aes(
+    x = tamano_empresa,
+    y = mean_income,
+    color = year,
+    group = year
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point(
+    aes(size = worker_share),
+    alpha = 0.75
+  ) +
+  facet_wrap(~ formality_status, ncol = 2) +
+  scale_color_manual(
+    values = c(
+      "2008" = "darkgreen",
+      "2025" = "darkblue"
+    )
+  ) +
+  scale_size_area(
+    max_size = 9,
+    labels = percent_format(accuracy = 1),
+    name = "% within formality-year"
+  ) +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0.05, 0.1))
+  ) +
+  labs(
+    title = "Mean real hourly income by firm size and formality",
+    subtitle = "2008 and 2025; bubble size is the worker share within each formality-year group",
+    x = "Firm size",
+    y = "Mean hourly income",
+    color = "Year"
+  ) +
+  theme_paper +
+  theme(
+    strip.text = element_text(face = "bold"),
+    legend.box = "vertical"
+  )
+
+g_formality_income_comparison_es <- ggplot(
+  formality_income_comparison,
+  aes(
+    x = tamano_empresa,
+    y = mean_income,
+    color = year,
+    group = year
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point(
+    aes(size = worker_share),
+    alpha = 0.75
+  ) +
+  facet_wrap(~ formality_status_es, ncol = 2) +
+  scale_color_manual(
+    values = c(
+      "2008" = "darkgreen",
+      "2025" = "darkblue"
+    )
+  ) +
+  scale_size_area(
+    max_size = 9,
+    labels = percent_format(accuracy = 1),
+    name = "% dentro de formalidad-a\u00f1o"
+  ) +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0.05, 0.1))
+  ) +
+  labs(
+    title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa y formalidad",
+    subtitle = "2008 y 2025; la burbuja representa el porcentaje de trabajadores dentro de cada grupo formalidad-a\u00f1o",
+    x = "Tama\u00f1o de empresa",
+    y = "Ingreso horario promedio",
+    color = "A\u00f1o"
+  ) +
+  theme_paper +
+  theme(
+    strip.text = element_text(face = "bold"),
+    legend.box = "vertical"
+  )
+
+save_figure_versions(
+  base_name = "fig69",
+  plot_en = g_formality_income_comparison,
+  plot_es = g_formality_income_comparison_es,
+  width = 11,
+  height = 6.5,
+  dpi = 300
+)
+
 snapshot_2025 <- employment_size %>%
   transmute(
     tamano_empresa,
