@@ -37,7 +37,7 @@ The main econometric exercise estimates the conditional firm-size wage premium
 in a log-wage model. The baseline specification is:
 
 \[
-  \ln(w_{ist}^{real}) =
+  \ln(w_{ist}) =
   \alpha
   + \sum_{g \neq g_0} \beta_g \mathbf{1}\{Size_{ist}=g\}
   + X_{ist}'\gamma
@@ -45,14 +45,7 @@ in a log-wage model. The baseline specification is:
   + \varepsilon_{ist},
 \]
 
-where \(w_{ist}^{real}\) is real hourly labor income for worker \(i\) in sector \(s\) in year
-\(t\), \(Size_{ist}\) is the harmonized firm-size category, and \(g_0\) is the
-reference group. We use solo workers as the reference category. This choice makes
-the coefficient path directly interpretable as the wage premium associated with
-moving from individual work to increasingly larger firms. Because solo workers
-may combine self-employment and very small-scale wage employment, we interpret
-the estimates as conditional gaps relative to the bottom of the firm-size
-distribution rather than as pure firm effects.
+where \(w_{ist}\) is real hourly labor income for worker \(i\) in sector \(s\) in year \(t\), \(Size_{ist}\) is the harmonized firm-size category, and \(g_0\) is the reference group. We use solo workers as the reference category. This choice makes the coefficient path directly interpretable as the wage premium associated with moving from individual work to increasingly larger firms. Because solo workers may combine self-employment and very small-scale wage employment, we interpret the estimates as conditional gaps relative to the bottom of the firm-size distribution rather than as pure firm effects.
 
 The vector \(X_{ist}\) includes a female-worker indicator, education dummies, and
 a formal-employment indicator. The fixed effect \(\lambda_{s \times t}\)
@@ -76,21 +69,7 @@ For interpretation, we transform them into percentage premiums:
   Premium_g = 100 \times \left(\exp(\hat{\beta}_g)-1\right).
 \]
 
-Confidence intervals are transformed in the same way:
 
-\[
-  CI_g =
-  \left[
-  100 \times \left(\exp(\hat{\beta}_g - 1.96\,se(\hat{\beta}_g))-1\right),
-  100 \times \left(\exp(\hat{\beta}_g + 1.96\,se(\hat{\beta}_g))-1\right)
-  \right].
-\]
-
-The graphical test of statistical significance is therefore direct: if the 95\%
-confidence interval for a firm-size group excludes zero, the conditional premium
-is statistically significant at the 5\% level. If the interval crosses zero, the
-estimated premium is not statistically distinguishable from zero at conventional
-levels.
 
 \subsection{Dynamic Premiums and Trend Test}
 
