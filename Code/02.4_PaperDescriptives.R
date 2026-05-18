@@ -1690,6 +1690,289 @@ save_figure_versions(
   dpi = 300
 )
 
+wage_gap_sample_2025 <- geih_model %>%
+  filter(anio == 2025)
+
+overall_mean_income_2025 <- weighted_mean(
+  wage_gap_sample_2025$ingreso_hora_real,
+  wage_gap_sample_2025$fex
+)
+
+sex_wage_gaps_2025 <- wage_gap_sample_2025 %>%
+  mutate(
+    group_en = if_else(female_worker == 1, "Women", "Men"),
+    group_es = if_else(female_worker == 1, "Mujeres", "Hombres")
+  ) %>%
+  group_by(group_en, group_es) %>%
+  summarise(
+    workers = sum(fex, na.rm = TRUE),
+    mean_income = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    dimension_en = "Sex",
+    dimension_es = "Sexo",
+    group_order = match(group_en, c("Men", "Women"))
+  )
+
+education_wage_gaps_2025 <- wage_gap_sample_2025 %>%
+  filter(
+    !grepl("No sabe|no informa", as.character(educacion), ignore.case = TRUE)
+  ) %>%
+  mutate(
+    education_chr = as.character(educacion),
+    group_en = case_when(
+      grepl("Ning|No educ", education_chr, ignore.case = TRUE) ~ "No education",
+      grepl("Pre", education_chr, ignore.case = TRUE) ~ "Preschool",
+      grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Primary",
+      grepl("secundaria|secondary", education_chr, ignore.case = TRUE) ~ "Lower secondary",
+      grepl("^Media$|upper", education_chr, ignore.case = TRUE) ~ "Upper secondary",
+      grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Higher education",
+      TRUE ~ education_chr
+    ),
+    group_es = case_when(
+      grepl("Ning|No educ", education_chr, ignore.case = TRUE) ~ "Ninguno",
+      grepl("Pre", education_chr, ignore.case = TRUE) ~ "Preescolar",
+      grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Basica primaria",
+      grepl("secundaria|secondary", education_chr, ignore.case = TRUE) ~ "Basica secundaria",
+      grepl("^Media$|upper", education_chr, ignore.case = TRUE) ~ "Media",
+      grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Superior o universitaria",
+      TRUE ~ education_chr
+    )
+  ) %>%
+  group_by(group_en, group_es) %>%
+  summarise(
+    workers = sum(fex, na.rm = TRUE),
+    mean_income = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    dimension_en = "Education",
+    dimension_es = "Educacion",
+    group_order = match(group_en, education_order_en)
+  )
+
+sector_label_lookup <- sector_income_comparison %>%
+  distinct(sector, sector_label_en, sector_label_es)
+
+sector_wage_gaps_2025 <- wage_gap_sample_2025 %>%
+  group_by(sector) %>%
+  summarise(
+    workers = sum(fex, na.rm = TRUE),
+    mean_income = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  left_join(sector_label_lookup, by = "sector") %>%
+  mutate(
+    group_en = as.character(sector_label_en),
+    group_es = as.character(sector_label_es),
+    dimension_en = "Sector",
+    dimension_es = "Sector",
+    group_order = match(group_en, sector_order_en)
+  ) %>%
+  select(-sector_label_en, -sector_label_es)
+
+wage_gaps_2025 <- bind_rows(
+  sex_wage_gaps_2025,
+  education_wage_gaps_2025,
+  sector_wage_gaps_2025
+) %>%
+  group_by(dimension_en, dimension_es) %>%
+  mutate(employment_share = workers / sum(workers, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(
+    gap_to_overall = 100 * (mean_income / overall_mean_income_2025 - 1),
+    direction_en = if_else(
+      gap_to_overall >= 0,
+      "Above overall mean",
+      "Below overall mean"
+    ),
+    direction_es = if_else(
+      gap_to_overall >= 0,
+      "Sobre el promedio total",
+      "Debajo del promedio total"
+    )
+  )
+
+write.csv(
+  wage_gaps_2025,
+  "Paper/tables/descriptive_wage_gaps_2025.csv",
+  row.names = FALSE
+)
+
+wage_gap_table_data <- wage_gaps_2025 %>%
+  mutate(
+    dimension_en = factor(dimension_en, levels = c("Sex", "Education", "Sector")),
+    table_order = if_else(
+      dimension_en == "Sector",
+      rank(gap_to_overall, ties.method = "first"),
+      group_order
+    )
+  ) %>%
+  arrange(dimension_en, table_order)
+
+wage_gap_rows_2025 <- paste0(
+  "    ",
+  as.character(wage_gap_table_data$dimension_en),
+  " & ",
+  wage_gap_table_data$group_en,
+  " & ",
+  format_pct(wage_gap_table_data$employment_share),
+  " & ",
+  format_money(wage_gap_table_data$mean_income),
+  " & ",
+  format_pct_value(wage_gap_table_data$gap_to_overall),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[p]",
+    "  \\centering",
+    "  \\caption{Mean real hourly labor income gaps by worker group, 2025}",
+    "  \\label{tab:descriptive-wage-gaps-2025}",
+    "  \\scriptsize",
+    "  \\begin{tabular}{lp{0.38\\textwidth}rrr}",
+    "    \\toprule",
+    "    Dimension & Group & Employment share & Mean income & Gap \\\\",
+    "    \\midrule",
+    wage_gap_rows_2025,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Statistics use 2025 observations and GEIH expansion weights. Employment shares are computed within each dimension. Mean income is real hourly labor income in constant 2025 pesos. The gap is the percent difference in each group's weighted mean relative to the overall 2025 weighted mean.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_wage_gaps_2025_table.tex"
+)
+
+dimension_levels_en <- c("Sex", "Education", "Sector")
+dimension_levels_es <- c("Sexo", "Educacion", "Sector")
+
+wage_gaps_plot_2025 <- wage_gaps_2025 %>%
+  filter(!(dimension_en == "Sector" & group_en == "U - Extraterritorial orgs.")) %>%
+  mutate(
+    dimension_en = factor(dimension_en, levels = dimension_levels_en),
+    dimension_es = factor(dimension_es, levels = dimension_levels_es),
+    plot_order = if_else(
+      dimension_en == "Sector",
+      rank(gap_to_overall, ties.method = "first"),
+      group_order
+    )
+  ) %>%
+  arrange(dimension_en, plot_order) %>%
+  mutate(
+    plot_label_en = factor(
+      paste(as.character(dimension_en), group_en, sep = "___"),
+      levels = paste(as.character(dimension_en), group_en, sep = "___")
+    ),
+    plot_label_es = factor(
+      paste(as.character(dimension_es), group_es, sep = "___"),
+      levels = paste(as.character(dimension_es), group_es, sep = "___")
+    )
+  )
+
+theme_wage_gaps <- theme_classic(base_size = 10) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 10.5),
+    axis.title = element_text(face = "bold"),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text(size = 7),
+    strip.background = element_blank(),
+    strip.text.y = element_text(face = "bold", angle = 0, size = 9),
+    legend.position = "none",
+    panel.spacing = unit(0.8, "lines")
+  )
+
+g_wage_gaps_2025 <- ggplot(
+  wage_gaps_plot_2025,
+  aes(
+    x = gap_to_overall,
+    y = plot_label_en,
+    fill = direction_en
+  )
+) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    color = "gray40",
+    linewidth = 0.5
+  ) +
+  geom_col(width = 0.72) +
+  facet_grid(
+    dimension_en ~ .,
+    scales = "free_y",
+    space = "free_y"
+  ) +
+  scale_y_discrete(labels = function(x) sub("^.*___", "", x)) +
+  scale_x_continuous(
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0.08, 0.12))
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Below overall mean" = "firebrick",
+      "Above overall mean" = "darkgreen"
+    )
+  ) +
+  labs(
+    title = "Mean real hourly income gaps in 2025",
+    subtitle = "Weighted means relative to the overall 2025 hourly-income mean",
+    x = "Gap relative to overall mean"
+  ) +
+  theme_wage_gaps
+
+g_wage_gaps_2025_es <- ggplot(
+  wage_gaps_plot_2025,
+  aes(
+    x = gap_to_overall,
+    y = plot_label_es,
+    fill = direction_es
+  )
+) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    color = "gray40",
+    linewidth = 0.5
+  ) +
+  geom_col(width = 0.72) +
+  facet_grid(
+    dimension_es ~ .,
+    scales = "free_y",
+    space = "free_y"
+  ) +
+  scale_y_discrete(labels = function(x) sub("^.*___", "", x)) +
+  scale_x_continuous(
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0.08, 0.12))
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Debajo del promedio total" = "firebrick",
+      "Sobre el promedio total" = "darkgreen"
+    )
+  ) +
+  labs(
+    title = "Brechas de ingreso laboral horario real en 2025",
+    subtitle = "Promedios ponderados frente al promedio total de ingreso horario en 2025",
+    x = "Brecha frente al promedio total"
+  ) +
+  theme_wage_gaps
+
+save_figure_versions(
+  base_name = "fig73",
+  plot_en = g_wage_gaps_2025,
+  plot_es = g_wage_gaps_2025_es,
+  width = 10.5,
+  height = 9,
+  dpi = 300
+)
+
 snapshot_2025 <- employment_size %>%
   transmute(
     tamano_empresa,
