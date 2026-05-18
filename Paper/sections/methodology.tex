@@ -77,10 +77,10 @@ The same framework can be extended to study the evolution of the premium over
 time by interacting firm-size categories with year indicators:
 
 \[
-  \ln(w_{ist}^{real}) =
+  \ln(w_{ist}) =
   \alpha
-  + \sum_{g \neq g_0}\sum_{\tau}
-    \beta_{g\tau}\mathbf{1}\{Size_{ist}=g\}\mathbf{1}\{Year_{it}=\tau\}
+  + \sum_{\tau}\sum_{g \neq g_0}
+    \beta_{g\tau}\mathbf{1}\{Size_{ist}=g\}\mathbf{1}\{Year_{t}=\tau\}
   + X_{ist}'\gamma
   + \lambda_{s \times t}
   + \varepsilon_{ist}.
@@ -91,7 +91,7 @@ can be used to assess whether the premium has widened, narrowed, or remained
 stable. We also estimate a more parsimonious trend specification:
 
 \[
-  \ln(w_{ist}^{real}) =
+  \ln(w_{ist}) =
   \alpha
   + \sum_{g \neq g_0} \beta_g\mathbf{1}\{Size_{ist}=g\}
   + \sum_{g \neq g_0} \delta_g
