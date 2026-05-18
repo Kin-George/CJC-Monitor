@@ -1,74 +1,92 @@
 \section{Descriptive Statistics}
 
-Before estimating the econometric specification, we document the raw structure of the sample. The purpose of these descriptive statistics is to show how employment, wages, and worker characteristics vary across firm-size categories. This is
-important because the conditional premium estimated below combines two empirical facts: larger firms pay higher raw wages, but workers differ systematically in observable characteristics across firm sizes.
+The descriptive section is organized around the empirical facts that motivate the
+regression analysis. We first define the working sample, then document where
+workers are located in the firm-size distribution, how wages vary across that
+distribution, and how much of the raw pattern is related to formality and other
+observable wage gaps.
 
 \input{Paper/sections/descriptive_sample_table}
 
-\input{Paper/sections/descriptive_employment_size_table}
-
 Table~\ref{tab:sample-construction} defines the working sample and period
-coverage, while Table~\ref{tab:descriptive-employment-size} reports the
-employment distribution that underlies the descriptive figures and regressions.
-The sample contains just over 5.0 million worker-year observations with valid
-controls over 17 survey years. The employment table already reveals the central
-scale fact: solo work and firms with up to ten workers account for most
+coverage. The sample contains just over 5.0 million worker-year observations
+with valid wages, firm-size information, worker controls, and expansion weights
+over 17 survey years. Detailed employment, wage, and worker-composition tables
+are reported in Appendix~\ref{app:additional-descriptives}; the main text keeps
+the focus on the exhibits that structure the interpretation.
+
+Figures~\ref{fig:employment-share-comparison} and
+\ref{fig:income-mean-comparison} establish the two raw facts behind the paper.
+First, employment is heavily concentrated in the bottom of the firm-size
+distribution. Solo workers and firms with up to ten workers account for most
 employment, while firms with 11--100 workers form a thin middle of the
-distribution.
+distribution. Second, mean real hourly income rises sharply with firm size. The
+largest harmonized category also became more important over time, rising from
+18.8 percent of employment in 2008 to 25.2 percent in 2025, but this did not
+eliminate the large employment mass in solo work and micro-firms.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig64_\figurelang.png}
+  \caption{Employment distribution by firm size: 2008 and 2025}
+  \label{fig:employment-share-comparison}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig65_\figurelang.png}
+  \caption{Mean real hourly income by firm size, 2008 and 2025; bubble size shows each firm-size category's employment share}
+  \label{fig:income-mean-comparison}
+\end{figure}
+
+\subsection{Wage Levels in 2008 and 2025}
+
+\input{Paper/sections/descriptive_wage_groups_mean_2008_2025_table}
+
+Table~\ref{tab:descriptive-wage-groups-mean-2008-2025} reports mean real hourly
+wages in 2008 and 2025 for all workers, by sex, and by formality status. The
+table gives the exact magnitudes behind Figure~\ref{fig:income-mean-comparison}.
+Three patterns stand out. First, the raw firm-size gradient was already large in
+2008 and remained large in 2025: mean hourly income in the 101+ category was
+about 2.4 times the solo-worker mean in 2008 and about 2.6 times the
+solo-worker mean in 2025. Second, the gender gap in the aggregate means is small
+relative to the cross-firm-size gradient. Third, the formal-informal wage gap is
+large in both years, making formality a central part of the interpretation.
+Appendix Table~\ref{tab:descriptive-wage-growth-2008-2025} reports the
+corresponding wage changes between 2008 and 2025.
 
 \ifpolicyreport
 \input{Paper/sections/descriptive_income_size_2025_table}
 
 \input{Paper/sections/descriptive_worker_characteristics_2025_table}
 
-For the policy report, the detailed income and worker-characteristics tables use
-2025 only, because the report emphasizes the latest observed labor-market
-structure.
-\else
-For the paper, detailed pooled and 2025-only income and worker-characteristics
-tables are reported in the appendix. The main text uses compact comparison
-tables to emphasize the main empirical patterns without duplicating information.
+For the policy report, Tables~\ref{tab:descriptive-income-size-2025} and
+\ref{tab:descriptive-worker-characteristics-2025} summarize the latest observed
+labor-market structure in 2025.
 \fi
 
-\input{Paper/sections/descriptive_income_size_comparison_table}
+\ifpolicyreport
+\else
+Figure~\ref{fig:income-formality-comparison} separates the endpoint comparison
+by formality status. The bubble size represents the percentage of formal or
+informal workers in each firm-size category in the corresponding year. Formal
+workers earn more than informal workers and are much more concentrated in large
+firms, but the wage gradient by firm size is visible within both formality
+groups. This is why formality is a central mechanism but not the only object of
+interest.
 
-\input{Paper/sections/descriptive_worker_characteristics_comparison_table}
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig69_\figurelang.png}
+  \caption{Mean real hourly income by firm size and formality status, 2008 and 2025}
+  \label{fig:income-formality-comparison}
+\end{figure}
 
-Tables~\ref{tab:descriptive-income-size-comparison} and
-\ref{tab:descriptive-worker-characteristics-comparison} report the pooled sample
-and 2025 side by side. This keeps the main text anchored in the estimation
-sample while still showing whether the latest observed structure differs from
-the cross-year average. The income comparison shows a steep raw wage gradient:
-in both the pooled sample and 2025, workers in the 101+ category earn about 2.6
-times the mean hourly income of solo workers. The composition comparison shows
-why raw gaps cannot be read as pure firm-size effects: formality and higher
-education rise strongly with firm size, reaching 98.0 and 62.9 percent,
-respectively, in the 101+ category in 2025.
-
-\subsection{Wage Levels in 2008 and 2025}
-
-\input{Paper/sections/descriptive_wage_groups_mean_2008_2025_table}
-
-\input{Paper/sections/descriptive_wage_growth_2008_2025_table}
-
-Tables~\ref{tab:descriptive-wage-groups-mean-2008-2025} and
-\ref{tab:descriptive-wage-growth-2008-2025} complement the pooled statistics by
-showing the level and change of real hourly wages at the beginning and end of
-the sample.
-They also separate the raw wage structure by sex and formality status, two
-dimensions that are central to the interpretation of sorting and segmentation.
-Three patterns stand out. First, real hourly wages increased between 2008 and
-2025, but the increase was not strongest at the bottom of the firm-size
-distribution: the overall mean rose by 31.9 percent, compared with 20.3 percent
-among solo workers, 15.5 percent in firms with 2--3 workers, and 29.4 percent in
-firms with 101 or more workers. Second, the raw firm-size gradient therefore
-remained large: mean hourly income in the 101+ category was about 2.4 times the
-solo-worker mean in 2008 and about 2.6 times the solo-worker mean in 2025.
-Third, the gender gap is small in the aggregate means, whereas the
-formal-informal gap is large in both years. This reinforces the interpretation
-that the firm-size wage gradient is closely connected to the formal segment of
-the labor market, while still leaving open whether the remaining gap reflects
-productivity, rent sharing, worker sorting, or other labor-market frictions.
+The analogous comparisons by sex, education, and sector are reported in
+Appendix~\ref{app:additional-descriptives}. Those figures show that the
+firm-size wage gradient remains visible across several worker groups and
+sectors, although the level and slope differ substantially across them.
+\fi
 
 Figure~\ref{fig:wage-gaps-2025} deliberately steps away from firm size and
 summarizes other raw remuneration gaps in 2025. The raw hourly gap by sex is
@@ -91,64 +109,6 @@ means, employment shares, and gaps.
   \label{fig:wage-gaps-2025}
 \end{figure}
 
-Figures~\ref{fig:employment-share-comparison} and
-\ref{fig:income-mean-comparison} visualize the two raw facts behind the
-firm-size premium: employment is concentrated in small units, and mean hourly
-income rises with firm size. The figures also show that the largest category
-became more important over time, rising from 18.8 percent of employment in 2008
-to 25.2 percent in 2025, but that this did not eliminate the large mass of
-employment in solo work and micro-firms.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\textwidth]{fig64_\figurelang.png}
-  \caption{Employment distribution by firm size: 2008 and 2025}
-  \label{fig:employment-share-comparison}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{fig65_\figurelang.png}
-  \caption{Mean real hourly income by firm size, 2008 and 2025; bubble size shows each firm-size category's employment share}
-  \label{fig:income-mean-comparison}
-\end{figure}
-
-\ifpolicyreport
-\else
-Figure~\ref{fig:income-formality-comparison} separates the endpoint comparison by formality status. The bubble size represents the percentage of formal (informal) workers in each firm-size category in the corresponding year.
-The figure shows that formal workers earn more than informal workers and are
-much more concentrated in large firms, but the wage gradient by firm size is
-visible within both formality groups. This is why formality is a central
-mechanism but not the only object of interest.
-
-\begin{figure}[!htbp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{fig69_\figurelang.png}
-  \caption{Mean real hourly income by firm size and formality status, 2008 and 2025}
-  \label{fig:income-formality-comparison}
-\end{figure}
-
-Figure~\ref{fig:income-sex-comparison} reports the same endpoint comparison by sex. The bubble size represents the percentage of male (female) workers in each
-firm-size category in the corresponding year.
-The male and female profiles are similar relative to the much larger
-cross-firm-size gradient, which is consistent with the small aggregate
-male-female gap shown in the 2025 wage-gap figure.
-
-\begin{figure}[!htbp]
-  \centering
-  \includegraphics[width=0.95\textwidth]{fig70_\figurelang.png}
-  \caption{Mean real hourly income by firm size and sex, 2008 and 2025}
-  \label{fig:income-sex-comparison}
-\end{figure}
-
-The corresponding education- and sector-level comparisons are reported in
-Appendix~\ref{fig:income-education-comparison} and
-Appendix~\ref{fig:income-sector-comparison}.
-Those figures show that the firm-size wage gradient remains visible within
-broad education groups and many sectors, although the level and slope differ
-substantially across groups.
-\fi
-
 \ifpolicyreport
 \noindent Figures~\ref{fig:policy-employment-income-2025} and
 \ref{fig:policy-composition-2025} summarize the 2025 policy snapshot, combining
@@ -169,39 +129,17 @@ employment, wage, formality, and education gradients by firm size.
 \end{figure}
 \fi
 
-The descriptive patterns reveal four facts that motivate the regression
-analysis. First, employment is concentrated in low-scale units. In the pooled
+Taken together, the descriptive evidence motivates the regression analysis in
+four ways. First, employment is concentrated in low-scale units: in the pooled
 regression sample, solo workers and firms with up to ten workers account for
-65.3 percent of weighted employment; in 2025 they still account for 61.3 percent.
-Second, the middle of the firm-size distribution is thin: firms with 11--100
-workers account for only 12.3 percent of pooled employment. Third, the largest
-harmonized category is economically important: firms with 101 or more workers
-account for 22.5 percent of pooled employment, rising from 18.8 percent in 2008
-to 25.2 percent in 2025. Fourth, the raw wage gradient is steep: average real
-hourly income in the 101+ category is more than two and a half times the average
-among solo workers.
-
-Taken together, these facts point to a segmented employment structure: a large
-mass of workers is located in solo work and micro-firms, a relatively small share
-is located in intermediate firm-size categories, and a sizeable minority is in
-large firms. This pattern is relevant for the interpretation of the wage premium.
-If large firms pay more because they are more productive or offer better matches,
-the concentration of employment at the bottom is consistent with an allocative
-friction. If, instead, the premium mainly reflects worker sorting into larger and
-more formal firms, the same pattern is primarily a distributional and
-segmentation fact. The econometric exercise below is designed to separate part of
-these channels by controlling for observed worker characteristics, formality, and
-sector-year conditions; it cannot, however, directly measure marginal products or
-fully identify misallocation.
-
-Worker composition varies sharply with firm size. Formality and higher education
-both rise monotonically with firm size, which means that raw wage differences
-partly reflect observable worker sorting across firms.
-\ifpolicyreport
-\else
-Additional descriptive figures on the full time path of employment shares, raw
-wage premiums, and worker composition are reported in
-Appendix~\ref{app:additional-descriptives}.
-\fi
+65.3 percent of weighted employment; in 2025 they still account for 61.3
+percent. Second, the middle of the firm-size distribution is thin: firms with
+11--100 workers account for only 12.3 percent of pooled employment. Third, the
+largest harmonized category is economically important: firms with 101 or more
+workers account for 22.5 percent of pooled employment. Fourth, the raw wage
+gradient is steep, but larger firms also employ more formal and more educated
+workers. The econometric exercise below therefore asks how much of the raw
+gradient survives after controlling for observable worker composition,
+formality, and sector-year conditions.
 
 \clearpage
