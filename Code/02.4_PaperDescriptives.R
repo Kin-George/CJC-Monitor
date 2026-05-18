@@ -1303,53 +1303,45 @@ education_income_comparison <- geih_model %>%
     !is.na(educacion),
     !grepl("No sabe|no informa", as.character(educacion), ignore.case = TRUE)
   ) %>%
-  group_by(anio, educacion, tamano_empresa) %>%
+  mutate(
+    education_chr = as.character(educacion),
+    education_en = case_when(
+      grepl("Ning|No educ|Pre", education_chr, ignore.case = TRUE) ~ "Preschool or less",
+      grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Primary",
+      grepl("secundaria|^Media$|secondary|upper", education_chr, ignore.case = TRUE) ~ "Secondary",
+      grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Higher education",
+      TRUE ~ education_chr
+    ),
+    education_es = case_when(
+      grepl("Ning|No educ|Pre", education_chr, ignore.case = TRUE) ~ "Preescolar o menos",
+      grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Basica primaria",
+      grepl("secundaria|^Media$|secondary|upper", education_chr, ignore.case = TRUE) ~ "Secundaria",
+      grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Superior o universitaria",
+      TRUE ~ education_chr
+    )
+  ) %>%
+  group_by(anio, education_en, education_es, tamano_empresa) %>%
   summarise(
     workers = sum(fex, na.rm = TRUE),
     mean_income = weighted_mean(ingreso_hora_real, fex),
     .groups = "drop"
   ) %>%
-  group_by(anio, educacion) %>%
+  group_by(anio, education_en, education_es) %>%
   mutate(worker_share = workers / sum(workers, na.rm = TRUE)) %>%
   ungroup() %>%
-  mutate(
-    year = factor(as.character(anio), levels = c("2008", "2025")),
-    education_chr = as.character(educacion),
-    education_en = case_when(
-      grepl("Ning|No educ", education_chr, ignore.case = TRUE) ~ "No education",
-      grepl("Pre", education_chr, ignore.case = TRUE) ~ "Preschool",
-      grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Primary",
-      grepl("secundaria|secondary", education_chr, ignore.case = TRUE) ~ "Lower secondary",
-      grepl("^Media$|upper", education_chr, ignore.case = TRUE) ~ "Upper secondary",
-      grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Higher education",
-      TRUE ~ education_chr
-    ),
-    education_es = case_when(
-      grepl("Ning|No educ", education_chr, ignore.case = TRUE) ~ "Ninguno",
-      grepl("Pre", education_chr, ignore.case = TRUE) ~ "Preescolar",
-      grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Basica primaria",
-      grepl("secundaria|secondary", education_chr, ignore.case = TRUE) ~ "Basica secundaria",
-      grepl("^Media$|upper", education_chr, ignore.case = TRUE) ~ "Media",
-      grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Superior o universitaria",
-      TRUE ~ education_chr
-    )
-  )
+  mutate(year = factor(as.character(anio), levels = c("2008", "2025")))
 
 education_order_en <- c(
-  "No education",
-  "Preschool",
+  "Preschool or less",
   "Primary",
-  "Lower secondary",
-  "Upper secondary",
+  "Secondary",
   "Higher education"
 )
 
 education_order_es <- c(
-  "Ninguno",
-  "Preescolar",
+  "Preescolar o menos",
   "Basica primaria",
-  "Basica secundaria",
-  "Media",
+  "Secundaria",
   "Superior o universitaria"
 )
 
@@ -1398,7 +1390,7 @@ g_education_income_comparison <- ggplot(
     aes(size = worker_share),
     alpha = 0.75
   ) +
-  facet_wrap(~ education_en, scales = "free_y", ncol = 3) +
+  facet_wrap(~ education_en, scales = "free_y", ncol = 2) +
   scale_color_manual(
     values = c(
       "2008" = "darkgreen",
@@ -1434,7 +1426,7 @@ g_education_income_comparison_es <- ggplot(
     aes(size = worker_share),
     alpha = 0.75
   ) +
-  facet_wrap(~ education_es, scales = "free_y", ncol = 3) +
+  facet_wrap(~ education_es, scales = "free_y", ncol = 2) +
   scale_color_manual(
     values = c(
       "2008" = "darkgreen",
@@ -1460,8 +1452,8 @@ save_figure_versions(
   base_name = "fig72",
   plot_en = g_education_income_comparison,
   plot_es = g_education_income_comparison_es,
-  width = 13,
-  height = 8,
+  width = 12,
+  height = 7.5,
   dpi = 300
 )
 
@@ -1554,8 +1546,7 @@ sector_order_en <- c(
   "P - Education",
   "Q - Health",
   "R/S - Arts and other services",
-  "T - Household employers",
-  "U - Extraterritorial orgs."
+  "T - Household employers"
 )
 
 sector_order_es <- c(
@@ -1574,11 +1565,11 @@ sector_order_es <- c(
   "P - Educacion",
   "Q - Salud",
   "R/S - Arte y otros servicios",
-  "T - Hogares empleadores",
-  "U - Org. extraterritoriales"
+  "T - Hogares empleadores"
 )
 
 sector_income_comparison <- sector_income_comparison %>%
+  filter(as.character(sector_label_en) != "U - Extraterritorial orgs.") %>%
   mutate(
     sector_label_en = factor(
       sector_label_en,
@@ -1722,20 +1713,16 @@ education_wage_gaps_2025 <- wage_gap_sample_2025 %>%
   mutate(
     education_chr = as.character(educacion),
     group_en = case_when(
-      grepl("Ning|No educ", education_chr, ignore.case = TRUE) ~ "No education",
-      grepl("Pre", education_chr, ignore.case = TRUE) ~ "Preschool",
+      grepl("Ning|No educ|Pre", education_chr, ignore.case = TRUE) ~ "Preschool or less",
       grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Primary",
-      grepl("secundaria|secondary", education_chr, ignore.case = TRUE) ~ "Lower secondary",
-      grepl("^Media$|upper", education_chr, ignore.case = TRUE) ~ "Upper secondary",
+      grepl("secundaria|^Media$|secondary|upper", education_chr, ignore.case = TRUE) ~ "Secondary",
       grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Higher education",
       TRUE ~ education_chr
     ),
     group_es = case_when(
-      grepl("Ning|No educ", education_chr, ignore.case = TRUE) ~ "Ninguno",
-      grepl("Pre", education_chr, ignore.case = TRUE) ~ "Preescolar",
+      grepl("Ning|No educ|Pre", education_chr, ignore.case = TRUE) ~ "Preescolar o menos",
       grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Basica primaria",
-      grepl("secundaria|secondary", education_chr, ignore.case = TRUE) ~ "Basica secundaria",
-      grepl("^Media$|upper", education_chr, ignore.case = TRUE) ~ "Media",
+      grepl("secundaria|^Media$|secondary|upper", education_chr, ignore.case = TRUE) ~ "Secundaria",
       grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Superior o universitaria",
       TRUE ~ education_chr
     )
@@ -1763,6 +1750,7 @@ sector_wage_gaps_2025 <- wage_gap_sample_2025 %>%
     .groups = "drop"
   ) %>%
   left_join(sector_label_lookup, by = "sector") %>%
+  filter(!is.na(sector_label_en)) %>%
   mutate(
     group_en = as.character(sector_label_en),
     group_es = as.character(sector_label_es),
@@ -1842,7 +1830,7 @@ write_latex_table(
     "  \\vspace{0.3em}",
     "  \\begin{minipage}{0.95\\textwidth}",
     "  \\footnotesize",
-    "  Notes: Statistics use 2025 observations and GEIH expansion weights. Employment shares are computed within each dimension. Mean income is real hourly labor income in constant 2025 pesos. The gap is the percent difference in each group's weighted mean relative to the overall 2025 weighted mean.",
+    "  Notes: Statistics use 2025 observations and GEIH expansion weights. Employment shares are computed within each dimension. Mean income is real hourly labor income in constant 2025 pesos. The gap is the percent difference in each group's weighted mean relative to the overall 2025 weighted mean. Sector rows omit extraterritorial organizations.",
     "  \\end{minipage}",
     "\\end{table}"
   ),
@@ -1853,7 +1841,6 @@ dimension_levels_en <- c("Sex", "Education", "Sector")
 dimension_levels_es <- c("Sexo", "Educacion", "Sector")
 
 wage_gaps_plot_2025 <- wage_gaps_2025 %>%
-  filter(!(dimension_en == "Sector" & group_en == "U - Extraterritorial orgs.")) %>%
   mutate(
     dimension_en = factor(dimension_en, levels = dimension_levels_en),
     dimension_es = factor(dimension_es, levels = dimension_levels_es),
