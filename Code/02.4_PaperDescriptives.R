@@ -1297,6 +1297,174 @@ save_figure_versions(
   dpi = 300
 )
 
+education_income_comparison <- geih_model %>%
+  filter(
+    anio %in% c(2008, 2025),
+    !is.na(educacion),
+    !grepl("No sabe|no informa", as.character(educacion), ignore.case = TRUE)
+  ) %>%
+  group_by(anio, educacion, tamano_empresa) %>%
+  summarise(
+    workers = sum(fex, na.rm = TRUE),
+    mean_income = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  group_by(anio, educacion) %>%
+  mutate(worker_share = workers / sum(workers, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(
+    year = factor(as.character(anio), levels = c("2008", "2025")),
+    education_chr = as.character(educacion),
+    education_en = case_when(
+      grepl("Ning|No educ", education_chr, ignore.case = TRUE) ~ "No education",
+      grepl("Pre", education_chr, ignore.case = TRUE) ~ "Preschool",
+      grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Primary",
+      grepl("secundaria|secondary", education_chr, ignore.case = TRUE) ~ "Lower secondary",
+      grepl("^Media$|upper", education_chr, ignore.case = TRUE) ~ "Upper secondary",
+      grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Higher education",
+      TRUE ~ education_chr
+    ),
+    education_es = case_when(
+      grepl("Ning|No educ", education_chr, ignore.case = TRUE) ~ "Ninguno",
+      grepl("Pre", education_chr, ignore.case = TRUE) ~ "Preescolar",
+      grepl("primaria|Primary", education_chr, ignore.case = TRUE) ~ "Basica primaria",
+      grepl("secundaria|secondary", education_chr, ignore.case = TRUE) ~ "Basica secundaria",
+      grepl("^Media$|upper", education_chr, ignore.case = TRUE) ~ "Media",
+      grepl("Superior|universitaria|Higher", education_chr, ignore.case = TRUE) ~ "Superior o universitaria",
+      TRUE ~ education_chr
+    )
+  )
+
+education_order_en <- c(
+  "No education",
+  "Preschool",
+  "Primary",
+  "Lower secondary",
+  "Upper secondary",
+  "Higher education"
+)
+
+education_order_es <- c(
+  "Ninguno",
+  "Preescolar",
+  "Basica primaria",
+  "Basica secundaria",
+  "Media",
+  "Superior o universitaria"
+)
+
+education_income_comparison <- education_income_comparison %>%
+  mutate(
+    education_en = factor(
+      education_en,
+      levels = unique(c(education_order_en, sort(unique(as.character(education_en)))))
+    ),
+    education_es = factor(
+      education_es,
+      levels = unique(c(education_order_es, sort(unique(as.character(education_es)))))
+    )
+  )
+
+write.csv(
+  education_income_comparison,
+  "Paper/tables/descriptive_wage_by_education_year_size.csv",
+  row.names = FALSE
+)
+
+theme_education_facet <- theme_classic(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+    axis.text.y = element_text(size = 8),
+    strip.text = element_text(face = "bold", size = 9),
+    legend.position = "bottom",
+    legend.box = "vertical",
+    panel.spacing = unit(0.65, "lines")
+  )
+
+g_education_income_comparison <- ggplot(
+  education_income_comparison,
+  aes(
+    x = tamano_empresa,
+    y = mean_income,
+    color = year,
+    group = year
+  )
+) +
+  geom_line(linewidth = 0.8) +
+  geom_point(
+    aes(size = worker_share),
+    alpha = 0.75
+  ) +
+  facet_wrap(~ education_en, scales = "free_y", ncol = 3) +
+  scale_color_manual(
+    values = c(
+      "2008" = "darkgreen",
+      "2025" = "darkblue"
+    )
+  ) +
+  scale_size_area(
+    max_size = 7.5,
+    labels = percent_format(accuracy = 1),
+    name = "% within education-year"
+  ) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Mean real hourly income by firm size and education",
+    subtitle = "2008 and 2025; bubble size is the employment share within each education-year",
+    x = "Firm size",
+    y = "Mean hourly income",
+    color = "Year"
+  ) +
+  theme_education_facet
+
+g_education_income_comparison_es <- ggplot(
+  education_income_comparison,
+  aes(
+    x = tamano_empresa,
+    y = mean_income,
+    color = year,
+    group = year
+  )
+) +
+  geom_line(linewidth = 0.8) +
+  geom_point(
+    aes(size = worker_share),
+    alpha = 0.75
+  ) +
+  facet_wrap(~ education_es, scales = "free_y", ncol = 3) +
+  scale_color_manual(
+    values = c(
+      "2008" = "darkgreen",
+      "2025" = "darkblue"
+    )
+  ) +
+  scale_size_area(
+    max_size = 7.5,
+    labels = percent_format(accuracy = 1),
+    name = "% dentro de educacion-a\u00f1o"
+  ) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa y educacion",
+    subtitle = "2008 y 2025; la burbuja representa la participacion en el empleo dentro de cada educacion-a\u00f1o",
+    x = "Tama\u00f1o de empresa",
+    y = "Ingreso horario promedio",
+    color = "A\u00f1o"
+  ) +
+  theme_education_facet
+
+save_figure_versions(
+  base_name = "fig72",
+  plot_en = g_education_income_comparison,
+  plot_es = g_education_income_comparison_es,
+  width = 13,
+  height = 8,
+  dpi = 300
+)
+
 sector_income_comparison <- geih_model %>%
   filter(
     anio %in% c(2008, 2025),
