@@ -1297,6 +1297,231 @@ save_figure_versions(
   dpi = 300
 )
 
+sector_income_comparison <- geih_model %>%
+  filter(
+    anio %in% c(2008, 2025),
+    !is.na(sector)
+  ) %>%
+  group_by(anio, sector, tamano_empresa) %>%
+  summarise(
+    workers = sum(fex, na.rm = TRUE),
+    mean_income = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  group_by(anio, sector) %>%
+  mutate(worker_share = workers / sum(workers, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(
+    year = factor(as.character(anio), levels = c("2008", "2025")),
+    sector_chr = as.character(sector),
+    sector_label_en = case_when(
+      grepl("Electricidad.*agua|saneamiento", sector_chr, ignore.case = TRUE) ~ "D/E - Utilities and water",
+      grepl("Inmobiliarias.*profesionales|profesionales.*administrativas", sector_chr, ignore.case = TRUE) ~ "L/M/N - Business services",
+      grepl("Artes.*otros servicios", sector_chr, ignore.case = TRUE) ~ "R/S - Arts and other services",
+      grepl("^A$|^A\\s*-|Agro|Agric|pesca", sector_chr, ignore.case = TRUE) ~ "A - Agriculture",
+      grepl("^B$|^B\\s*-|Minas|Mining", sector_chr, ignore.case = TRUE) ~ "B - Mining",
+      grepl("^C$|^C\\s*-|Manufact", sector_chr, ignore.case = TRUE) ~ "C - Manufacturing",
+      grepl("^D$|^D\\s*-|Electric", sector_chr, ignore.case = TRUE) ~ "D - Electricity and gas",
+      grepl("^E$|^E\\s*-|Agua|Water", sector_chr, ignore.case = TRUE) ~ "E - Water and waste",
+      grepl("^F$|^F\\s*-|Constru|Construction", sector_chr, ignore.case = TRUE) ~ "F - Construction",
+      grepl("^G$|^G\\s*-|Comerc|Trade", sector_chr, ignore.case = TRUE) ~ "G - Commerce",
+      grepl("^H$|^H\\s*-|Trans", sector_chr, ignore.case = TRUE) ~ "H - Transport",
+      grepl("^I$|^I\\s*-|Aloj|comida|Accommodation|food", sector_chr, ignore.case = TRUE) ~ "I - Accommodation and food",
+      grepl("^J$|^J\\s*-|Informaci|communication", sector_chr, ignore.case = TRUE) ~ "J - Information and communication",
+      grepl("^K$|^K\\s*-|Finan", sector_chr, ignore.case = TRUE) ~ "K - Finance and insurance",
+      grepl("^L$|^L\\s*-|Inmobili|Real estate", sector_chr, ignore.case = TRUE) ~ "L - Real estate",
+      grepl("^M$|^M\\s*-|Profes", sector_chr, ignore.case = TRUE) ~ "M - Professional services",
+      grepl("^N$|^N\\s*-|Servicios administrativos|Administrative", sector_chr, ignore.case = TRUE) ~ "N - Administrative services",
+      grepl("^O$|^O\\s*-|Administraci|Public administration", sector_chr, ignore.case = TRUE) ~ "O - Public administration",
+      grepl("^P$|^P\\s*-|Educ", sector_chr, ignore.case = TRUE) ~ "P - Education",
+      grepl("^Q$|^Q\\s*-|Salud|Health", sector_chr, ignore.case = TRUE) ~ "Q - Health",
+      grepl("^R$|^R\\s*-|Arte|recre", sector_chr, ignore.case = TRUE) ~ "R - Arts and recreation",
+      grepl("^S$|^S\\s*-|Otros servicios|Other services", sector_chr, ignore.case = TRUE) ~ "S - Other services",
+      grepl("^T$|^T\\s*-|Hogares|Household", sector_chr, ignore.case = TRUE) ~ "T - Household employers",
+      grepl("^U$|^U\\s*-|extraterr", sector_chr, ignore.case = TRUE) ~ "U - Extraterritorial orgs.",
+      TRUE ~ sector_chr
+    ),
+    sector_label_es = case_when(
+      grepl("Electricidad.*agua|saneamiento", sector_chr, ignore.case = TRUE) ~ "D/E - Servicios publicos y agua",
+      grepl("Inmobiliarias.*profesionales|profesionales.*administrativas", sector_chr, ignore.case = TRUE) ~ "L/M/N - Servicios empresariales",
+      grepl("Artes.*otros servicios", sector_chr, ignore.case = TRUE) ~ "R/S - Arte y otros servicios",
+      grepl("^A$|^A\\s*-|Agro|Agric|pesca", sector_chr, ignore.case = TRUE) ~ "A - Agro y pesca",
+      grepl("^B$|^B\\s*-|Minas|Mining", sector_chr, ignore.case = TRUE) ~ "B - Minas",
+      grepl("^C$|^C\\s*-|Manufact", sector_chr, ignore.case = TRUE) ~ "C - Manufactura",
+      grepl("^D$|^D\\s*-|Electric", sector_chr, ignore.case = TRUE) ~ "D - Electricidad y gas",
+      grepl("^E$|^E\\s*-|Agua|Water", sector_chr, ignore.case = TRUE) ~ "E - Agua y residuos",
+      grepl("^F$|^F\\s*-|Constru|Construction", sector_chr, ignore.case = TRUE) ~ "F - Construccion",
+      grepl("^G$|^G\\s*-|Comerc|Trade", sector_chr, ignore.case = TRUE) ~ "G - Comercio",
+      grepl("^H$|^H\\s*-|Trans", sector_chr, ignore.case = TRUE) ~ "H - Transporte",
+      grepl("^I$|^I\\s*-|Aloj|comida|Accommodation|food", sector_chr, ignore.case = TRUE) ~ "I - Alojamiento y comida",
+      grepl("^J$|^J\\s*-|Informaci|communication", sector_chr, ignore.case = TRUE) ~ "J - Informacion y comunicaciones",
+      grepl("^K$|^K\\s*-|Finan", sector_chr, ignore.case = TRUE) ~ "K - Finanzas y seguros",
+      grepl("^L$|^L\\s*-|Inmobili|Real estate", sector_chr, ignore.case = TRUE) ~ "L - Inmobiliarias",
+      grepl("^M$|^M\\s*-|Profes", sector_chr, ignore.case = TRUE) ~ "M - Profesionales y tecnicas",
+      grepl("^N$|^N\\s*-|Servicios administrativos|Administrative", sector_chr, ignore.case = TRUE) ~ "N - Servicios administrativos",
+      grepl("^O$|^O\\s*-|Administraci|Public administration", sector_chr, ignore.case = TRUE) ~ "O - Administracion publica",
+      grepl("^P$|^P\\s*-|Educ", sector_chr, ignore.case = TRUE) ~ "P - Educacion",
+      grepl("^Q$|^Q\\s*-|Salud|Health", sector_chr, ignore.case = TRUE) ~ "Q - Salud",
+      grepl("^R$|^R\\s*-|Arte|recre", sector_chr, ignore.case = TRUE) ~ "R - Arte y recreacion",
+      grepl("^S$|^S\\s*-|Otros servicios|Other services", sector_chr, ignore.case = TRUE) ~ "S - Otros servicios",
+      grepl("^T$|^T\\s*-|Hogares|Household", sector_chr, ignore.case = TRUE) ~ "T - Hogares empleadores",
+      grepl("^U$|^U\\s*-|extraterr", sector_chr, ignore.case = TRUE) ~ "U - Org. extraterritoriales",
+      TRUE ~ sector_chr
+    )
+  )
+
+sector_order_en <- c(
+  "A - Agriculture",
+  "B - Mining",
+  "C - Manufacturing",
+  "D/E - Utilities and water",
+  "F - Construction",
+  "G - Commerce",
+  "H - Transport",
+  "I - Accommodation and food",
+  "J - Information and communication",
+  "K - Finance and insurance",
+  "L/M/N - Business services",
+  "O - Public administration",
+  "P - Education",
+  "Q - Health",
+  "R/S - Arts and other services",
+  "T - Household employers",
+  "U - Extraterritorial orgs."
+)
+
+sector_order_es <- c(
+  "A - Agro y pesca",
+  "B - Minas",
+  "C - Manufactura",
+  "D/E - Servicios publicos y agua",
+  "F - Construccion",
+  "G - Comercio",
+  "H - Transporte",
+  "I - Alojamiento y comida",
+  "J - Informacion y comunicaciones",
+  "K - Finanzas y seguros",
+  "L/M/N - Servicios empresariales",
+  "O - Administracion publica",
+  "P - Educacion",
+  "Q - Salud",
+  "R/S - Arte y otros servicios",
+  "T - Hogares empleadores",
+  "U - Org. extraterritoriales"
+)
+
+sector_income_comparison <- sector_income_comparison %>%
+  mutate(
+    sector_label_en = factor(
+      sector_label_en,
+      levels = unique(c(sector_order_en, sort(unique(as.character(sector_label_en)))))
+    ),
+    sector_label_es = factor(
+      sector_label_es,
+      levels = unique(c(sector_order_es, sort(unique(as.character(sector_label_es)))))
+    )
+  )
+
+write.csv(
+  sector_income_comparison,
+  "Paper/tables/descriptive_wage_by_sector_year_size.csv",
+  row.names = FALSE
+)
+
+theme_sector_facet <- theme_classic(base_size = 10) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+    axis.text.y = element_text(size = 7),
+    strip.text = element_text(face = "bold", size = 7),
+    legend.position = "bottom",
+    legend.box = "vertical",
+    panel.spacing = unit(0.55, "lines")
+  )
+
+g_sector_income_comparison <- ggplot(
+  sector_income_comparison,
+  aes(
+    x = tamano_empresa,
+    y = mean_income,
+    color = year,
+    group = year
+  )
+) +
+  geom_line(linewidth = 0.55) +
+  geom_point(
+    aes(size = worker_share),
+    alpha = 0.75
+  ) +
+  facet_wrap(~ sector_label_en, scales = "free_y", ncol = 4) +
+  scale_color_manual(
+    values = c(
+      "2008" = "darkgreen",
+      "2025" = "darkblue"
+    )
+  ) +
+  scale_size_area(
+    max_size = 5.5,
+    labels = percent_format(accuracy = 1),
+    name = "% within sector-year"
+  ) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Mean real hourly income by firm size and sector",
+    subtitle = "2008 and 2025; bubble size is the employment share within each sector-year",
+    x = "Firm size",
+    y = "Mean hourly income",
+    color = "Year"
+  ) +
+  theme_sector_facet
+
+g_sector_income_comparison_es <- ggplot(
+  sector_income_comparison,
+  aes(
+    x = tamano_empresa,
+    y = mean_income,
+    color = year,
+    group = year
+  )
+) +
+  geom_line(linewidth = 0.55) +
+  geom_point(
+    aes(size = worker_share),
+    alpha = 0.75
+  ) +
+  facet_wrap(~ sector_label_es, scales = "free_y", ncol = 4) +
+  scale_color_manual(
+    values = c(
+      "2008" = "darkgreen",
+      "2025" = "darkblue"
+    )
+  ) +
+  scale_size_area(
+    max_size = 5.5,
+    labels = percent_format(accuracy = 1),
+    name = "% dentro de sector-a\u00f1o"
+  ) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa y sector",
+    subtitle = "2008 y 2025; la burbuja representa la participaci\u00f3n en el empleo dentro de cada sector-a\u00f1o",
+    x = "Tama\u00f1o de empresa",
+    y = "Ingreso horario promedio",
+    color = "A\u00f1o"
+  ) +
+  theme_sector_facet
+
+save_figure_versions(
+  base_name = "fig71",
+  plot_en = g_sector_income_comparison,
+  plot_es = g_sector_income_comparison_es,
+  width = 16,
+  height = 12,
+  dpi = 300
+)
+
 snapshot_2025 <- employment_size %>%
   transmute(
     tamano_empresa,
