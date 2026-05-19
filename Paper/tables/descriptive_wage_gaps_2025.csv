@@ -1,6 +1,8 @@
 "group_en","group_es","workers","mean_income","dimension_en","dimension_es","group_order","sector","employment_share","gap_to_overall","direction_en","direction_es"
 "Men","Hombres",13281787.957339,10235.6759532229,"Sex","Sexo",1,NA,0.587865928570643,-0.574598191741904,"Below overall mean","Debajo del promedio total"
 "Women","Mujeres",9311438.34110082,10379.2066882822,"Sex","Sexo",2,NA,0.412134071429356,0.81960391765683,"Above overall mean","Sobre el promedio total"
+"Formal","Formal",10135948.6843843,15240.7841638641,"Formality","Formalidad",1,NA,0.448627767920167,48.0430893172225,"Above overall mean","Sobre el promedio total"
+"Informal","Informal",12457277.6140556,6270.52048959582,"Formality","Formalidad",2,NA,0.551372232079833,-39.0905864865063,"Below overall mean","Debajo del promedio total"
 "Higher education","Superior o universitaria",7564860.27854944,17666.6293903232,"Education","Educacion",4,NA,0.334828686201042,71.6068126577792,"Above overall mean","Sobre el promedio total"
 "Preschool or less","Preescolar o menos",663454.099001052,4333.14442244085,"Education","Educacion",1,NA,0.029365177431382,-57.9095091263866,"Below overall mean","Debajo del promedio total"
 "Primary","Basica primaria",4093161.65286478,5692.85196570732,"Education","Educacion",2,NA,0.181167647276097,-44.7018353539064,"Below overall mean","Debajo del promedio total"

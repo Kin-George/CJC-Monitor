@@ -1706,6 +1706,24 @@ sex_wage_gaps_2025 <- wage_gap_sample_2025 %>%
     group_order = match(group_en, c("Men", "Women"))
   )
 
+formality_wage_gaps_2025 <- wage_gap_sample_2025 %>%
+  filter(!is.na(formal)) %>%
+  mutate(
+    group_en = if_else(formal == 1, "Formal", "Informal"),
+    group_es = if_else(formal == 1, "Formal", "Informal")
+  ) %>%
+  group_by(group_en, group_es) %>%
+  summarise(
+    workers = sum(fex, na.rm = TRUE),
+    mean_income = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    dimension_en = "Formality",
+    dimension_es = "Formalidad",
+    group_order = match(group_en, c("Formal", "Informal"))
+  )
+
 education_wage_gaps_2025 <- wage_gap_sample_2025 %>%
   filter(
     !grepl("No sabe|no informa", as.character(educacion), ignore.case = TRUE)
@@ -1762,6 +1780,7 @@ sector_wage_gaps_2025 <- wage_gap_sample_2025 %>%
 
 wage_gaps_2025 <- bind_rows(
   sex_wage_gaps_2025,
+  formality_wage_gaps_2025,
   education_wage_gaps_2025,
   sector_wage_gaps_2025
 ) %>%
@@ -1790,7 +1809,10 @@ write.csv(
 
 wage_gap_table_data <- wage_gaps_2025 %>%
   mutate(
-    dimension_en = factor(dimension_en, levels = c("Sex", "Education", "Sector")),
+    dimension_en = factor(
+      dimension_en,
+      levels = c("Sex", "Formality", "Education", "Sector")
+    ),
     table_order = if_else(
       dimension_en == "Sector",
       rank(gap_to_overall, ties.method = "first"),
@@ -1830,15 +1852,15 @@ write_latex_table(
     "  \\vspace{0.3em}",
     "  \\begin{minipage}{0.95\\textwidth}",
     "  \\footnotesize",
-    "  Notes: Statistics use 2025 observations and GEIH expansion weights. Employment shares are computed within each dimension. Mean income is real hourly labor income in constant 2025 pesos. The gap is the percent difference in each group's weighted mean relative to the overall 2025 weighted mean. Sector rows omit extraterritorial organizations.",
+    "  Notes: Statistics use 2025 observations and GEIH expansion weights. Employment shares are computed within each dimension. Mean income is real hourly labor income in constant 2025 pesos. The gap is the percent difference in each group's weighted mean relative to the overall 2025 weighted mean. Formality rows exclude pensioned occupied workers. Sector rows omit extraterritorial organizations.",
     "  \\end{minipage}",
     "\\end{table}"
   ),
   "Paper/sections/descriptive_wage_gaps_2025_table.tex"
 )
 
-dimension_levels_en <- c("Sex", "Education", "Sector")
-dimension_levels_es <- c("Sexo", "Educacion", "Sector")
+dimension_levels_en <- c("Sex", "Formality", "Education", "Sector")
+dimension_levels_es <- c("Sexo", "Formalidad", "Educacion", "Sector")
 
 wage_gaps_plot_2025 <- wage_gaps_2025 %>%
   mutate(
@@ -1956,7 +1978,7 @@ save_figure_versions(
   plot_en = g_wage_gaps_2025,
   plot_es = g_wage_gaps_2025_es,
   width = 10.5,
-  height = 9,
+  height = 9.6,
   dpi = 300
 )
 
