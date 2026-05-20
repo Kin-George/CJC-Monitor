@@ -38,6 +38,7 @@ local cand_horas    "P6800 p6800"
 local cand_sexo     "P6020 SEXO sexo p6020 P3271 p3271"
 local cand_salud    "P6090 p6090"
 local cand_educ     "P6210 P3042 p6210 p3042 NIVEL_MAS_ALTO"
+local cand_edad     "P6040 EDAD p6040 edad"
 
 
 *====================================================
@@ -117,6 +118,7 @@ postfile `postaudit' ///
     str40 var_sexo ///
     str40 var_salud ///
     str40 var_educ ///
+	str40 var_edad ///
     byte procesado ///
     str200 observacion ///
     using `auditfile', replace
@@ -137,13 +139,13 @@ foreach year of local anios {
     capture confirm file "`archivo_base'"
 
     if _rc {
-        post `postaudit' ///
-            (`year') ///
-            ("") ("") ("") ("") ("") ("") ("") ("") ("") ("") ///
-            (0) ///
-            ("No existe el archivo")
-        continue
-    }
+    post `postaudit' ///
+        (`year') ///
+        ("") ("") ("") ("") ("") ("") ("") ("") ("") ("") ("") ///
+        (0) ///
+        ("No existe el archivo")
+    continue
+}
 
     use "`archivo_base'", clear
 
@@ -181,6 +183,23 @@ foreach year of local anios {
 
     find_first_var, candidates("`cand_educ'")
     local var_educ "`r(var)'"
+	
+	local cand_edad_year ""
+
+	if inrange(`year', 2008, 2014) | inlist(`year', 2021, 2023, 2024, 2025) {
+    local cand_edad_year "P6040 p6040 EDAD edad"
+	}
+
+	else if inrange(`year', 2015, 2019) | `year' == 2022 {
+    local cand_edad_year "EDAD edad P6040 p6040"
+	}
+
+	else {
+    local cand_edad_year "`cand_edad'"
+	}
+
+	find_first_var, candidates("`cand_edad_year'")
+	local var_edad "`r(var)'"
 
 
     *================================================
@@ -219,6 +238,7 @@ foreach year of local anios {
             ("`var_sexo'") ///
             ("`var_salud'") ///
             ("`var_educ'") ///
+			 ("`var_edad'") ///
             (0) ///
             ("`observacion'")
 
@@ -253,6 +273,10 @@ foreach year of local anios {
     if "`var_educ'" == "" {
         local observacion "`observacion' Falta educación;"
     }
+	
+	if "`var_edad'" == "" {
+    local observacion "`observacion' Falta edad;"
+	}
 
     if "`observacion'" == "" {
         local observacion "Completo"
@@ -270,6 +294,7 @@ foreach year of local anios {
         ("`var_sexo'") ///
         ("`var_salud'") ///
         ("`var_educ'") ///
+		("`var_edad'") ///
         (1) ///
         ("`observacion'")
 
@@ -284,6 +309,7 @@ foreach year of local anios {
     di as result "Sexo:      `var_sexo'"
     di as result "Salud:     `var_salud'"
     di as result "Educación: `var_educ'"
+	di as result "Edad:     `var_edad'"
 
 
     *================================================
@@ -302,6 +328,7 @@ foreach year of local anios {
     gen str40 sexo_var_original    = "`var_sexo'"
     gen str40 salud_var_original   = "`var_salud'"
     gen str40 educ_var_original    = "`var_educ'"
+	gen str40 edad_var_original    = "`var_edad'"
 
 
     *================================================
@@ -318,6 +345,13 @@ foreach year of local anios {
     make_double_from_var, newname(sexo_cod) varname("`var_sexo'")
     make_double_from_var, newname(cotiza_salud_cod) varname("`var_salud'")
     make_double_from_var, newname(educacion_cod) varname("`var_educ'")
+	make_double_from_var, newname(edad_tmp) varname("`var_edad'")
+
+	capture drop edad
+	rename edad_tmp edad
+
+	replace edad = . if edad < 0
+	replace edad = . if edad > 120
 
 
     *================================================
@@ -382,7 +416,8 @@ foreach year of local anios {
         tamano_empresa_cod ///
         sexo_cod ///
         cotiza_salud_cod ///
-        educacion_cod
+        educacion_cod ///
+		edad
 
     compress
 
