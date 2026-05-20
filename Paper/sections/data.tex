@@ -6,7 +6,7 @@ The empirical analysis uses microdata from the Gran Encuesta Integrada de Hogare
 
 %\subsection{Wages}
 
-The sample is restricted to employed workers with positive labor income, valid weekly hours, and positive survey expansion factors. Monthly labor income is converted to annual labor income and divide by annual hours, computed as usual weekly hours times 52. We then express hourly labor income in constant 2025 colombian pesos using the end-of-the-year Consumer Price Index:
+The sample is restricted to employed workers with positive labor income, valid weekly hours, and positive survey expansion factors. Monthly labor income is converted to annual labor income and divided by annual hours, computed as usual weekly hours times 52. We then express hourly labor income in constant 2025 Colombian pesos using the end-of-the-year Consumer Price Index:
 
 \begin{equation}
   w_{ist} =
@@ -21,5 +21,14 @@ The sample is restricted to employed workers with positive labor income, valid w
 Firm size is measured using the worker-reported firm-size variable in GEIH. The construction harmonizes the categories into the following ordered groups: Solo, 2-3, 4-5, 6-10, 11-19, 20-30, 31-50, 51-100, and 101+. When the newer questionnaire separates 101-200 and 201+ workers, both categories are collapsed into 101+ to
 maintain comparability with earlier years. Firm size is therefore reported by workers, and the data do not identify firms.
 
-The control variables are also harmonized across survey changes. Education is grouped into comparable categories: no education, preschool, primary, lower secondary, upper secondary, and higher education. Formality is defined using pension contribution status: workers who contribute to pensions are classified as formal, while workers who do not contribute are classified as informal. Economic activity is harmonized across CIIU revisions into broad sectors, which allows the regressions to absorb sector-year shocks.
+The control variables are also harmonized across survey changes. Education is
+grouped into comparable categories: no education, preschool, primary, lower
+secondary, upper secondary, and higher education. Age is measured in years and
+enters the regressions with a quadratic term. Formality is defined using pension
+contribution status: workers who contribute to pensions are classified as
+formal, while workers who do not contribute are classified as informal. Economic
+activity is harmonized across CIIU revisions into broad sectors, which allows
+the regressions to absorb sector-year shocks. The current processed file does
+not retain a harmonized city or municipality identifier, so this version does
+not include city fixed effects or city-level descriptive figures.
 

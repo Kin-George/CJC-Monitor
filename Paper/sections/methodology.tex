@@ -47,18 +47,25 @@ in a log-wage model. The baseline specification is:
 
 where \(w_{ist}\) is real hourly labor income for worker \(i\) in sector \(s\) in year \(t\), \(Size_{ist}\) is the harmonized firm-size category, and \(g_0\) is the reference group. We use solo workers as the reference category. This choice makes the coefficient path directly interpretable as the wage premium associated with moving from individual work to increasingly larger firms. Because solo workers may combine self-employment and very small-scale wage employment, we interpret the estimates as conditional gaps relative to the bottom of the firm-size distribution rather than as pure firm effects.
 
-The vector \(X_{ist}\) includes a female-worker indicator, education dummies, and
-a formal-employment indicator. The fixed effect \(\lambda_{s \times t}\)
+The vector \(X_{ist}\) includes a female-worker indicator, age, age squared,
+education dummies, and a formal-employment indicator. The fixed effect
+\(\lambda_{s \times t}\)
 absorbs sector-year conditions, allowing each broad sector to have its own wage
 level in each year. This is important because large firms are not randomly
 distributed across sectors, and sectoral shocks may be correlated with both wages
 and firm size. The model is estimated with GEIH expansion weights, and standard
 errors are clustered by sector.
 
+City fixed effects would be a useful additional robustness check because they
+would absorb persistent differences across local labor markets. We do not
+estimate that specification in this version because the harmonized file used for
+the regressions does not yet preserve a consistent city identifier.
+
 In the results table, we report four nested specifications. The first column
 includes only firm-size indicators. The second adds sector-year fixed effects.
-The third adds gender and education controls, but excludes formality. The fourth
-adds formality. Comparing the third and fourth columns shows how much of the
+The third adds gender, age, age squared, and education controls, but excludes
+formality. The fourth adds formality. Comparing the third and fourth columns
+shows how much of the
 firm-size gradient is absorbed by differences in formal employment across firm
 sizes.
 

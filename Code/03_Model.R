@@ -54,6 +54,8 @@ geih <- read_dta(
 geih <- geih %>%
   mutate(
     anio = as.factor(anio),
+    edad = as.numeric(edad),
+    edad2 = edad^2,
     sector = as.factor(sector),
     tamano_empresa = as.factor(tamano_empresa),
     educacion = as.factor(educacion),
@@ -66,6 +68,8 @@ geih_model <- geih %>%
     !is.na(log_ingreso_hora_real),
     !is.na(tamano_empresa),
     !is.na(mujer),
+    !is.na(edad),
+    !is.na(edad2),
     !is.na(educacion),
     !is.na(formal),
     !is.na(sector),
@@ -99,6 +103,8 @@ m_demog <- feols(
   log_ingreso_hora_real ~
     i(tamano_empresa, ref = "Solo") +
     mujer +
+    edad +
+    edad2 +
     i(educacion, ref = "Básica secundaria") |
     sector^anio,
   weights = ~ fex,
@@ -110,6 +116,8 @@ m_full <- feols(
   log_ingreso_hora_real ~
     i(tamano_empresa, ref = "Solo") +
     mujer +
+    edad +
+    edad2 +
     i(educacion, ref = "Básica secundaria") +
     formal |
     sector^anio,
@@ -449,7 +457,7 @@ g_beta_tamano <- ggplot(
   ) +
   labs(
     title = "Firm-size coefficients in the full specification",
-    subtitle = "Column (4): gender, education, formality, and sector-year fixed effects",
+    subtitle = "Column (4): gender, age, education, formality, and sector-year fixed effects",
     x = "Firm size",
     y = "Estimated coefficient in log points",
     color = NULL
@@ -476,7 +484,7 @@ g_beta_tamano_es <- g_beta_tamano +
   ) +
   labs(
     title = "Coeficientes de tama\u00f1o de empresa en la especificaci\u00f3n completa",
-    subtitle = "Columna (4): g\u00e9nero, educaci\u00f3n, formalidad y efectos fijos sector-a\u00f1o",
+    subtitle = "Columna (4): g\u00e9nero, edad, educaci\u00f3n, formalidad y efectos fijos sector-a\u00f1o",
     x = "Tama\u00f1o de empresa",
     y = "Coeficiente estimado en log puntos",
     color = NULL
@@ -499,6 +507,8 @@ m_dynamic <- feols(
   log_ingreso_hora_real ~
     i(anio, tamano_empresa, ref2 = "Solo") +
     mujer +
+    edad +
+    edad2 +
     i(educacion, ref = "Básica secundaria") +
     formal |
     sector^anio,
@@ -668,6 +678,8 @@ m_trend <- feols(
     i(tamano_empresa, ref = "Solo") +
     i(tamano_empresa, year_trend, ref = "Solo") +
     mujer +
+    edad +
+    edad2 +
     i(educacion, ref = "Básica secundaria") +
     formal |
     sector^anio,
@@ -866,7 +878,7 @@ trend_test_table <- c(
   "  \\vspace{0.3em}",
   "  \\begin{minipage}{0.95\\textwidth}",
   "  \\footnotesize",
-  "  Notes: The annual trend is the coefficient on the interaction between firm-size category and a linear year trend, with solo workers as the omitted category. The specification controls for gender, education, formality, and sector-year fixed effects, and uses GEIH expansion weights. Standard errors are clustered by sector. The $p$-value corresponds to the one-sided test that the premium increased over time. The final column reports $100\\times[\\exp(17\\hat{\\delta})-1]$, the implied change in the firm-size wage ratio between 2008 and 2025.",
+  "  Notes: The annual trend is the coefficient on the interaction between firm-size category and a linear year trend, with solo workers as the omitted category. The specification controls for gender, age, age squared, education, formality, and sector-year fixed effects, and uses GEIH expansion weights. Standard errors are clustered by sector. The $p$-value corresponds to the one-sided test that the premium increased over time. The final column reports $100\\times[\\exp(17\\hat{\\delta})-1]$, the implied change in the firm-size wage ratio between 2008 and 2025.",
   "  \\end{minipage}",
   "\\end{table}"
 )
@@ -951,7 +963,7 @@ regression_table <- c(
   "    \\midrule",
   table_rows,
   "    \\midrule",
-  "    Gender and education controls & No & No & Yes & Yes \\\\",
+  "    Gender, age, and education controls & No & No & Yes & Yes \\\\",
   "    Formality control & No & No & No & Yes \\\\",
   "    Sector-year fixed effects & No & Yes & Yes & Yes \\\\",
   paste0("    Observations & ", paste(format_obs(n_obs), collapse = " & "), " \\\\"),
@@ -961,7 +973,7 @@ regression_table <- c(
   "  \\vspace{0.3em}",
   "  \\begin{minipage}{0.95\\textwidth}",
   "  \\footnotesize",
-  "  Notes: The omitted category is solo workers. All columns use the same estimation sample and GEIH expansion weights. Standard errors, clustered by sector, are reported in parentheses. Gender and education controls include a female-worker indicator and education dummies. Column (4) adds labor formality. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
+  "  Notes: The omitted category is solo workers. All columns use the same estimation sample and GEIH expansion weights. Standard errors, clustered by sector, are reported in parentheses. Worker controls include a female-worker indicator, age, age squared, and education dummies. Column (4) adds labor formality. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
   "  \\end{minipage}",
   "\\end{table}"
 )
