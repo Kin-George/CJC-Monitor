@@ -541,6 +541,36 @@ gen str40 sector_var_u = upper(strtrim(sector_var_original))
 gen str40 tamano_var_u = upper(strtrim(tamano_var_original))
 gen str40 educ_var_u   = upper(strtrim(educ_var_original))
 
+*====================================================
+* 0b. Verificar y limpiar edad
+*====================================================
+* La base consolidada actualizada ya debe traer una variable común: edad
+
+capture confirm variable edad
+
+if _rc {
+    di as error "No se encontró la variable edad en la base consolidada."
+    di as error "Revisa que el script de armonización haya conservado edad."
+    exit 111
+}
+
+* Si edad viene como string, convertirla a numérica
+capture confirm numeric variable edad
+
+if _rc {
+    tempvar edad_num
+    destring edad, gen(`edad_num') force
+    drop edad
+    rename `edad_num' edad
+}
+
+* Limpiar valores improbables
+replace edad = . if edad < 0
+replace edad = . if edad > 120
+
+capture drop edad2
+gen double edad2 = edad^2
+
 
 *====================================================
 * 1. Filtrar observaciones válidas
@@ -815,6 +845,7 @@ gen byte miss_educ   = missing(educ_hom_cod)
 gen byte miss_form   = missing(formalidad_cod)
 gen byte miss_sexo   = missing(sexo_hom_cod)
 gen byte miss_sector = missing(sector_hom_cod)
+gen byte miss_edad   = missing(edad)
 gen byte fila_audit  = 1
 
 preserve
@@ -825,7 +856,8 @@ collapse ///
     (sum) miss_educ = miss_educ ///
     (sum) miss_form = miss_form ///
     (sum) miss_sexo = miss_sexo ///
-    (sum) miss_sector = miss_sector, ///
+    (sum) miss_sector = miss_sector ///
+    (sum) miss_edad = miss_edad, ///
     by(anio)
 
 export excel using "Outputs/tables/auditoria_base_modelo_personas.xlsx", ///
@@ -845,7 +877,7 @@ drop if missing(educ_hom_cod)
 drop if missing(formalidad_cod)
 drop if missing(sexo_hom_cod)
 drop if missing(sector_hom_cod)
-
+drop if missing(edad)
 
 *====================================================
 * 9. IPC y salario real
@@ -939,6 +971,7 @@ restore
 *====================================================
 
 order persona_id anio ///
+      edad edad2 ///
       sector_hom_cod sector ///
       tamano_hom_cod tamano_empresa ///
       educ_hom_cod educacion ///
@@ -949,6 +982,7 @@ order persona_id anio ///
       ipc_dic factor_precios_2025
 
 keep persona_id anio ///
+     edad edad2 ///
      sector_hom_cod sector ///
      tamano_hom_cod tamano_empresa ///
      educ_hom_cod educacion ///
