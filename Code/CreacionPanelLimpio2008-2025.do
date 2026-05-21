@@ -541,6 +541,84 @@ gen str40 sector_var_u = upper(strtrim(sector_var_original))
 gen str40 tamano_var_u = upper(strtrim(tamano_var_original))
 gen str40 educ_var_u   = upper(strtrim(educ_var_original))
 
+*====================================================
+* 0b. Verificar y limpiar edad
+*====================================================
+* La base consolidada actualizada ya debe traer una variable común: edad
+
+capture confirm variable edad
+
+if _rc {
+    di as error "No se encontró la variable edad en la base consolidada."
+    di as error "Revisa que el script de armonización haya conservado edad."
+    exit 111
+}
+
+* Si edad viene como string, convertirla a numérica
+capture confirm numeric variable edad
+
+if _rc {
+    tempvar edad_num
+    destring edad, gen(`edad_num') force
+    drop edad
+    rename `edad_num' edad
+}
+
+* Limpiar valores improbables
+replace edad = . if edad < 0
+replace edad = . if edad > 120
+
+capture drop edad2
+gen double edad2 = edad^2
+
+foreach v in depto_cod area_cod posicion_ocupacional_cod {
+    
+    capture confirm variable `v'
+    
+    if _rc {
+        di as error "No se encontró la variable `v' en la base consolidada."
+        di as error "Revisa que el script de armonización haya conservado `v'."
+        exit 111
+    }
+    
+    capture confirm numeric variable `v'
+    
+    if _rc {
+        tempvar `v'_num
+        destring `v', gen(`v'_num) force
+        drop `v'
+        rename `v'_num `v'
+    }
+}
+
+* Limpiar códigos imposibles o vacíos
+replace depto_cod = . if depto_cod <= 0
+replace area_cod = . if area_cod <= 0
+replace posicion_ocupacional_cod = . if !inrange(posicion_ocupacional_cod, 1, 9)
+
+label define posicion_ocupacional_lbl ///
+    1 "Obrero o empleado de empresa particular" ///
+    2 "Obrero o empleado del gobierno" ///
+    3 "Empleado doméstico" ///
+    4 "Trabajador por cuenta propia" ///
+    5 "Patrón o empleador" ///
+    6 "Trabajador familiar sin remuneración" ///
+    7 "Trabajador sin remuneración en otros hogares" ///
+    8 "Jornalero o peón" ///
+    9 "Otro", replace
+
+label values posicion_ocupacional_cod posicion_ocupacional_lbl
+
+* Área: si la codificación viene como 5/8, esto ayuda a leerla.
+* Si tu base usa otra codificación, igual se conserva el código numérico.
+label define area_lbl ///
+    1 "Cabecera" ///
+    2 "Resto" ///
+    5 "Cabecera" ///
+    8 "Centro poblado y rural disperso", replace
+
+label values area_cod area_lbl
+
 
 *====================================================
 * 1. Filtrar observaciones válidas
@@ -810,12 +888,16 @@ label values sector_hom_cod sector_hom_lbl
 * 7. Auditoría de homologación antes de eliminar missings
 *====================================================
 
-gen byte miss_tamano = missing(tamano_hom_cod)
-gen byte miss_educ   = missing(educ_hom_cod)
-gen byte miss_form   = missing(formalidad_cod)
-gen byte miss_sexo   = missing(sexo_hom_cod)
-gen byte miss_sector = missing(sector_hom_cod)
-gen byte fila_audit  = 1
+gen byte miss_tamano   = missing(tamano_hom_cod)
+gen byte miss_educ     = missing(educ_hom_cod)
+gen byte miss_form     = missing(formalidad_cod)
+gen byte miss_sexo     = missing(sexo_hom_cod)
+gen byte miss_sector   = missing(sector_hom_cod)
+gen byte miss_edad     = missing(edad)
+gen byte miss_depto    = missing(depto_cod)
+gen byte miss_area     = missing(area_cod)
+gen byte miss_posicion = missing(posicion_ocupacional_cod)
+gen byte fila_audit    = 1
 
 preserve
 
@@ -825,7 +907,11 @@ collapse ///
     (sum) miss_educ = miss_educ ///
     (sum) miss_form = miss_form ///
     (sum) miss_sexo = miss_sexo ///
-    (sum) miss_sector = miss_sector, ///
+    (sum) miss_sector = miss_sector ///
+    (sum) miss_edad = miss_edad ///
+    (sum) miss_depto = miss_depto ///
+    (sum) miss_area = miss_area ///
+    (sum) miss_posicion = miss_posicion, ///
     by(anio)
 
 export excel using "Outputs/tables/auditoria_base_modelo_personas.xlsx", ///
@@ -845,7 +931,10 @@ drop if missing(educ_hom_cod)
 drop if missing(formalidad_cod)
 drop if missing(sexo_hom_cod)
 drop if missing(sector_hom_cod)
-
+drop if missing(edad)
+drop if missing(depto_cod)
+drop if missing(area_cod)
+drop if missing(posicion_ocupacional_cod)
 
 *====================================================
 * 9. IPC y salario real
@@ -896,6 +985,17 @@ decode educ_hom_cod, gen(educacion)
 decode sexo_hom_cod, gen(sexo)
 decode formalidad_cod, gen(formalidad)
 
+* Departamento, área y posición ocupacional para modelos
+gen int depto = depto_cod
+gen byte area = area_cod
+
+decode area_cod, gen(area_label)
+decode posicion_ocupacional_cod, gen(ocupacion)
+
+* Alias más explícito, por si quieres usar ambos nombres
+clonevar posicion_ocupacional = posicion_ocupacional_cod
+decode posicion_ocupacional_cod, gen(posicion_ocupacional_label)
+
 gen byte mujer = sexo_hom_cod == 2 if !missing(sexo_hom_cod)
 
 * Dummy formal:
@@ -939,7 +1039,10 @@ restore
 *====================================================
 
 order persona_id anio ///
+      edad edad2 ///
+      depto area area_label ///
       sector_hom_cod sector ///
+      posicion_ocupacional posicion_ocupacional_label ocupacion ///
       tamano_hom_cod tamano_empresa ///
       educ_hom_cod educacion ///
       sexo_hom_cod sexo mujer ///
@@ -949,7 +1052,10 @@ order persona_id anio ///
       ipc_dic factor_precios_2025
 
 keep persona_id anio ///
+     edad edad2 ///
+     depto area area_label ///
      sector_hom_cod sector ///
+     posicion_ocupacional posicion_ocupacional_label ocupacion ///
      tamano_hom_cod tamano_empresa ///
      educ_hom_cod educacion ///
      sexo_hom_cod sexo mujer ///

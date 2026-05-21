@@ -39,6 +39,9 @@ local cand_sexo     "P6020 SEXO sexo p6020 P3271 p3271"
 local cand_salud    "P6090 p6090"
 local cand_educ     "P6210 P3042 p6210 p3042 NIVEL_MAS_ALTO"
 local cand_edad     "P6040 EDAD p6040 edad"
+local cand_depto      "DPTO dpto"
+local cand_area       "AREA area"
+local cand_posicion   "P6430 p6430"
 
 
 *====================================================
@@ -119,6 +122,9 @@ postfile `postaudit' ///
     str40 var_salud ///
     str40 var_educ ///
 	str40 var_edad ///
+	str40 var_depto ///
+    str40 var_area ///
+    str40 var_posicion ///
     byte procesado ///
     str200 observacion ///
     using `auditfile', replace
@@ -138,10 +144,11 @@ foreach year of local anios {
 
     capture confirm file "`archivo_base'"
 
-    if _rc {
+	if _rc {
     post `postaudit' ///
         (`year') ///
-        ("") ("") ("") ("") ("") ("") ("") ("") ("") ("") ("") ///
+        ("") ("") ("") ("") ("") ("") ("") ("") ("") ("") ///
+        ("") ("") ("") ("") ///
         (0) ///
         ("No existe el archivo")
     continue
@@ -200,6 +207,15 @@ foreach year of local anios {
 
 	find_first_var, candidates("`cand_edad_year'")
 	local var_edad "`r(var)'"
+	
+	find_first_var, candidates("`cand_depto'")
+	local var_depto "`r(var)'"
+
+	find_first_var, candidates("`cand_area'")
+	local var_area "`r(var)'"
+
+	find_first_var, candidates("`cand_posicion'")
+	local var_posicion "`r(var)'"
 
 
     *================================================
@@ -226,21 +242,24 @@ foreach year of local anios {
 
     if "`observacion'" != "" {
 
-        post `postaudit' ///
-            (`year') ///
-            ("`var_factor'") ///
-            ("`var_ingreso'") ///
-            ("`var_sector'") ///
-            ("`var_ocupado'") ///
-            ("`var_pension'") ///
-            ("`var_tamano'") ///
-            ("`var_horas'") ///
-            ("`var_sexo'") ///
-            ("`var_salud'") ///
-            ("`var_educ'") ///
-			 ("`var_edad'") ///
-            (0) ///
-            ("`observacion'")
+    post `postaudit' ///
+    (`year') ///
+    ("`var_factor'") ///
+    ("`var_ingreso'") ///
+    ("`var_sector'") ///
+    ("`var_ocupado'") ///
+    ("`var_pension'") ///
+    ("`var_tamano'") ///
+    ("`var_horas'") ///
+    ("`var_sexo'") ///
+    ("`var_salud'") ///
+    ("`var_educ'") ///
+    ("`var_edad'") ///
+    ("`var_depto'") ///
+    ("`var_area'") ///
+    ("`var_posicion'") ///
+    (0) ///
+    ("`observacion'")
 
         di as error "Se omite `year': `observacion'"
         continue
@@ -277,10 +296,23 @@ foreach year of local anios {
 	if "`var_edad'" == "" {
     local observacion "`observacion' Falta edad;"
 	}
+	
+	if "`var_depto'" == "" {
+    local observacion "`observacion' Falta depto;"
+	}
+
+	if "`var_area'" == "" {
+    local observacion "`observacion' Falta area;"
+	}
+
+	if "`var_posicion'" == "" {
+    local observacion "`observacion' Falta posicion ocupacional;"
+	}
 
     if "`observacion'" == "" {
         local observacion "Completo"
     }
+	
 
     post `postaudit' ///
         (`year') ///
@@ -295,6 +327,9 @@ foreach year of local anios {
         ("`var_salud'") ///
         ("`var_educ'") ///
 		("`var_edad'") ///
+		("`var_depto'") ///
+		("`var_area'") ///
+		("`var_posicion'") ///
         (1) ///
         ("`observacion'")
 
@@ -310,6 +345,9 @@ foreach year of local anios {
     di as result "Salud:     `var_salud'"
     di as result "Educación: `var_educ'"
 	di as result "Edad:     `var_edad'"
+	di as result "Depto:    `var_depto'"
+	di as result "Área:     `var_area'"
+	di as result "P6430:    `var_posicion'"
 
 
     *================================================
@@ -329,6 +367,9 @@ foreach year of local anios {
     gen str40 salud_var_original   = "`var_salud'"
     gen str40 educ_var_original    = "`var_educ'"
 	gen str40 edad_var_original    = "`var_edad'"
+	gen str40 depto_var_original    = "`var_depto'"
+	gen str40 area_var_original     = "`var_area'"
+	gen str40 posicion_var_original = "`var_posicion'"
 
 
     *================================================
@@ -346,6 +387,9 @@ foreach year of local anios {
     make_double_from_var, newname(cotiza_salud_cod) varname("`var_salud'")
     make_double_from_var, newname(educacion_cod) varname("`var_educ'")
 	make_double_from_var, newname(edad_tmp) varname("`var_edad'")
+	make_double_from_var, newname(depto_cod) varname("`var_depto'")
+	make_double_from_var, newname(area_cod) varname("`var_area'")
+	make_double_from_var, newname(posicion_ocupacional_cod) varname("`var_posicion'")
 
 	capture drop edad
 	rename edad_tmp edad
@@ -417,7 +461,10 @@ foreach year of local anios {
         sexo_cod ///
         cotiza_salud_cod ///
         educacion_cod ///
-		edad
+		edad ///
+		depto_cod ///
+		area_cod ///
+		posicion_ocupacional_cod
 
     compress
 
