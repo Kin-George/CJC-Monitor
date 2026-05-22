@@ -956,31 +956,68 @@ income_mean_comparison <- bind_rows(
     by = c("tamano_empresa", "period")
   )
 
+income_comparison_colors <- c(
+  "2008" = "#D55E00",
+  "2025" = "#0072B2"
+)
+
+income_comparison_fills <- c(
+  "2008" = "white",
+  "2025" = "#0072B2"
+)
+
+income_comparison_linetypes <- c(
+  "2008" = "dashed",
+  "2025" = "solid"
+)
+
+income_mean_label_data <- income_mean_comparison %>%
+  filter(tamano_empresa == "101+")
+
 g_income_mean_comparison <- ggplot(
   income_mean_comparison,
   aes(
     x = tamano_empresa,
     y = mean_income,
     color = period,
+    linetype = period,
     group = period
   )
 ) +
-  geom_line(linewidth = 1) +
+  geom_line(linewidth = 0.95) +
   geom_point(
-    aes(size = employment_share / 100),
-    alpha = 0.75
+    aes(size = employment_share / 100, fill = period),
+    shape = 21,
+    stroke = 1.15,
+    alpha = 0.9
+  ) +
+  geom_text(
+    data = income_mean_label_data,
+    aes(label = period),
+    hjust = 0,
+    nudge_x = 0.35,
+    size = 3.5,
+    fontface = "bold",
+    show.legend = FALSE
   ) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 9,
     labels = percent_format(accuracy = 1),
     name = "% of employment"
   ) +
+  scale_x_discrete(expand = expansion(add = c(0.4, 1.3))) +
   scale_y_continuous(
     labels = comma,
     expand = expansion(mult = c(0.05, 0.1))
@@ -989,11 +1026,14 @@ g_income_mean_comparison <- ggplot(
     title = "Mean real hourly income by firm size",
     subtitle = "2008 and 2025; bubble size is the employment share in each year",
     x = "Firm size",
-    y = "Mean hourly income",
-    color = "Year"
+    y = "Mean hourly income"
   ) +
+  coord_cartesian(clip = "off") +
   theme_paper +
-  theme(legend.box = "vertical")
+  theme(
+    legend.box = "vertical",
+    plot.margin = margin(5.5, 45, 5.5, 5.5)
+  )
 
 g_income_mean_comparison_es <- ggplot(
   income_mean_comparison,
@@ -1001,25 +1041,44 @@ g_income_mean_comparison_es <- ggplot(
     x = tamano_empresa,
     y = mean_income,
     color = period,
+    linetype = period,
     group = period
   )
 ) +
-  geom_line(linewidth = 1) +
+  geom_line(linewidth = 0.95) +
   geom_point(
-    aes(size = employment_share / 100),
-    alpha = 0.75
+    aes(size = employment_share / 100, fill = period),
+    shape = 21,
+    stroke = 1.15,
+    alpha = 0.9
+  ) +
+  geom_text(
+    data = income_mean_label_data,
+    aes(label = period),
+    hjust = 0,
+    nudge_x = 0.35,
+    size = 3.5,
+    fontface = "bold",
+    show.legend = FALSE
   ) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 9,
     labels = percent_format(accuracy = 1),
     name = "% del empleo"
   ) +
+  scale_x_discrete(expand = expansion(add = c(0.4, 1.3))) +
   scale_y_continuous(
     labels = comma,
     expand = expansion(mult = c(0.05, 0.1))
@@ -1028,11 +1087,14 @@ g_income_mean_comparison_es <- ggplot(
     title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa",
     subtitle = "2008 y 2025; la burbuja representa la participaci\u00f3n en el empleo de cada a\u00f1o",
     x = "Tama\u00f1o de empresa",
-    y = "Ingreso horario promedio",
-    color = "A\u00f1o"
+    y = "Ingreso horario promedio"
   ) +
+  coord_cartesian(clip = "off") +
   theme_paper +
-  theme(legend.box = "vertical")
+  theme(
+    legend.box = "vertical",
+    plot.margin = margin(5.5, 45, 5.5, 5.5)
+  )
 
 save_figure_versions(
   base_name = "fig65",
