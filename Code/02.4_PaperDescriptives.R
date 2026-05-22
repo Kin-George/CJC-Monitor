@@ -1137,26 +1137,48 @@ write.csv(
   row.names = FALSE
 )
 
+formality_income_label_data <- formality_income_comparison %>%
+  filter(tamano_empresa == "101+")
+
 g_formality_income_comparison <- ggplot(
   formality_income_comparison,
   aes(
     x = tamano_empresa,
     y = mean_income,
     color = year,
+    linetype = year,
     group = year
   )
 ) +
-  geom_line(linewidth = 1) +
+  geom_line(linewidth = 0.95) +
   geom_point(
-    aes(size = worker_share),
-    alpha = 0.75
+    aes(size = worker_share, fill = year),
+    shape = 21,
+    stroke = 1.15,
+    alpha = 0.9
   ) +
+  geom_text(
+    data = formality_income_label_data,
+    aes(label = year),
+    hjust = 0,
+    nudge_x = 0.35,
+    size = 3.2,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_x_discrete(expand = expansion(add = c(0.4, 1.3))) +
   facet_wrap(~ formality_status, ncol = 2) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 9,
@@ -1171,13 +1193,14 @@ g_formality_income_comparison <- ggplot(
     title = "Mean real hourly income by firm size and formality",
     subtitle = "2008 and 2025; bubble size is the worker share within each formality-year group",
     x = "Firm size",
-    y = "Mean hourly income",
-    color = "Year"
+    y = "Mean hourly income"
   ) +
+  coord_cartesian(clip = "off") +
   theme_paper +
   theme(
     strip.text = element_text(face = "bold"),
-    legend.box = "vertical"
+    legend.box = "vertical",
+    plot.margin = margin(5.5, 45, 5.5, 5.5)
   )
 
 g_formality_income_comparison_es <- ggplot(
@@ -1186,20 +1209,39 @@ g_formality_income_comparison_es <- ggplot(
     x = tamano_empresa,
     y = mean_income,
     color = year,
+    linetype = year,
     group = year
   )
 ) +
-  geom_line(linewidth = 1) +
+  geom_line(linewidth = 0.95) +
   geom_point(
-    aes(size = worker_share),
-    alpha = 0.75
+    aes(size = worker_share, fill = year),
+    shape = 21,
+    stroke = 1.15,
+    alpha = 0.9
   ) +
+  geom_text(
+    data = formality_income_label_data,
+    aes(label = year),
+    hjust = 0,
+    nudge_x = 0.35,
+    size = 3.2,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_x_discrete(expand = expansion(add = c(0.4, 1.3))) +
   facet_wrap(~ formality_status_es, ncol = 2) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 9,
@@ -1214,13 +1256,14 @@ g_formality_income_comparison_es <- ggplot(
     title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa y formalidad",
     subtitle = "2008 y 2025; la burbuja representa el porcentaje de trabajadores dentro de cada grupo formalidad-a\u00f1o",
     x = "Tama\u00f1o de empresa",
-    y = "Ingreso horario promedio",
-    color = "A\u00f1o"
+    y = "Ingreso horario promedio"
   ) +
+  coord_cartesian(clip = "off") +
   theme_paper +
   theme(
     strip.text = element_text(face = "bold"),
-    legend.box = "vertical"
+    legend.box = "vertical",
+    plot.margin = margin(5.5, 45, 5.5, 5.5)
   )
 
 save_figure_versions(
@@ -1264,26 +1307,48 @@ write.csv(
   row.names = FALSE
 )
 
+sex_income_label_data <- sex_income_comparison %>%
+  filter(tamano_empresa == "101+")
+
 g_sex_income_comparison <- ggplot(
   sex_income_comparison,
   aes(
     x = tamano_empresa,
     y = mean_income,
     color = year,
+    linetype = year,
     group = year
   )
 ) +
-  geom_line(linewidth = 1) +
+  geom_line(linewidth = 0.95) +
   geom_point(
-    aes(size = worker_share),
-    alpha = 0.75
+    aes(size = worker_share, fill = year),
+    shape = 21,
+    stroke = 1.15,
+    alpha = 0.9
   ) +
+  geom_text(
+    data = sex_income_label_data,
+    aes(label = year),
+    hjust = 0,
+    nudge_x = 0.35,
+    size = 3.2,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_x_discrete(expand = expansion(add = c(0.4, 1.3))) +
   facet_wrap(~ sex, ncol = 2) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 9,
@@ -1298,13 +1363,14 @@ g_sex_income_comparison <- ggplot(
     title = "Mean real hourly income by firm size and sex",
     subtitle = "2008 and 2025; bubble size is the worker share within each sex-year group",
     x = "Firm size",
-    y = "Mean hourly income",
-    color = "Year"
+    y = "Mean hourly income"
   ) +
+  coord_cartesian(clip = "off") +
   theme_paper +
   theme(
     strip.text = element_text(face = "bold"),
-    legend.box = "vertical"
+    legend.box = "vertical",
+    plot.margin = margin(5.5, 45, 5.5, 5.5)
   )
 
 g_sex_income_comparison_es <- ggplot(
@@ -1313,20 +1379,39 @@ g_sex_income_comparison_es <- ggplot(
     x = tamano_empresa,
     y = mean_income,
     color = year,
+    linetype = year,
     group = year
   )
 ) +
-  geom_line(linewidth = 1) +
+  geom_line(linewidth = 0.95) +
   geom_point(
-    aes(size = worker_share),
-    alpha = 0.75
+    aes(size = worker_share, fill = year),
+    shape = 21,
+    stroke = 1.15,
+    alpha = 0.9
   ) +
+  geom_text(
+    data = sex_income_label_data,
+    aes(label = year),
+    hjust = 0,
+    nudge_x = 0.35,
+    size = 3.2,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_x_discrete(expand = expansion(add = c(0.4, 1.3))) +
   facet_wrap(~ sex_es, ncol = 2) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 9,
@@ -1341,13 +1426,14 @@ g_sex_income_comparison_es <- ggplot(
     title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa y sexo",
     subtitle = "2008 y 2025; la burbuja representa el porcentaje de trabajadores dentro de cada grupo sexo-a\u00f1o",
     x = "Tama\u00f1o de empresa",
-    y = "Ingreso horario promedio",
-    color = "A\u00f1o"
+    y = "Ingreso horario promedio"
   ) +
+  coord_cartesian(clip = "off") +
   theme_paper +
   theme(
     strip.text = element_text(face = "bold"),
-    legend.box = "vertical"
+    legend.box = "vertical",
+    plot.margin = margin(5.5, 45, 5.5, 5.5)
   )
 
 save_figure_versions(
@@ -1425,6 +1511,9 @@ write.csv(
   row.names = FALSE
 )
 
+education_income_label_data <- education_income_comparison %>%
+  filter(tamano_empresa == "101+")
+
 theme_education_facet <- theme_classic(base_size = 11) +
   theme(
     plot.title = element_text(face = "bold", size = 16),
@@ -1444,20 +1533,39 @@ g_education_income_comparison <- ggplot(
     x = tamano_empresa,
     y = mean_income,
     color = year,
+    linetype = year,
     group = year
   )
 ) +
   geom_line(linewidth = 0.8) +
   geom_point(
-    aes(size = worker_share),
-    alpha = 0.75
+    aes(size = worker_share, fill = year),
+    shape = 21,
+    stroke = 1,
+    alpha = 0.9
   ) +
+  geom_text(
+    data = education_income_label_data,
+    aes(label = year),
+    hjust = 0,
+    nudge_x = 0.28,
+    size = 2.7,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_x_discrete(expand = expansion(add = c(0.25, 1.1))) +
   facet_wrap(~ education_en, scales = "free_y", ncol = 2) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 7.5,
@@ -1469,10 +1577,11 @@ g_education_income_comparison <- ggplot(
     title = "Mean real hourly income by firm size and education",
     subtitle = "2008 and 2025; bubble size is the employment share within each education-year",
     x = "Firm size",
-    y = "Mean hourly income",
-    color = "Year"
+    y = "Mean hourly income"
   ) +
-  theme_education_facet
+  coord_cartesian(clip = "off") +
+  theme_education_facet +
+  theme(plot.margin = margin(5.5, 45, 5.5, 5.5))
 
 g_education_income_comparison_es <- ggplot(
   education_income_comparison,
@@ -1480,20 +1589,39 @@ g_education_income_comparison_es <- ggplot(
     x = tamano_empresa,
     y = mean_income,
     color = year,
+    linetype = year,
     group = year
   )
 ) +
   geom_line(linewidth = 0.8) +
   geom_point(
-    aes(size = worker_share),
-    alpha = 0.75
+    aes(size = worker_share, fill = year),
+    shape = 21,
+    stroke = 1,
+    alpha = 0.9
   ) +
+  geom_text(
+    data = education_income_label_data,
+    aes(label = year),
+    hjust = 0,
+    nudge_x = 0.28,
+    size = 2.7,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_x_discrete(expand = expansion(add = c(0.25, 1.1))) +
   facet_wrap(~ education_es, scales = "free_y", ncol = 2) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 7.5,
@@ -1505,10 +1633,11 @@ g_education_income_comparison_es <- ggplot(
     title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa y educacion",
     subtitle = "2008 y 2025; la burbuja representa la participacion en el empleo dentro de cada educacion-a\u00f1o",
     x = "Tama\u00f1o de empresa",
-    y = "Ingreso horario promedio",
-    color = "A\u00f1o"
+    y = "Ingreso horario promedio"
   ) +
-  theme_education_facet
+  coord_cartesian(clip = "off") +
+  theme_education_facet +
+  theme(plot.margin = margin(5.5, 45, 5.5, 5.5))
 
 save_figure_versions(
   base_name = "fig72",
@@ -1649,6 +1778,9 @@ write.csv(
   row.names = FALSE
 )
 
+sector_income_label_data <- sector_income_comparison %>%
+  filter(tamano_empresa == "101+")
+
 theme_sector_facet <- theme_classic(base_size = 10) +
   theme(
     plot.title = element_text(face = "bold", size = 16),
@@ -1668,20 +1800,39 @@ g_sector_income_comparison <- ggplot(
     x = tamano_empresa,
     y = mean_income,
     color = year,
+    linetype = year,
     group = year
   )
 ) +
   geom_line(linewidth = 0.55) +
   geom_point(
-    aes(size = worker_share),
-    alpha = 0.75
+    aes(size = worker_share, fill = year),
+    shape = 21,
+    stroke = 0.8,
+    alpha = 0.9
   ) +
+  geom_text(
+    data = sector_income_label_data,
+    aes(label = year),
+    hjust = 0,
+    nudge_x = 0.22,
+    size = 1.9,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_x_discrete(expand = expansion(add = c(0.2, 1.05))) +
   facet_wrap(~ sector_label_en, scales = "free_y", ncol = 4) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 5.5,
@@ -1693,10 +1844,11 @@ g_sector_income_comparison <- ggplot(
     title = "Mean real hourly income by firm size and sector",
     subtitle = "2008 and 2025; bubble size is the employment share within each sector-year",
     x = "Firm size",
-    y = "Mean hourly income",
-    color = "Year"
+    y = "Mean hourly income"
   ) +
-  theme_sector_facet
+  coord_cartesian(clip = "off") +
+  theme_sector_facet +
+  theme(plot.margin = margin(5.5, 45, 5.5, 5.5))
 
 g_sector_income_comparison_es <- ggplot(
   sector_income_comparison,
@@ -1704,20 +1856,39 @@ g_sector_income_comparison_es <- ggplot(
     x = tamano_empresa,
     y = mean_income,
     color = year,
+    linetype = year,
     group = year
   )
 ) +
   geom_line(linewidth = 0.55) +
   geom_point(
-    aes(size = worker_share),
-    alpha = 0.75
+    aes(size = worker_share, fill = year),
+    shape = 21,
+    stroke = 0.8,
+    alpha = 0.9
   ) +
+  geom_text(
+    data = sector_income_label_data,
+    aes(label = year),
+    hjust = 0,
+    nudge_x = 0.22,
+    size = 1.9,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  scale_x_discrete(expand = expansion(add = c(0.2, 1.05))) +
   facet_wrap(~ sector_label_es, scales = "free_y", ncol = 4) +
   scale_color_manual(
-    values = c(
-      "2008" = "darkgreen",
-      "2025" = "darkblue"
-    )
+    values = income_comparison_colors,
+    guide = "none"
+  ) +
+  scale_fill_manual(
+    values = income_comparison_fills,
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = income_comparison_linetypes,
+    guide = "none"
   ) +
   scale_size_area(
     max_size = 5.5,
@@ -1729,10 +1900,11 @@ g_sector_income_comparison_es <- ggplot(
     title = "Ingreso laboral horario real promedio por tama\u00f1o de empresa y sector",
     subtitle = "2008 y 2025; la burbuja representa la participaci\u00f3n en el empleo dentro de cada sector-a\u00f1o",
     x = "Tama\u00f1o de empresa",
-    y = "Ingreso horario promedio",
-    color = "A\u00f1o"
+    y = "Ingreso horario promedio"
   ) +
-  theme_sector_facet
+  coord_cartesian(clip = "off") +
+  theme_sector_facet +
+  theme(plot.margin = margin(5.5, 45, 5.5, 5.5))
 
 save_figure_versions(
   base_name = "fig71",
