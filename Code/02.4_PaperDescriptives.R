@@ -3,6 +3,8 @@ if (dir.exists(local_r_lib)) {
   .libPaths(c(local_r_lib, .libPaths()))
 }
 
+source(file.path("Code", "_paths.R"))
+
 library(haven)
 library(dplyr)
 library(ggplot2)
@@ -112,7 +114,7 @@ write_latex_table <- function(lines, path) {
   writeLines(lines, path)
 }
 
-geih <- read_dta("Datos/Processed/GEIH_base_modelo_personas_2008_2025.dta") %>%
+geih <- read_dta(geih_personas_data_path()) %>%
   mutate(
     anio = as.integer(anio),
     tamano_empresa = as.character(tamano_empresa),

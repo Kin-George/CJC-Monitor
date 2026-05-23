@@ -10,6 +10,8 @@ Sys.setenv(
   XDG_CONFIG_HOME = local_r_config
 )
 
+source(file.path("Code", "_paths.R"))
+
 library(haven)
 library(dplyr)
 library(fixest)
@@ -48,7 +50,7 @@ save_figure_versions <- function(base_name, plot_en, plot_es, width, height, dpi
 
 # Modelo enfoque personas
 geih <- read_dta(
-  "Datos/Processed/GEIH_base_modelo_personas_2008_2025.dta"
+  geih_personas_data_path()
 )
 
 geih <- geih %>%

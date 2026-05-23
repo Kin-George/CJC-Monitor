@@ -24,6 +24,31 @@ project_path <- function(...) {
   file.path(PROJECT_ROOT, ...)
 }
 
+geih_personas_data_path <- function(must_work = TRUE) {
+  candidates <- c(
+    project_path("Datos", "Processed", "Paper-GEIH_base_modelo_personas_2008_2025.dta"),
+    project_path("Datos", "Processed", "GEIH_base_modelo_personas_2008_2025.dta"),
+    project_path("Outputs", "tables", "Paper-GEIH_base_modelo_personas_2008_2025.dta"),
+    project_path("Outputs", "tables", "GEIH_base_modelo_personas_2008_2025.dta")
+  )
+
+  existing <- candidates[file.exists(candidates)]
+  if (length(existing) > 0) {
+    return(existing[[1]])
+  }
+
+  if (must_work) {
+    stop(
+      "No se encontro la base GEIH individual para el paper. ",
+      "Busque primero Paper-GEIH_base_modelo_personas_2008_2025.dta ",
+      "y luego el nombre historico sin prefijo Paper-.",
+      call. = FALSE
+    )
+  }
+
+  candidates[[1]]
+}
+
 ensure_project_dirs <- function() {
   dirs <- c(
     project_path("Outputs", "Figures"),
