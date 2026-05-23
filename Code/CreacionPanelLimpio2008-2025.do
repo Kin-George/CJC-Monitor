@@ -933,7 +933,6 @@ drop if missing(sexo_hom_cod)
 drop if missing(sector_hom_cod)
 drop if missing(edad)
 drop if missing(depto_cod)
-drop if missing(area_cod)
 drop if missing(posicion_ocupacional_cod)
 
 *====================================================
@@ -1073,7 +1072,7 @@ compress
 * 13. Guardar base individual
 *====================================================
 
-save "Outputs/tables/GEIH_base_modelo_personas_2008_2025.dta", replace
+save "Outputs/tables/Paper-GEIH_base_modelo_personas_2008_2025.dta", replace
 
 di "===================================================="
 di "BASE INDIVIDUAL PARA MODELOS CREADA CORRECTAMENTE"
