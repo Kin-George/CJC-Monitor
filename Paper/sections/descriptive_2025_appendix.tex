@@ -4,8 +4,8 @@
 This appendix reports the detailed employment, income, wage-growth, and
 worker-characteristics tables that support the compact exhibits in the main
 text. It also reports median real hourly wages by firm size and worker group for
-2008 and 2025, 2025 wage gaps by worker group, plus supporting descriptive and
-regression figures.
+2008 and 2025, 2025 wage gaps by worker group, plus supporting descriptive
+figures and regression robustness exercises.
 
 \subsection{Detailed Descriptive Tables}
 
@@ -110,7 +110,7 @@ the magnitude of the gradient varies across them.
 
 \clearpage
 
-\subsection{Additional Regression Figures}
+\subsection{Additional Regression Tables and Figures}
 \label{app:additional-regression-figures}
 
 Figure~\ref{fig:firm-size-beta-coefficients} reports the log-point coefficients
@@ -120,6 +120,17 @@ Together, these figures show that the conditional firm-size coefficients are
 positive in the full specification, while the estimated time trends are positive
 but too imprecise to support a strong claim that the premium has systematically
 steepened.
+
+Table~\ref{tab:firm-size-local-geography-robustness} reports a local-market
+robustness exercise. Because the harmonized file retains department/Bogot\'a
+rather than a consistent city identifier, the table uses department as the local
+geography. The most demanding column absorbs sector-department-year fixed
+effects, so the firm-size coefficients are identified within the same sector,
+department, and year. The large-firm coefficient remains positive in this
+specification: workers in firms with 101 or more employees earn about 31 percent
+more than comparable solo workers within the same sector-department-year cell.
+
+\input{Paper/sections/regression_local_geography_robustness_table}
 
 \begin{figure}[htbp]
   \centering

@@ -1,0 +1,40 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Firm-size wage premium robustness with local sector-year fixed effects}
+  \label{tab:firm-size-local-geography-robustness}
+  \small
+  \begin{tabular}{lccc}
+    \toprule
+    & \multicolumn{3}{c}{Dependent variable: log real hourly labor income} \\
+    \cmidrule(lr){2-4}
+    & (1) & (2) & (3) \\
+    \midrule
+    Firm size: 2-3 & 0.145*** & 0.126*** & 0.127*** \\
+     & (0.014) & (0.014) & (0.015) \\
+    Firm size: 4-5 & 0.234*** & 0.216*** & 0.215*** \\
+     & (0.020) & (0.020) & (0.021) \\
+    Firm size: 6-10 & 0.234*** & 0.215*** & 0.215*** \\
+     & (0.023) & (0.023) & (0.024) \\
+    Firm size: 11-19 & 0.224*** & 0.209*** & 0.209*** \\
+     & (0.022) & (0.022) & (0.023) \\
+    Firm size: 20-30 & 0.190*** & 0.177*** & 0.177*** \\
+     & (0.022) & (0.022) & (0.023) \\
+    Firm size: 31-50 & 0.195*** & 0.184*** & 0.183*** \\
+     & (0.022) & (0.023) & (0.023) \\
+    Firm size: 51-100 & 0.215*** & 0.203*** & 0.203*** \\
+     & (0.022) & (0.022) & (0.023) \\
+    Firm size: 101+ & 0.282*** & 0.272*** & 0.268*** \\
+     & (0.030) & (0.032) & (0.032) \\
+    \midrule
+    Worker and formality controls & Yes & Yes & Yes \\
+    Fixed effects & $s\times t$ & $s\times t$, $d\times t$ & $s\times d\times t$ \\
+    Observations & 3,852,322 & 3,852,322 & 3,852,211 \\
+    $R^2$ & 0.362 & 0.374 & 0.380 \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.3em}
+  \begin{minipage}{0.95\textwidth}
+  \footnotesize
+  Notes: The omitted category is solo workers. The sample is restricted to observations with nonmissing department codes. Worker controls include a female-worker indicator, age, age squared, education dummies, and labor formality. The local geography $d$ is department/Bogot\'a, because the harmonized file does not retain a consistent city or municipality identifier. Column (3) is the most stringent specification and absorbs sector-department-year fixed effects, so identification comes from wage differences across firm-size categories within the same sector, department, and year. Standard errors are clustered by sector-department cells. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+  \end{minipage}
+\end{table}
