@@ -1367,13 +1367,10 @@ trend_size_b <- str_match(
 trend_test <- trend_terms %>%
   mutate(
     tamano_empresa = coalesce(trend_size_a[, 2], trend_size_b[, 2]),
-    p_increase = case_when(
-      estimate >= 0 ~ p.value / 2,
-      TRUE ~ 1 - p.value / 2
-    ),
+    p_trend = p.value,
     period_change_log_points = estimate * trend_horizon,
     period_change_percent = 100 * (exp(period_change_log_points) - 1),
-    significant_increase = p_increase < 0.05,
+    significant_trend = p_trend < 0.05,
     tamano_empresa = factor(
       tamano_empresa,
       levels = c(
@@ -1396,10 +1393,10 @@ trend_test %>%
     tamano_empresa,
     estimate,
     std.error,
-    p_increase,
+    p_trend,
     period_change_log_points,
     period_change_percent,
-    significant_increase
+    significant_trend
   )
 
 g_trend_test <- ggplot(
@@ -1419,13 +1416,13 @@ g_trend_test <- ggplot(
     aes(
       ymin = conf.low * 100,
       ymax = conf.high * 100,
-      color = significant_increase
+      color = significant_trend
     ),
     width = 0.15,
     linewidth = 0.9
   ) +
   geom_point(
-    aes(color = significant_increase),
+    aes(color = significant_trend),
     size = 3.8
   ) +
   geom_label(
@@ -1446,7 +1443,7 @@ g_trend_test <- ggplot(
       "FALSE" = "gray55"
     ),
     labels = c(
-      "TRUE" = "Significant increase at 5%",
+      "TRUE" = "Significant trend at 5%",
       "FALSE" = "Not significant"
     )
   ) +
@@ -1455,8 +1452,8 @@ g_trend_test <- ggplot(
     expand = expansion(mult = c(0.12, 0.18))
   ) +
   labs(
-    title = "Test of whether the firm-size wage premium increased",
-    subtitle = "Slope of the year trend by firm-size category. One-sided test: premium increasing over time",
+    title = "Test of the firm-size wage premium trend",
+    subtitle = "Slope of the year trend by firm-size category. Two-sided test: trend different from zero",
     x = "Firm size",
     y = "Annual premium change (log points x 100)",
     color = NULL
@@ -1477,13 +1474,13 @@ g_trend_test_es <- g_trend_test +
       "FALSE" = "gray55"
     ),
     labels = c(
-      "TRUE" = "Aumento significativo al 5%",
+      "TRUE" = "Tendencia significativa al 5%",
       "FALSE" = "No significativo"
     )
   ) +
   labs(
-    title = "Test de aumento del premium salarial por tama\u00f1o de empresa",
-    subtitle = "Pendiente de la tendencia anual por tama\u00f1o de empresa. Test unilateral: premium creciente en el tiempo",
+    title = "Test de tendencia del premium salarial por tama\u00f1o de empresa",
+    subtitle = "Pendiente de la tendencia anual por tama\u00f1o de empresa. Test bilateral: tendencia distinta de cero",
     x = "Tama\u00f1o de empresa",
     y = "Cambio anual del premium (log puntos x 100)",
     color = NULL
@@ -1511,7 +1508,7 @@ for (i in seq_len(nrow(trend_test))) {
       " & ",
       sprintf("(%.4f)", trend_test$std.error[i]),
       " & ",
-      sprintf("%.3f", trend_test$p_increase[i]),
+      sprintf("%.3f", trend_test$p_trend[i]),
       " & ",
       sprintf("%.1f\\%%", trend_test$period_change_percent[i]),
       " \\\\"
@@ -1522,7 +1519,7 @@ for (i in seq_len(nrow(trend_test))) {
 trend_test_table <- c(
   "\\begin{table}[htbp]",
   "  \\centering",
-  "  \\caption{Testing whether the firm-size wage premium increased over time}",
+  "  \\caption{Testing whether the firm-size wage premium changed over time}",
   "  \\label{tab:firm-size-premium-trend-test}",
   "  \\small",
   "  \\begin{tabular}{lcccc}",
@@ -1535,7 +1532,7 @@ trend_test_table <- c(
   "  \\vspace{0.3em}",
   "  \\begin{minipage}{0.95\\textwidth}",
   "  \\footnotesize",
-  "  Notes: The annual trend is the coefficient on the interaction between firm-size category and a linear year trend, with solo workers as the omitted category. The specification controls for gender, age, age squared, education, formality, and sector-year fixed effects, and uses GEIH expansion weights. Standard errors are clustered by sector. The $p$-value corresponds to the one-sided test that the premium increased over time. The final column reports $100\\times[\\exp(17\\hat{\\delta})-1]$, the implied change in the firm-size wage ratio between 2008 and 2025.",
+  "  Notes: The annual trend is the coefficient on the interaction between firm-size category and a linear year trend, with solo workers as the omitted category. The specification controls for gender, age, age squared, education, formality, and sector-year fixed effects, and uses GEIH expansion weights. Standard errors are clustered by sector. The $p$-value corresponds to the two-sided test that the trend differs from zero. The final column reports $100\\times[\\exp(17\\hat{\\delta})-1]$, the implied change in the firm-size wage ratio between 2008 and 2025.",
   "  \\end{minipage}",
   "\\end{table}"
 )
