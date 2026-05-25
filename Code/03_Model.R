@@ -905,6 +905,161 @@ save_figure_versions(
   dpi = 300
 )
 
+endpoint_years <- c(2008, 2025)
+
+endpoint_adjusted_premium <- formality_size_year_premium %>%
+  filter(anio %in% endpoint_years) %>%
+  select(
+    formality,
+    anio,
+    tamano_empresa,
+    premium,
+    ci_low,
+    ci_high,
+    significativo
+  ) %>%
+  bind_rows(
+    expand.grid(
+      formality = levels(formality_size_year_premium$formality),
+      anio = endpoint_years,
+      tamano_empresa = "Solo",
+      stringsAsFactors = FALSE
+    ) %>%
+      mutate(
+        premium = 0,
+        ci_low = NA_real_,
+        ci_high = NA_real_,
+        significativo = TRUE
+      )
+  ) %>%
+  mutate(
+    tamano_empresa = factor(
+      as.character(tamano_empresa),
+      levels = c("Solo", size_levels)
+    ),
+    anio = factor(anio, levels = endpoint_years),
+    formality = factor(as.character(formality), levels = c("Formal", "Informal"))
+  ) %>%
+  arrange(formality, anio, tamano_empresa)
+
+endpoint_adjusted_labels <- endpoint_adjusted_premium %>%
+  filter(tamano_empresa == "101+", anio == "2025")
+
+g_endpoint_adjusted_formality <- ggplot(
+  endpoint_adjusted_premium,
+  aes(
+    x = tamano_empresa,
+    y = premium,
+    color = anio,
+    group = anio
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.6
+  ) +
+  geom_errorbar(
+    data = endpoint_adjusted_premium %>% filter(tamano_empresa != "Solo"),
+    aes(ymin = ci_low, ymax = ci_high),
+    width = 0.12,
+    linewidth = 0.75,
+    position = position_dodge(width = 0.35)
+  ) +
+  geom_line(
+    aes(linetype = anio),
+    linewidth = 1
+  ) +
+  geom_point(
+    aes(shape = anio),
+    size = 2.8,
+    position = position_dodge(width = 0.35)
+  ) +
+  geom_label(
+    data = endpoint_adjusted_labels,
+    aes(label = paste0(round(premium, 1), "%")),
+    fill = "black",
+    color = "white",
+    fontface = "bold",
+    size = 3,
+    nudge_x = 0.25,
+    show.legend = FALSE
+  ) +
+  facet_wrap(~ formality, ncol = 2) +
+  scale_color_manual(
+    values = c("2008" = "#d95f02", "2025" = "#0072B2")
+  ) +
+  scale_linetype_manual(
+    values = c("2008" = "dashed", "2025" = "solid")
+  ) +
+  scale_shape_manual(
+    values = c("2008" = 1, "2025" = 16)
+  ) +
+  scale_x_discrete(
+    limits = c("Solo", size_levels),
+    drop = FALSE
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0.14, 0.18))
+  ) +
+  labs(
+    title = "Adjusted firm-size wage premium by formality, 2008 and 2025",
+    subtitle = "Premium relative to solo workers within each formality-year group. Controls: gender, age, education, and sector",
+    x = "Firm size",
+    y = "Adjusted wage premium (%)",
+    color = "Year",
+    linetype = "Year",
+    shape = "Year"
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+
+g_endpoint_adjusted_formality_es <- g_endpoint_adjusted_formality +
+  facet_wrap(
+    ~ formality,
+    ncol = 2,
+    labeller = as_labeller(c(
+      "Formal" = "Trabajadores formales",
+      "Informal" = "Trabajadores informales"
+    ))
+  ) +
+  scale_color_manual(
+    values = c("2008" = "#d95f02", "2025" = "#0072B2")
+  ) +
+  scale_linetype_manual(
+    values = c("2008" = "dashed", "2025" = "solid")
+  ) +
+  scale_shape_manual(
+    values = c("2008" = 1, "2025" = 16)
+  ) +
+  labs(
+    title = "Premium salarial ajustado por tama\u00f1o y formalidad, 2008 y 2025",
+    subtitle = "Premium frente a trabajadores solos dentro de cada formalidad-a\u00f1o. Controles: g\u00e9nero, edad, educaci\u00f3n y sector",
+    x = "Tama\u00f1o de empresa",
+    y = "Premium salarial ajustado (%)",
+    color = "A\u00f1o",
+    linetype = "A\u00f1o",
+    shape = "A\u00f1o"
+  )
+
+save_figure_versions(
+  base_name = "fig76",
+  plot_en = g_endpoint_adjusted_formality,
+  plot_es = g_endpoint_adjusted_formality_es,
+  width = 11,
+  height = 6.2,
+  dpi = 300
+)
+
 g_beta_tamano <- ggplot(
   betas_tamano,
   aes(
