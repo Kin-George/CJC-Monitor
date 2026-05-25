@@ -46,7 +46,31 @@ For interpretation, we transform them into percentage premiums:
   Premium_g = 100 \times \left(\exp(\hat{\beta}_g)-1\right).
 \]
 
+\subsection{Firm-Size Nonlinearities by Formality Status}
 
+The descriptive evidence suggests that the relationship between firm size and
+hourly income may differ between formal and informal workers. To allow for this
+nonlinearity, we also estimate a specification that interacts all firm-size
+categories with formal employment:
+
+\[
+  \ln(w_{ist}) =
+  \alpha
+  + \rho Formal_{ist}
+  + \sum_{g \neq g_0} \beta_g \mathbf{1}\{Size_{ist}=g\}
+  + \sum_{g \neq g_0} \theta_g
+    \mathbf{1}\{Size_{ist}=g\} Formal_{ist}
+  + Z_{ist}'\gamma
+  + \lambda_{s \times t}
+  + \varepsilon_{ist}.
+\]
+
+Here \(Z_{ist}\) includes the worker controls other than formality. The
+coefficients \(\beta_g\) measure the firm-size premium among informal workers,
+relative to informal solo workers. The corresponding premium among formal
+workers is \(\beta_g+\theta_g\), relative to formal solo workers. This
+specification is deliberately nonparametric in firm size: it does not impose a
+linear, quadratic, or monotonic relationship between firm size and wages.
 
 \subsection{Dynamic Premiums and Trend Test}
 

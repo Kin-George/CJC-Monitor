@@ -84,6 +84,13 @@ geih_model <- geih %>%
     year_trend = anio_num - min(anio_num, na.rm = TRUE)
   )
 
+size_levels <- c("2-3", "4-5", "6-10", "11-19", "20-30", "31-50", "51-100", "101+")
+education_ref <- grep("secundaria", levels(geih_model$educacion), ignore.case = TRUE, value = TRUE)[1]
+
+if (is.na(education_ref)) {
+  stop("No se encontro una categoria de educacion de referencia que contenga 'secundaria'.")
+}
+
 m_raw <- feols(
   log_ingreso_hora_real ~
     i(tamano_empresa, ref = "Solo"),
@@ -107,7 +114,7 @@ m_demog <- feols(
     mujer +
     edad +
     edad2 +
-    i(educacion, ref = "Básica secundaria") |
+    i(educacion, ref = education_ref) |
     sector^anio,
   weights = ~ fex,
   cluster = ~ sector,
@@ -120,8 +127,21 @@ m_full <- feols(
     mujer +
     edad +
     edad2 +
-    i(educacion, ref = "Básica secundaria") +
+    i(educacion, ref = education_ref) +
     formal |
+    sector^anio,
+  weights = ~ fex,
+  cluster = ~ sector,
+  data = geih_model
+)
+
+m_formality_size <- feols(
+  log_ingreso_hora_real ~
+    i(tamano_empresa, ref = "Solo") * formal +
+    mujer +
+    edad +
+    edad2 +
+    i(educacion, ref = education_ref) |
     sector^anio,
   weights = ~ fex,
   cluster = ~ sector,
@@ -405,6 +425,189 @@ save_figure_versions(
   dpi = 300
 )
 
+interaction_term_for_size <- function(size, coef_names) {
+  candidates <- c(
+    paste0("formal:tamano_empresa::", size),
+    paste0("tamano_empresa::", size, ":formal")
+  )
+  match <- candidates[candidates %in% coef_names]
+  if (length(match) == 0) {
+    return(NA_character_)
+  }
+  match[[1]]
+}
+
+linear_combo <- function(coefs, vcov_mat, terms, weights) {
+  keep <- !is.na(terms)
+  terms <- terms[keep]
+  weights <- weights[keep]
+
+  estimate <- sum(coefs[terms] * weights)
+  vcov_sub <- vcov_mat[terms, terms, drop = FALSE]
+  se <- sqrt(as.numeric(t(weights) %*% vcov_sub %*% weights))
+  z <- estimate / se
+  p_value <- 2 * pnorm(abs(z), lower.tail = FALSE)
+  ci_low <- estimate - 1.96 * se
+  ci_high <- estimate + 1.96 * se
+
+  tibble(
+    estimate = estimate,
+    std.error = se,
+    p.value = p_value,
+    conf.low = ci_low,
+    conf.high = ci_high
+  )
+}
+
+formality_coefs <- coef(m_formality_size)
+formality_vcov <- vcov(m_formality_size)
+formality_coef_names <- names(formality_coefs)
+
+formality_size_premium <- bind_rows(lapply(size_levels, function(size) {
+  size_term <- paste0("tamano_empresa::", size)
+  interaction_term <- interaction_term_for_size(size, formality_coef_names)
+
+  informal <- linear_combo(
+    coefs = formality_coefs,
+    vcov_mat = formality_vcov,
+    terms = c(size_term),
+    weights = c(1)
+  ) %>%
+    mutate(formality = "Informal", tamano_empresa = size)
+
+  formal <- linear_combo(
+    coefs = formality_coefs,
+    vcov_mat = formality_vcov,
+    terms = c(size_term, interaction_term),
+    weights = c(1, 1)
+  ) %>%
+    mutate(formality = "Formal", tamano_empresa = size)
+
+  bind_rows(formal, informal)
+})) %>%
+  mutate(
+    premium = 100 * (exp(estimate) - 1),
+    ci_low = 100 * (exp(conf.low) - 1),
+    ci_high = 100 * (exp(conf.high) - 1),
+    significativo = ci_low > 0 | ci_high < 0,
+    tamano_empresa = factor(tamano_empresa, levels = size_levels),
+    formality = factor(formality, levels = c("Formal", "Informal"))
+  ) %>%
+  arrange(formality, tamano_empresa)
+
+write.csv(
+  formality_size_premium,
+  "Paper/tables/regression_formality_size_premium.csv",
+  row.names = FALSE
+)
+
+g_formality_size_premium <- ggplot(
+  formality_size_premium,
+  aes(
+    x = tamano_empresa,
+    y = premium,
+    group = formality
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.7
+  ) +
+  geom_errorbar(
+    aes(ymin = ci_low, ymax = ci_high),
+    width = 0.15,
+    color = "gray35",
+    linewidth = 0.8
+  ) +
+  geom_line(
+    color = "darkblue",
+    linewidth = 1
+  ) +
+  geom_point(
+    aes(shape = significativo),
+    color = "darkblue",
+    size = 3.5
+  ) +
+  geom_label(
+    aes(label = paste0(round(premium, 1), "%")),
+    fill = "black",
+    color = "white",
+    fontface = "bold",
+    size = 3.2,
+    vjust = -0.75,
+    linewidth = 0.15,
+    show.legend = FALSE
+  ) +
+  facet_wrap(~ formality, ncol = 2) +
+  scale_shape_manual(
+    values = c(
+      "TRUE" = 16,
+      "FALSE" = 1
+    ),
+    labels = c(
+      "TRUE" = "Significant at 5%",
+      "FALSE" = "Not significant"
+    )
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0.14, 0.22))
+  ) +
+  labs(
+    title = "Adjusted firm-size wage premium by formality status",
+    subtitle = "Premium relative to solo workers within each formality group",
+    x = "Firm size",
+    y = "Wage premium (%)",
+    shape = NULL
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+
+g_formality_size_premium_es <- g_formality_size_premium +
+  facet_wrap(
+    ~ formality,
+    ncol = 2,
+    labeller = as_labeller(c(
+      "Formal" = "Trabajadores formales",
+      "Informal" = "Trabajadores informales"
+    ))
+  ) +
+  scale_shape_manual(
+    values = c(
+      "TRUE" = 16,
+      "FALSE" = 1
+    ),
+    labels = c(
+      "TRUE" = "Significativo al 5%",
+      "FALSE" = "No significativo"
+    )
+  ) +
+  labs(
+    title = "Premium salarial ajustado por tama\u00f1o de empresa y formalidad",
+    subtitle = "Premium frente a trabajadores solos dentro de cada grupo de formalidad",
+    x = "Tama\u00f1o de empresa",
+    y = "Premium salarial (%)",
+    shape = NULL
+  )
+
+save_figure_versions(
+  base_name = "fig74",
+  plot_en = g_formality_size_premium,
+  plot_es = g_formality_size_premium_es,
+  width = 11,
+  height = 6.2,
+  dpi = 300
+)
+
 g_beta_tamano <- ggplot(
   betas_tamano,
   aes(
@@ -511,7 +714,7 @@ m_dynamic <- feols(
     mujer +
     edad +
     edad2 +
-    i(educacion, ref = "Básica secundaria") +
+    i(educacion, ref = education_ref) +
     formal |
     sector^anio,
   weights = ~ fex,
@@ -682,7 +885,7 @@ m_trend <- feols(
     mujer +
     edad +
     edad2 +
-    i(educacion, ref = "Básica secundaria") +
+    i(educacion, ref = education_ref) +
     formal |
     sector^anio,
   weights = ~ fex,
@@ -918,7 +1121,6 @@ model_list <- list(
   "(4)" = m_full
 )
 
-size_levels <- c("2-3", "4-5", "6-10", "11-19", "20-30", "31-50", "51-100", "101+")
 size_terms <- paste0("tamano_empresa::", size_levels)
 size_labels <- paste0("Firm size: ", size_levels)
 
