@@ -81,7 +81,11 @@ geih_model <- geih %>%
   ) %>%
   mutate(
     anio_num = as.integer(as.character(anio)),
-    year_trend = anio_num - min(anio_num, na.rm = TRUE)
+    year_trend = anio_num - min(anio_num, na.rm = TRUE),
+    formality_group = factor(
+      if_else(formal == 1, "Formal", "Informal"),
+      levels = c("Formal", "Informal")
+    )
   )
 
 size_levels <- c("2-3", "4-5", "6-10", "11-19", "20-30", "31-50", "51-100", "101+")
@@ -604,6 +608,198 @@ save_figure_versions(
   plot_en = g_formality_size_premium,
   plot_es = g_formality_size_premium_es,
   width = 11,
+  height = 6.2,
+  dpi = 300
+)
+
+year_levels <- sort(unique(geih_model$anio_num))
+
+formality_size_year_premium <- bind_rows(lapply(year_levels, function(year_value) {
+  data_year <- geih_model %>%
+    filter(anio_num == year_value)
+
+  model_year <- feols(
+    log_ingreso_hora_real ~
+      i(tamano_empresa, ref = "Solo") * formal +
+      mujer +
+      edad +
+      edad2 +
+      i(educacion, ref = education_ref) |
+      sector,
+    weights = ~ fex,
+    cluster = ~ sector,
+    data = data_year
+  )
+
+  year_coefs <- coef(model_year)
+  year_vcov <- vcov(model_year)
+  year_coef_names <- names(year_coefs)
+
+  bind_rows(lapply(size_levels, function(size_value) {
+    size_term <- paste0("tamano_empresa::", size_value)
+    interaction_term <- interaction_term_for_size(size_value, year_coef_names)
+
+    informal <- linear_combo(
+      coefs = year_coefs,
+      vcov_mat = year_vcov,
+      terms = c(size_term),
+      weights = c(1)
+    ) %>%
+      mutate(
+        formality = "Informal",
+        anio = year_value,
+        tamano_empresa = size_value
+      )
+
+    formal <- linear_combo(
+      coefs = year_coefs,
+      vcov_mat = year_vcov,
+      terms = c(size_term, interaction_term),
+      weights = c(1, 1)
+    ) %>%
+      mutate(
+        formality = "Formal",
+        anio = year_value,
+        tamano_empresa = size_value
+      )
+
+    bind_rows(formal, informal)
+  }))
+})) %>%
+  mutate(
+    premium = 100 * (exp(estimate) - 1),
+    ci_low = 100 * (exp(conf.low) - 1),
+    ci_high = 100 * (exp(conf.high) - 1),
+    significativo = ci_low > 0 | ci_high < 0,
+    tamano_empresa = factor(tamano_empresa, levels = size_levels),
+    formality = factor(formality, levels = c("Formal", "Informal"))
+  ) %>%
+  arrange(formality, tamano_empresa, anio)
+
+write.csv(
+  formality_size_year_premium,
+  "Paper/tables/regression_formality_size_year_premium.csv",
+  row.names = FALSE
+)
+
+large_firm_formality_year_premium <- formality_size_year_premium %>%
+  filter(tamano_empresa == "101+")
+
+large_firm_labels <- large_firm_formality_year_premium %>%
+  group_by(formality) %>%
+  filter(anio == max(anio, na.rm = TRUE)) %>%
+  ungroup()
+
+g_large_firm_formality_year <- ggplot(
+  large_firm_formality_year_premium,
+  aes(
+    x = anio,
+    y = premium,
+    color = formality,
+    fill = formality
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.6
+  ) +
+  geom_ribbon(
+    aes(ymin = ci_low, ymax = ci_high),
+    alpha = 0.12,
+    color = NA
+  ) +
+  geom_line(linewidth = 1) +
+  geom_point(
+    aes(shape = significativo),
+    size = 2.4
+  ) +
+  geom_label(
+    data = large_firm_labels,
+    aes(label = paste0(round(premium, 1), "%")),
+    fill = "black",
+    color = "white",
+    fontface = "bold",
+    size = 3.2,
+    nudge_x = 0.35,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(
+    values = c("Formal" = "darkblue", "Informal" = "darkred")
+  ) +
+  scale_fill_manual(
+    values = c("Formal" = "darkblue", "Informal" = "darkred")
+  ) +
+  scale_shape_manual(
+    values = c(
+      "TRUE" = 16,
+      "FALSE" = 1
+    ),
+    labels = c(
+      "TRUE" = "Significant at 5%",
+      "FALSE" = "Not significant"
+    )
+  ) +
+  scale_x_continuous(
+    breaks = seq(min(year_levels), max(year_levels), by = 4),
+    expand = expansion(mult = c(0.02, 0.08))
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0.12, 0.18))
+  ) +
+  labs(
+    title = "Adjusted large-firm wage premium by formality over time",
+    subtitle = "Premium in firms with 101+ workers relative to solo workers within each formality-year group",
+    x = "Year",
+    y = "Wage premium (%)",
+    color = "Formality",
+    fill = "Formality",
+    shape = NULL
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+
+g_large_firm_formality_year_es <- g_large_firm_formality_year +
+  scale_color_manual(
+    values = c("Formal" = "darkblue", "Informal" = "darkred"),
+    labels = c("Formal" = "Formal", "Informal" = "Informal")
+  ) +
+  scale_fill_manual(
+    values = c("Formal" = "darkblue", "Informal" = "darkred"),
+    labels = c("Formal" = "Formal", "Informal" = "Informal")
+  ) +
+  scale_shape_manual(
+    values = c(
+      "TRUE" = 16,
+      "FALSE" = 1
+    ),
+    labels = c(
+      "TRUE" = "Significativo al 5%",
+      "FALSE" = "No significativo"
+    )
+  ) +
+  labs(
+    title = "Premium salarial ajustado en firmas grandes por formalidad",
+    subtitle = "Premium en firmas de 101+ trabajadores frente a trabajadores solos dentro de cada formalidad-a\u00f1o",
+    x = "A\u00f1o",
+    y = "Premium salarial (%)",
+    color = "Formalidad",
+    fill = "Formalidad",
+    shape = NULL
+  )
+
+save_figure_versions(
+  base_name = "fig75",
+  plot_en = g_large_firm_formality_year,
+  plot_es = g_large_firm_formality_year_es,
+  width = 10.5,
   height = 6.2,
   dpi = 300
 )
