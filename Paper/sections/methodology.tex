@@ -1,50 +1,52 @@
 \section{Methodology}
 
-The main econometric exercise estimates the conditional firm-size wage premium
-in a log-wage model. The baseline specification is:
+\subsection{Main specification}
 
-\[
+The main econometric exercise estimates the conditional firm-size wage premium in a log-wage model. The baseline specification is:
+\begin{equation}
   \ln(w_{ist}) =
   \alpha
   + \sum_{g \neq g_0} \beta_g \mathbf{1}\{Size_{ist}=g\}
   + X_{ist}'\gamma
   + \lambda_{s \times t}
-  + \varepsilon_{ist},
-\]
-
+  + \varepsilon_{ist},    
+\end{equation}
 where \(w_{ist}\) is real hourly labor income for worker \(i\) in sector \(s\) in year \(t\), \(Size_{ist}\) is the harmonized firm-size category, and \(g_0\) is the reference group. We use solo workers as the reference group. This choice makes the coefficient path directly interpretable as the wage premium associated with moving from individual work to increasingly larger firms. Because solo workers may combine self-employment and very small-scale wage employment, we interpret the estimates as conditional gaps relative to the bottom of the firm-size distribution rather than as pure firm effects.
 
-The vector \(X_{ist}\) includes a female-worker indicator, age, age squared,
-education dummies, and a formal-employment indicator. The fixed effect
-\(\lambda_{s \times t}\)
-absorbs sector-year conditions, allowing each broad sector to have its own wage
-level in each year. This is important because large firms are not randomly
-distributed across sectors, and sectoral shocks may be correlated with both wages
-and firm size. The model is estimated with GEIH expansion weights, and standard
-errors are clustered by sector.
+The vector \(X_{ist}\) includes a female-worker indicator, age, age squared, education dummies, and a formal-employment indicator. The fixed effect \(\lambda_{s \times t}\) absorbs sector-year conditions, allowing each broad sector to have its own wage level in each year. This is important because large firms are not randomly distributed across sectors, and sectoral shocks may be correlated with both wages and firm size. The model is estimated with GEIH expansion weights, and standard errors are clustered by sector.
 
-City fixed effects would be a useful additional robustness check because they
-would absorb persistent differences across local labor markets. The harmonized
-file used for the regressions does not yet preserve a consistent city or
-municipality identifier, but it does retain department/Bogot\'a. Appendix
-Table~\ref{tab:firm-size-local-geography-robustness} therefore reports a
-stringent local robustness exercise that absorbs sector-department-year fixed
-effects.
+The coefficients \(\beta_g\) are log-point differences relative to solo workers. For interpretation, we transform them into percentage premiums:
+\begin{equation}
+  Premium_g = 100 \times \left(\exp(\hat{\beta}_g)-1\right).    
+\end{equation}
 
-In the results table, we report four nested specifications. The first column
-includes only firm-size indicators. The second adds sector-year fixed effects.
-The third adds gender, age, age squared, and education controls, but excludes
-formality. The fourth adds formality. Comparing the third and fourth columns
-shows how much of the
-firm-size gradient is absorbed by differences in formal employment across firm
-sizes.
+\subsection{Dynamic Premiums and Trend Test}
 
-The coefficients \(\beta_g\) are log-point differences relative to solo workers.
-For interpretation, we transform them into percentage premiums:
+The same framework can be extended to study the evolution of the premium over time by interacting firm-size categories with year indicators:
+\begin{equation}
+  \ln(w_{ist}) =
+  \alpha
+  + \sum_{\tau}\sum_{g \neq g_0}
+    \beta_{g\tau}\mathbf{1}\{Size_{ist}=g\}\mathbf{1}\{Year_{t}=\tau\}
+  + X_{ist}'\gamma
+  + \lambda_{s \times t}
+  + \varepsilon_{ist}.    
+\end{equation}
 
-\[
-  Premium_g = 100 \times \left(\exp(\hat{\beta}_g)-1\right).
-\]
+This dynamic specification produces a sequence of firm-size premiums by year and can be used to assess whether the premium has widened, narrowed, or remained stable. We also estimate a more parsimonious trend specification:
+\begin{equation}
+  \ln(w_{ist}) =
+  \alpha
+  + \sum_{g \neq g_0} \left(\beta_g
+  +  \delta_g
+    Trend_t\right)\mathbf{1}\{Size_{ist}=g\}
+  + X_{ist}'\gamma
+  + \lambda_{s \times t}
+  + \varepsilon_{ist},
+\end{equation}
+where \(Trend_t\) is a linear year trend normalized to zero in 2008. The parameter \(\delta_g\) tests whether the wage premium for firm-size group \(g\) increased over time relative to solo workers. We report one-sided tests of \(H_0:\delta_g=0\) against \(H_1:\delta_g>0\), because the empirical question is
+whether the premium widened over the period.
+
 
 \subsection{Firm-Size Nonlinearities by Formality Status}
 
@@ -53,17 +55,16 @@ hourly income may differ between formal and informal workers. To allow for this
 nonlinearity, we also estimate a specification that interacts all firm-size
 categories with formal employment:
 
-\[
+\begin{equation}
   \ln(w_{ist}) =
   \alpha
-  + \rho Formal_{ist}
-  + \sum_{g \neq g_0} \beta_g \mathbf{1}\{Size_{ist}=g\}
-  + \sum_{g \neq g_0} \theta_g
-    \mathbf{1}\{Size_{ist}=g\} Formal_{ist}
-  + Z_{ist}'\gamma
+  + \sum_{g \neq g_0} \left(\beta_g 
+  + \theta_g
+     Formal_{ist}\right)\mathbf{1}\{Size_{ist}=g\}
+  + X_{ist}'\gamma
   + \lambda_{s \times t}
-  + \varepsilon_{ist}.
-\]
+  + \varepsilon_{ist}.    
+\end{equation}
 
 Here \(Z_{ist}\) includes the worker controls other than formality. The
 coefficients \(\beta_g\) measure the firm-size premium among informal workers,
@@ -80,38 +81,19 @@ year-specific counterpart of a fully interacted \(Size \times Formality \times Y
 specification, and it lets the firm-size premium vary freely across years within
 formal and informal employment.
 
-\subsection{Dynamic Premiums and Trend Test}
 
-The same framework can be extended to study the evolution of the premium over
-time by interacting firm-size categories with year indicators:
+City fixed effects would be a useful additional robustness check because they
+would absorb persistent differences across local labor markets. The harmonized
+file used for the regressions does not yet preserve a consistent city or
+municipality identifier, but it does retain department/Bogot\'a. Appendix
+Table~\ref{tab:firm-size-local-geography-robustness} therefore reports a
+stringent local robustness exercise that absorbs sector-department-year fixed
+effects.
 
-\[
-  \ln(w_{ist}) =
-  \alpha
-  + \sum_{\tau}\sum_{g \neq g_0}
-    \beta_{g\tau}\mathbf{1}\{Size_{ist}=g\}\mathbf{1}\{Year_{t}=\tau\}
-  + X_{ist}'\gamma
-  + \lambda_{s \times t}
-  + \varepsilon_{ist}.
-\]
-
-This dynamic specification produces a sequence of firm-size premiums by year and
-can be used to assess whether the premium has widened, narrowed, or remained
-stable. We also estimate a more parsimonious trend specification:
-
-\[
-  \ln(w_{ist}) =
-  \alpha
-  + \sum_{g \neq g_0} \beta_g\mathbf{1}\{Size_{ist}=g\}
-  + \sum_{g \neq g_0} \delta_g
-    \mathbf{1}\{Size_{ist}=g\}Trend_t
-  + X_{ist}'\gamma
-  + \lambda_{s \times t}
-  + \varepsilon_{ist},
-\]
-
-where \(Trend_t\) is a linear year trend normalized to zero in 2008. The
-parameter \(\delta_g\) tests whether the wage premium for firm-size group \(g\)
-increased over time relative to solo workers. We report one-sided tests of
-\(H_0:\delta_g=0\) against \(H_1:\delta_g>0\), because the empirical question is
-whether the premium widened over the period.
+In the results table, we report four nested specifications. The first column
+includes only firm-size indicators. The second adds sector-year fixed effects.
+The third adds gender, age, age squared, and education controls, but excludes
+formality. The fourth adds formality. Comparing the third and fourth columns
+shows how much of the
+firm-size gradient is absorbed by differences in formal employment across firm
+sizes.
