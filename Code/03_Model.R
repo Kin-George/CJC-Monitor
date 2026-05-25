@@ -551,6 +551,61 @@ write.csv(
   row.names = FALSE
 )
 
+format_p_value <- function(x) {
+  ifelse(x < 0.001, "$<0.001$", sprintf("%.3f", x))
+}
+
+formal_101_table_rows <- formal_101_contrasts %>%
+  mutate(
+    reference_label = case_when(
+      reference_size == "Solo" ~ "Solo workers",
+      TRUE ~ as.character(reference_size)
+    ),
+    premium_label = sprintf("%.1f\\%%", premium),
+    ci_label = paste0("[", sprintf("%.1f", ci_low), ", ", sprintf("%.1f", ci_high), "]"),
+    p_label = format_p_value(p.value)
+  ) %>%
+  transmute(
+    row = paste0(
+      "    ",
+      reference_label,
+      " & ",
+      premium_label,
+      " & ",
+      ci_label,
+      " & ",
+      p_label,
+      " \\\\"
+    )
+  ) %>%
+  pull(row)
+
+formal_101_table <- c(
+  "\\begin{table}[htbp]",
+  "  \\centering",
+  "  \\caption{Formal-worker large-firm wage premium relative to other formal firm-size categories}",
+  "  \\label{tab:formal-101-contrasts}",
+  "  \\small",
+  "  \\begin{tabular}{lccc}",
+  "    \\toprule",
+  "    Reference category & Premium & 95\\% CI & $p$-value \\\\",
+  "    \\midrule",
+  formal_101_table_rows,
+  "    \\bottomrule",
+  "  \\end{tabular}",
+  "  \\vspace{0.3em}",
+  "  \\begin{minipage}{0.92\\textwidth}",
+  "  \\footnotesize",
+  "  Notes: Each row compares formal workers in firms with 101 or more workers with formal workers in the reference firm-size category. Estimates come from the firm-size-by-formality specification with gender, age, age squared, education, and sector-year fixed effects. Premiums are computed as $100\\times[\\exp(\\hat{\\beta})-1]$ from the relevant linear contrast.",
+  "  \\end{minipage}",
+  "\\end{table}"
+)
+
+writeLines(
+  formal_101_table,
+  "Paper/sections/regression_formal_101_contrasts_table.tex"
+)
+
 g_formality_size_premium <- ggplot(
   formality_size_premium,
   aes(
