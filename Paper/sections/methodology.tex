@@ -1,38 +1,5 @@
 \section{Methodology}
 
-\subsection{Descriptive Premiums}
-
-We begin by documenting the raw firm-size gradient in real hourly labor income.
-For each firm-size group \(g\) and year \(t\), we compute the weighted mean:
-
-\[
-  \bar{w}_{gt} =
-  \frac{\sum_{i \in (g,t)} fex_{it} w_{it}^{real}}
-       {\sum_{i \in (g,t)} fex_{it}},
-\]
-
-where \(fex_{it}\) is the GEIH expansion factor. We also compute the employment
-share of each firm-size group:
-
-\[
-  s_{gt} =
-  \frac{\sum_{i \in (g,t)} fex_{it}}
-       {\sum_{i \in t} fex_{it}}.
-\]
-
-These two objects are used in the descriptive tables and figures. The main
-comparison figures plot the employment distribution and mean real hourly labor
-income by firm size in 2008 and 2025, while appendix figures report the full
-time path of employment shares and raw premiums. For the comparison between 2008
-and 2025, the descriptive difference for group \(g\) is:
-
-\[
-  Diff_g = 100 \times
-  \left(\frac{\bar{w}_{g,2025}}{\bar{w}_{g,2008}} - 1\right).
-\]
-
-\subsection{Econometric Specification}
-
 The main econometric exercise estimates the conditional firm-size wage premium
 in a log-wage model. The baseline specification is:
 
@@ -45,7 +12,7 @@ in a log-wage model. The baseline specification is:
   + \varepsilon_{ist},
 \]
 
-where \(w_{ist}\) is real hourly labor income for worker \(i\) in sector \(s\) in year \(t\), \(Size_{ist}\) is the harmonized firm-size category, and \(g_0\) is the reference group. We use solo workers as the reference category. This choice makes the coefficient path directly interpretable as the wage premium associated with moving from individual work to increasingly larger firms. Because solo workers may combine self-employment and very small-scale wage employment, we interpret the estimates as conditional gaps relative to the bottom of the firm-size distribution rather than as pure firm effects.
+where \(w_{ist}\) is real hourly labor income for worker \(i\) in sector \(s\) in year \(t\), \(Size_{ist}\) is the harmonized firm-size category, and \(g_0\) is the reference group. We use solo workers as the reference group. This choice makes the coefficient path directly interpretable as the wage premium associated with moving from individual work to increasingly larger firms. Because solo workers may combine self-employment and very small-scale wage employment, we interpret the estimates as conditional gaps relative to the bottom of the firm-size distribution rather than as pure firm effects.
 
 The vector \(X_{ist}\) includes a female-worker indicator, age, age squared,
 education dummies, and a formal-employment indicator. The fixed effect
