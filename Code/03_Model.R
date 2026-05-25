@@ -505,6 +505,52 @@ write.csv(
   row.names = FALSE
 )
 
+formal_reference_sizes <- c("Solo", size_levels[size_levels != "101+"])
+formal_101_contrasts <- bind_rows(lapply(formal_reference_sizes, function(reference_size) {
+  large_size_term <- "tamano_empresa::101+"
+  large_interaction_term <- interaction_term_for_size("101+", formality_coef_names)
+
+  if (reference_size == "Solo") {
+    terms <- c(large_size_term, large_interaction_term)
+    weights <- c(1, 1)
+  } else {
+    reference_size_term <- paste0("tamano_empresa::", reference_size)
+    reference_interaction_term <- interaction_term_for_size(reference_size, formality_coef_names)
+    terms <- c(
+      large_size_term,
+      large_interaction_term,
+      reference_size_term,
+      reference_interaction_term
+    )
+    weights <- c(1, 1, -1, -1)
+  }
+
+  linear_combo(
+    coefs = formality_coefs,
+    vcov_mat = formality_vcov,
+    terms = terms,
+    weights = weights
+  ) %>%
+    mutate(
+      comparison = paste0("101+ vs ", reference_size),
+      reference_size = reference_size
+    )
+})) %>%
+  mutate(
+    premium = 100 * (exp(estimate) - 1),
+    ci_low = 100 * (exp(conf.low) - 1),
+    ci_high = 100 * (exp(conf.high) - 1),
+    significativo = ci_low > 0 | ci_high < 0,
+    reference_size = factor(reference_size, levels = formal_reference_sizes)
+  ) %>%
+  arrange(reference_size)
+
+write.csv(
+  formal_101_contrasts,
+  "Paper/tables/regression_formal_101_contrasts.csv",
+  row.names = FALSE
+)
+
 g_formality_size_premium <- ggplot(
   formality_size_premium,
   aes(
