@@ -857,6 +857,145 @@ write_latex_table(
   "Paper/sections/descriptive_worker_characteristics_comparison_table.tex"
 )
 
+formal_worker_profile_2025 <- geih_model %>%
+  filter(anio == 2025, formal == 1) %>%
+  mutate(
+    formal_size_group = case_when(
+      tamano_empresa == "Solo" ~ "Formal solo",
+      tamano_empresa %in% c("2-3", "4-5", "6-10", "11-19", "20-30", "31-50", "51-100") ~ "Formal 2-100",
+      tamano_empresa == "101+" ~ "Formal 101+",
+      TRUE ~ NA_character_
+    ),
+    own_account = as.numeric(posicion_ocupacional_label == "Trabajador por cuenta propia"),
+    domestic_worker = as.numeric(posicion_ocupacional_label == "Empleado doméstico"),
+    professional_admin_sector = as.numeric(sector == "Inmobiliarias, profesionales y administrativas"),
+    transport_sector = as.numeric(sector == "Transporte y almacenamiento"),
+    commerce_sector = as.numeric(sector == "Comercio y reparación"),
+    health_sector = as.numeric(sector == "Salud y asistencia social"),
+    households_sector = as.numeric(sector == "Hogares como empleadores")
+  ) %>%
+  filter(!is.na(formal_size_group)) %>%
+  group_by(formal_size_group) %>%
+  summarise(
+    workers = sum(fex, na.rm = TRUE),
+    mean_hourly_income = weighted_mean(ingreso_hora_real, fex),
+    mean_age = weighted_mean(edad, fex),
+    women = weighted_mean(female_worker, fex),
+    higher_education = weighted_mean(higher_education, fex),
+    own_account = weighted_mean(own_account, fex),
+    domestic_worker = weighted_mean(domestic_worker, fex),
+    professional_admin_sector = weighted_mean(professional_admin_sector, fex),
+    transport_sector = weighted_mean(transport_sector, fex),
+    commerce_sector = weighted_mean(commerce_sector, fex),
+    health_sector = weighted_mean(health_sector, fex),
+    households_sector = weighted_mean(households_sector, fex),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    formal_size_group = factor(
+      formal_size_group,
+      levels = c("Formal solo", "Formal 2-100", "Formal 101+")
+    )
+  ) %>%
+  arrange(formal_size_group)
+
+write.csv(
+  formal_worker_profile_2025,
+  "Paper/tables/descriptive_formal_worker_profile_2025.csv",
+  row.names = FALSE
+)
+
+formal_profile_value <- function(variable, formatter = format_pct) {
+  formatter(formal_worker_profile_2025[[variable]])
+}
+
+formal_profile_rows <- c(
+  paste0(
+    "    Weighted workers & ",
+    paste(format_count(formal_worker_profile_2025$workers), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Mean real hourly income & ",
+    paste(format_money(formal_worker_profile_2025$mean_hourly_income), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Mean age & ",
+    paste(format_number(formal_worker_profile_2025$mean_age, 1), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Women & ",
+    paste(formal_profile_value("women"), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Higher education & ",
+    paste(formal_profile_value("higher_education"), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Own-account workers & ",
+    paste(formal_profile_value("own_account"), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Domestic workers & ",
+    paste(formal_profile_value("domestic_worker"), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Professional and administrative services & ",
+    paste(formal_profile_value("professional_admin_sector"), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Transport and storage & ",
+    paste(formal_profile_value("transport_sector"), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Commerce and repair & ",
+    paste(formal_profile_value("commerce_sector"), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Health and social assistance & ",
+    paste(formal_profile_value("health_sector"), collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "    Households as employers & ",
+    paste(formal_profile_value("households_sector"), collapse = " & "),
+    " \\\\"
+  )
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Profile of formal workers by firm-size group, 2025}",
+    "  \\label{tab:formal-worker-profile-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lrrr}",
+    "    \\toprule",
+    "    Characteristic & Formal solo & Formal 2--100 & Formal 101+ \\\\",
+    "    \\midrule",
+    formal_profile_rows,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Statistics use 2025 formal workers and GEIH expansion weights. The 2--100 column pools all formal workers in firm-size categories from 2--3 through 51--100 workers. Higher education corresponds to workers classified as superior or university educated. Sector rows report the weighted share of each group located in the listed economic activity.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_formal_worker_profile_2025_table.tex"
+)
+
 theme_paper <- theme_classic(base_size = 13) +
   theme(
     plot.title = element_text(face = "bold", size = 15),
