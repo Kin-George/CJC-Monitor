@@ -19,6 +19,7 @@ library(broom)
 library(stringr)
 library(ggplot2)
 library(scales)
+library(tidyr)
 
 save_figure_versions <- function(base_name, plot_en, plot_es, width, height, dpi = 300) {
   dir.create("Paper/figures", recursive = TRUE, showWarnings = FALSE)
@@ -505,6 +506,63 @@ write.csv(
   row.names = FALSE
 )
 
+formality_interaction_coefficients <- bind_rows(lapply(size_levels, function(size) {
+  size_term <- paste0("tamano_empresa::", size)
+  interaction_term <- interaction_term_for_size(size, formality_coef_names)
+
+  beta <- linear_combo(
+    coefs = formality_coefs,
+    vcov_mat = formality_vcov,
+    terms = c(size_term),
+    weights = c(1)
+  ) %>%
+    mutate(
+      tamano_empresa = size,
+      parameter = "beta",
+      parameter_label = "$\\hat{\\beta}_g$"
+    )
+
+  theta <- linear_combo(
+    coefs = formality_coefs,
+    vcov_mat = formality_vcov,
+    terms = c(interaction_term),
+    weights = c(1)
+  ) %>%
+    mutate(
+      tamano_empresa = size,
+      parameter = "theta",
+      parameter_label = "$\\hat{\\theta}_g$"
+    )
+
+  formal_sum <- linear_combo(
+    coefs = formality_coefs,
+    vcov_mat = formality_vcov,
+    terms = c(size_term, interaction_term),
+    weights = c(1, 1)
+  ) %>%
+    mutate(
+      tamano_empresa = size,
+      parameter = "beta_plus_theta",
+      parameter_label = "$\\hat{\\beta}_g+\\hat{\\theta}_g$"
+    )
+
+  bind_rows(beta, theta, formal_sum)
+})) %>%
+  mutate(
+    tamano_empresa = factor(tamano_empresa, levels = size_levels),
+    parameter = factor(parameter, levels = c("beta", "theta", "beta_plus_theta")),
+    premium = 100 * (exp(estimate) - 1),
+    ci_low = 100 * (exp(conf.low) - 1),
+    ci_high = 100 * (exp(conf.high) - 1)
+  ) %>%
+  arrange(tamano_empresa, parameter)
+
+write.csv(
+  formality_interaction_coefficients,
+  "Paper/tables/regression_formality_interaction_coefficients.csv",
+  row.names = FALSE
+)
+
 formal_reference_sizes <- c("Solo", size_levels[size_levels != "101+"])
 formal_101_contrasts <- bind_rows(lapply(formal_reference_sizes, function(reference_size) {
   large_size_term <- "tamano_empresa::101+"
@@ -554,6 +612,84 @@ write.csv(
 format_p_value <- function(x) {
   ifelse(x < 0.001, "$<0.001$", sprintf("%.3f", x))
 }
+
+format_log_coef <- function(x, p) {
+  stars <- case_when(
+    is.na(p) ~ "",
+    p < 0.01 ~ "***",
+    p < 0.05 ~ "**",
+    p < 0.10 ~ "*",
+    TRUE ~ ""
+  )
+  paste0(sprintf("%.3f", x), stars)
+}
+
+format_log_se <- function(x) {
+  paste0("(", sprintf("%.3f", x), ")")
+}
+
+formality_interaction_wide <- formality_interaction_coefficients %>%
+  mutate(
+    coef_label = format_log_coef(estimate, p.value),
+    se_label = format_log_se(std.error)
+  ) %>%
+  select(tamano_empresa, parameter, coef_label, se_label) %>%
+  tidyr::pivot_wider(
+    names_from = parameter,
+    values_from = c(coef_label, se_label)
+  )
+
+formality_interaction_table_rows <- unlist(lapply(seq_len(nrow(formality_interaction_wide)), function(i) {
+  row <- formality_interaction_wide[i, ]
+  c(
+    paste0(
+      "    ",
+      as.character(row$tamano_empresa),
+      " & ",
+      row$coef_label_beta,
+      " & ",
+      row$coef_label_theta,
+      " & ",
+      row$coef_label_beta_plus_theta,
+      " \\\\"
+    ),
+    paste0(
+      "     & ",
+      row$se_label_beta,
+      " & ",
+      row$se_label_theta,
+      " & ",
+      row$se_label_beta_plus_theta,
+      " \\\\"
+    )
+  )
+}))
+
+formality_interaction_table <- c(
+  "\\begin{table}[htbp]",
+  "  \\centering",
+  "  \\caption{Firm-size coefficients by formality status}",
+  "  \\label{tab:formality-interaction-coefficients}",
+  "  \\small",
+  "  \\begin{tabular}{lccc}",
+  "    \\toprule",
+  "    Firm size & $\\hat{\\beta}_g$ & $\\hat{\\theta}_g$ & $\\hat{\\beta}_g+\\hat{\\theta}_g$ \\\\",
+  "    \\midrule",
+  formality_interaction_table_rows,
+  "    \\bottomrule",
+  "  \\end{tabular}",
+  "  \\vspace{0.3em}",
+  "  \\begin{minipage}{0.92\\textwidth}",
+  "  \\footnotesize",
+  "  Notes: Estimates correspond to Equation~(\\ref{eq:formality-interaction}). The omitted category is solo workers within each formality group. $\\hat{\\beta}_g$ is the firm-size coefficient among informal workers. $\\hat{\\theta}_g$ is the additional coefficient for formal workers in the same firm-size category. $\\hat{\\beta}_g+\\hat{\\theta}_g$ is the implied firm-size coefficient among formal workers. All coefficients are in log points. Standard errors, clustered by sector, are reported in parentheses. The specification controls for gender, age, age squared, education, and sector-year fixed effects. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
+  "  \\end{minipage}",
+  "\\end{table}"
+)
+
+writeLines(
+  formality_interaction_table,
+  "Paper/sections/regression_formality_interaction_coefficients_table.tex"
+)
 
 formal_101_table_rows <- formal_101_contrasts %>%
   mutate(
