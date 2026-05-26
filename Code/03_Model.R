@@ -563,6 +563,43 @@ write.csv(
   row.names = FALSE
 )
 
+if (!("formal" %in% formality_coef_names)) {
+  stop("The formal main-effect coefficient was not found in the formality-size model.")
+}
+
+formality_gap_by_size <- bind_rows(lapply(c("Solo", size_levels), function(size) {
+  if (size == "Solo") {
+    terms <- c("formal")
+    weights <- c(1)
+  } else {
+    interaction_term <- interaction_term_for_size(size, formality_coef_names)
+    terms <- c("formal", interaction_term)
+    weights <- c(1, 1)
+  }
+
+  linear_combo(
+    coefs = formality_coefs,
+    vcov_mat = formality_vcov,
+    terms = terms,
+    weights = weights
+  ) %>%
+    mutate(tamano_empresa = size)
+})) %>%
+  mutate(
+    tamano_empresa = factor(tamano_empresa, levels = c("Solo", size_levels)),
+    premium = 100 * (exp(estimate) - 1),
+    ci_low = 100 * (exp(conf.low) - 1),
+    ci_high = 100 * (exp(conf.high) - 1),
+    significativo = ci_low > 0 | ci_high < 0
+  ) %>%
+  arrange(tamano_empresa)
+
+write.csv(
+  formality_gap_by_size,
+  "Paper/tables/regression_formality_gap_by_size.csv",
+  row.names = FALSE
+)
+
 formal_reference_sizes <- c("Solo", size_levels[size_levels != "101+"])
 formal_101_contrasts <- bind_rows(lapply(formal_reference_sizes, function(reference_size) {
   large_size_term <- "tamano_empresa::101+"
@@ -689,6 +726,61 @@ formality_interaction_table <- c(
 writeLines(
   formality_interaction_table,
   "Paper/sections/regression_formality_interaction_coefficients_table.tex"
+)
+
+formality_gap_table_rows <- formality_gap_by_size %>%
+  mutate(
+    size_label = as.character(tamano_empresa),
+    coef_label = format_log_coef(estimate, p.value),
+    se_label = format_log_se(std.error),
+    premium_label = sprintf("%.1f\\%%", premium),
+    ci_label = paste0("[", sprintf("%.1f", ci_low), ", ", sprintf("%.1f", ci_high), "]"),
+    p_label = format_p_value(p.value)
+  ) %>%
+  transmute(
+    coef_row = paste0(
+      "    ",
+      size_label,
+      " & ",
+      coef_label,
+      " & ",
+      premium_label,
+      " & ",
+      ci_label,
+      " & ",
+      p_label,
+      " \\\\"
+    ),
+    se_row = paste0("     & ", se_label, " &  &  &  \\\\")
+  ) %>%
+  tidyr::unite("row", coef_row, se_row, sep = "\n") %>%
+  pull(row) %>%
+  paste(collapse = "\n")
+
+formality_gap_table <- c(
+  "\\begin{table}[htbp]",
+  "  \\centering",
+  "  \\caption{Conditional formal-informal wage gap by firm size}",
+  "  \\label{tab:formal-wage-gap-by-size}",
+  "  \\small",
+  "  \\begin{tabular}{lcccc}",
+  "    \\toprule",
+  "    Firm size & Log gap & Premium & 95\\% CI & $p$-value \\\\",
+  "    \\midrule",
+  formality_gap_table_rows,
+  "    \\bottomrule",
+  "  \\end{tabular}",
+  "  \\vspace{0.3em}",
+  "  \\begin{minipage}{0.92\\textwidth}",
+  "  \\footnotesize",
+  "  Notes: Each row reports the estimated wage gap between formal and informal workers within the same firm-size category from Equation~(\\ref{eq:formality-interaction}). For solo workers, the gap is $\\hat{\\phi}$; for all other categories, it is $\\hat{\\phi}+\\hat{\\theta}_g$. Premiums are computed as $100\\times[\\exp(\\widehat{gap})-1]$. Standard errors, clustered by sector, are reported in parentheses below the log gap. The specification controls for gender, age, age squared, education, and sector-year fixed effects. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
+  "  \\end{minipage}",
+  "\\end{table}"
+)
+
+writeLines(
+  formality_gap_table,
+  "Paper/sections/regression_formality_gap_by_size_table.tex"
 )
 
 formal_101_table_rows <- formal_101_contrasts %>%
