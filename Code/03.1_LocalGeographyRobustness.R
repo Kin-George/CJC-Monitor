@@ -164,7 +164,7 @@ r2_vals <- vapply(model_list, function(m) as.numeric(fitstat(m, "r2")), numeric(
 regression_table <- c(
   "\\begin{table}[htbp]",
   "  \\centering",
-  "  \\caption{Firm-size wage premium robustness with local sector-year fixed effects}",
+  "  \\caption{Firm-size wage premium robustness with department fixed effects}",
   "  \\label{tab:firm-size-local-geography-robustness}",
   "  \\small",
   "  \\begin{tabular}{lccc}",
@@ -184,7 +184,7 @@ regression_table <- c(
   "  \\vspace{0.3em}",
   "  \\begin{minipage}{0.95\\textwidth}",
   "  \\footnotesize",
-  "  Notes: The omitted category is solo workers. The sample is restricted to observations with nonmissing department codes. Worker controls include a female-worker indicator, age, age squared, education dummies, and labor formality. The local geography $d$ is department/Bogot\\'a, because the harmonized file does not retain a consistent city or municipality identifier. Column (3) is the most stringent specification and absorbs sector-department-year fixed effects, so identification comes from wage differences across firm-size categories within the same sector, department, and year. Standard errors are clustered by sector-department cells. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
+  "  Notes: The omitted category is solo workers. The sample is restricted to observations with nonmissing department codes. Worker controls include a female-worker indicator, age, age squared, education dummies, and labor formality. The local geography $d$ is the department, treating Bogot\\'a as a department-equivalent Capital District. Column (3) is the most stringent specification and absorbs sector-department-year fixed effects, so identification comes from wage differences across firm-size categories within the same sector, department, and year. Standard errors are clustered by sector-department cells. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
   "  \\end{minipage}",
   "\\end{table}"
 )
