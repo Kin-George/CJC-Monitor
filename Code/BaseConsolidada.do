@@ -31,6 +31,7 @@ local anios 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2021 202
 local cand_factor   "fex_c_2011 FEX_C_2011 FEX_C18 FEX_C fex_c18 fex_c"
 local cand_ingreso  "INGLABO inglabo"
 local cand_sector   "RAMA2D_R4 RAMA2D rama2d_r4 rama2d"
+local cand_rama4d "RAMA4D_R4 RAMA4D rama4d_r4 rama4d"
 local cand_ocupado  "OCI oci"
 local cand_pension  "P6920 p6920"
 local cand_tamano   "P6870 P3069 p6870 p3069"
@@ -114,6 +115,7 @@ postfile `postaudit' ///
     str40 var_factor ///
     str40 var_ingreso ///
     str40 var_sector ///
+	str40 var_rama4d ///
     str40 var_ocupado ///
     str40 var_pension ///
     str40 var_tamano ///
@@ -148,7 +150,7 @@ foreach year of local anios {
     post `postaudit' ///
         (`year') ///
         ("") ("") ("") ("") ("") ("") ("") ("") ("") ("") ///
-        ("") ("") ("") ("") ///
+        ("") ("") ("") ("") ("") ///
         (0) ///
         ("No existe el archivo")
     continue
@@ -169,6 +171,9 @@ foreach year of local anios {
 
     find_first_var, candidates("`cand_sector'")
     local var_sector "`r(var)'"
+	
+	find_first_var, candidates("`cand_rama4d'")
+	local var_rama4d "`r(var)'"
 
     find_first_var, candidates("`cand_ocupado'")
     local var_ocupado "`r(var)'"
@@ -247,6 +252,7 @@ foreach year of local anios {
     ("`var_factor'") ///
     ("`var_ingreso'") ///
     ("`var_sector'") ///
+	("`var_rama4d'") ///
     ("`var_ocupado'") ///
     ("`var_pension'") ///
     ("`var_tamano'") ///
@@ -268,6 +274,10 @@ foreach year of local anios {
     if "`var_sector'" == "" {
         local observacion "`observacion' Falta sector;"
     }
+	
+	if "`var_rama4d'" == "" {
+		local observacion "`observacion' Falta rama4d;"
+	}
 
     if "`var_pension'" == "" {
         local observacion "`observacion' Falta pensión;"
@@ -319,6 +329,7 @@ foreach year of local anios {
         ("`var_factor'") ///
         ("`var_ingreso'") ///
         ("`var_sector'") ///
+		("`var_rama4d'") ///
         ("`var_ocupado'") ///
         ("`var_pension'") ///
         ("`var_tamano'") ///
@@ -337,6 +348,7 @@ foreach year of local anios {
     di as result "Factor:    `var_factor'"
     di as result "Ingreso:   `var_ingreso'"
     di as result "Sector:    `var_sector'"
+	di as result "Sector2:    `var_rama4d'"
     di as result "Ocupado:   `var_ocupado'"
     di as result "Pensión:   `var_pension'"
     di as result "Tamaño:    `var_tamano'"
@@ -359,6 +371,7 @@ foreach year of local anios {
     gen str40 factor_var_original  = "`var_factor'"
     gen str40 ingreso_var_original = "`var_ingreso'"
     gen str40 sector_var_original  = "`var_sector'"
+	gen str40 rama4d_var_original  = "`var_rama4d'"
     gen str40 ocupado_var_original = "`var_ocupado'"
     gen str40 pension_var_original = "`var_pension'"
     gen str40 tamano_var_original  = "`var_tamano'"
@@ -380,6 +393,7 @@ foreach year of local anios {
     make_double_from_var, newname(ingresos_laborales) varname("`var_ingreso'")
     make_double_from_var, newname(ocupado_cod) varname("`var_ocupado'")
     make_double_from_var, newname(sector_cod) varname("`var_sector'")
+	make_double_from_var, newname(rama4d_cod) varname("`var_rama4d'")
     make_double_from_var, newname(cotiza_pension_cod) varname("`var_pension'")
     make_double_from_var, newname(tamano_empresa_cod) varname("`var_tamano'")
     make_double_from_var, newname(horas_semana) varname("`var_horas'")
@@ -431,13 +445,29 @@ foreach year of local anios {
 
 
     *================================================
-    * 4.7. Revisión CIIU informativa
-    *================================================
+	* 4.7. Revisión CIIU informativa
+	*================================================
 
-    gen str20 ciiu_revision = ""
+	gen str20 ciiu_revision = ""
+	gen str20 ciiu_revision_rama2d = ""
+	gen str20 ciiu_revision_rama4d = ""
 
-    replace ciiu_revision = "CIIU Rev. 3" if upper(sector_var_original) == "RAMA2D"
-    replace ciiu_revision = "CIIU Rev. 4" if upper(sector_var_original) == "RAMA2D_R4"
+	* Revisión CIIU para RAMA2D
+	replace ciiu_revision_rama2d = "CIIU Rev. 3" ///
+    if inlist(upper(sector_var_original), "RAMA2D", "RAMA2D_R3")
+
+	replace ciiu_revision_rama2d = "CIIU Rev. 4" ///
+    if upper(sector_var_original) == "RAMA2D_R4"
+
+	* Revisión CIIU para RAMA4D
+	replace ciiu_revision_rama4d = "CIIU Rev. 3" ///
+    if inlist(upper(rama4d_var_original), "RAMA4D", "RAMA4D_R3")
+
+	replace ciiu_revision_rama4d = "CIIU Rev. 4" ///
+    if upper(rama4d_var_original) == "RAMA4D_R4"
+
+	* Mantener variable antigua para no romper código posterior
+	replace ciiu_revision = ciiu_revision_rama2d
 
 
     *================================================
@@ -446,7 +476,7 @@ foreach year of local anios {
 
     keep ///
         anio ///
-        factor_var_original ingreso_var_original sector_var_original ///
+        factor_var_original ingreso_var_original sector_var_original rama4d_var_original ///
         ocupado_var_original pension_var_original tamano_var_original ///
         horas_var_original sexo_var_original salud_var_original educ_var_original ///
         factor_expansion_original factor_expansion_anual ///
@@ -455,7 +485,7 @@ foreach year of local anios {
         ingreso_laboral_anual ///
         horas_semana horas_validas ///
         ingreso_laboral_hora ingreso_hora_valido ///
-        sector_cod ciiu_revision ///
+        sector_cod rama4d_cod ciiu_revision ciiu_revision_rama2d ciiu_revision_rama4d ///
         cotiza_pension_cod ///
         tamano_empresa_cod ///
         sexo_cod ///
