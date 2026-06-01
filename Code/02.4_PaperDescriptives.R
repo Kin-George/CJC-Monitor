@@ -2364,6 +2364,96 @@ wage_gaps_2025 <- bind_rows(
     )
   )
 
+lookup_wage_gap_mean <- function(dimension, group) {
+  wage_gaps_2025 %>%
+    filter(dimension_en == dimension, group_en == group) %>%
+    pull(mean_income) %>%
+    first()
+}
+
+lookup_size_mean_2025 <- function(size) {
+  income_size_2025 %>%
+    filter(tamano_empresa == size) %>%
+    pull(mean_income) %>%
+    first()
+}
+
+benchmark_wage_gaps_2025 <- data.frame(
+  dimension = c("Sex", "Firm size", "Formality", "Education", "Sector"),
+  comparison = c(
+    "Women vs men",
+    "101+ firms vs solo work",
+    "Formal vs informal",
+    "Higher education vs preschool or less",
+    "Information and communication vs agriculture"
+  ),
+  base_mean = c(
+    lookup_wage_gap_mean("Sex", "Men"),
+    lookup_size_mean_2025("Solo"),
+    lookup_wage_gap_mean("Formality", "Informal"),
+    lookup_wage_gap_mean("Education", "Preschool or less"),
+    lookup_wage_gap_mean("Sector", "A - Agriculture")
+  ),
+  comparison_mean = c(
+    lookup_wage_gap_mean("Sex", "Women"),
+    lookup_size_mean_2025("101+"),
+    lookup_wage_gap_mean("Formality", "Formal"),
+    lookup_wage_gap_mean("Education", "Higher education"),
+    lookup_wage_gap_mean("Sector", "J - Information and communication")
+  ),
+  stringsAsFactors = FALSE
+) %>%
+  mutate(
+    ratio = comparison_mean / base_mean,
+    gap_percent = 100 * (ratio - 1)
+  )
+
+write.csv(
+  benchmark_wage_gaps_2025,
+  "Paper/tables/descriptive_benchmark_wage_gaps_2025.csv",
+  row.names = FALSE
+)
+
+benchmark_wage_gap_rows_2025 <- paste0(
+  "    ",
+  benchmark_wage_gaps_2025$dimension,
+  " & ",
+  benchmark_wage_gaps_2025$comparison,
+  " & ",
+  format_money(benchmark_wage_gaps_2025$base_mean),
+  " & ",
+  format_money(benchmark_wage_gaps_2025$comparison_mean),
+  " & ",
+  format_number(benchmark_wage_gaps_2025$ratio, 2),
+  " & ",
+  format_pct_value(benchmark_wage_gaps_2025$gap_percent),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Benchmark raw wage gaps in 2025}",
+    "  \\label{tab:descriptive-benchmark-wage-gaps-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lp{0.33\\textwidth}rrrr}",
+    "    \\toprule",
+    "    Dimension & Comparison & Base mean & Target mean & Ratio & Gap \\\\",
+    "    \\midrule",
+    benchmark_wage_gap_rows_2025,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Statistics use 2025 observations and GEIH expansion weights. Means are real hourly labor income in constant 2025 pesos. Comparisons are target group versus base group. The ratio divides the target mean by the base mean; the gap is the percent difference relative to the base mean. Formality excludes pensioned occupied workers. Sector comparisons omit extraterritorial organizations.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_benchmark_wage_gaps_2025_table.tex"
+)
+
 write.csv(
   wage_gaps_2025,
   "Paper/tables/descriptive_wage_gaps_2025.csv",
