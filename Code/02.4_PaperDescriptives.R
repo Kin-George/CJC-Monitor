@@ -2403,8 +2403,16 @@ wage_gap_table_data <- wage_gaps_2025 %>%
   ) %>%
   arrange(dimension_en, table_order)
 
+wage_gap_dimension <- as.character(wage_gap_table_data$dimension_en)
+wage_gap_row_prefix <- ifelse(
+  !duplicated(wage_gap_dimension),
+  "    \\midrule\n    ",
+  "    "
+)
+wage_gap_row_prefix[1] <- "    "
+
 wage_gap_rows_2025 <- paste0(
-  "    ",
+  wage_gap_row_prefix,
   as.character(wage_gap_table_data$dimension_en),
   " & ",
   wage_gap_table_data$group_en,
