@@ -546,6 +546,79 @@ write.csv(
   row.names = FALSE
 )
 
+core_size_2008_2025 <- employment_size %>%
+  transmute(
+    firm_size = as.character(tamano_empresa),
+    employment_share_2008 = share_first,
+    employment_share_2025 = share_last
+  ) %>%
+  left_join(
+    wage_groups_2008 %>%
+      filter(firm_size != "All firm sizes") %>%
+      select(firm_size, mean_income_2008 = all),
+    by = "firm_size"
+  ) %>%
+  left_join(
+    wage_groups_2025 %>%
+      filter(firm_size != "All firm sizes") %>%
+      select(firm_size, mean_income_2025 = all),
+    by = "firm_size"
+  ) %>%
+  mutate(
+    wage_ratio_2008 = mean_income_2008 / mean_income_2008[firm_size == "Solo"],
+    wage_ratio_2025 = mean_income_2025 / mean_income_2025[firm_size == "Solo"]
+  )
+
+write.csv(
+  core_size_2008_2025,
+  "Paper/tables/descriptive_core_size_2008_2025.csv",
+  row.names = FALSE
+)
+
+core_size_rows <- paste0(
+  "    ",
+  core_size_2008_2025$firm_size,
+  " & ",
+  format_pct(core_size_2008_2025$employment_share_2008),
+  " & ",
+  format_pct(core_size_2008_2025$employment_share_2025),
+  " & ",
+  format_money(core_size_2008_2025$mean_income_2008),
+  " & ",
+  format_money(core_size_2008_2025$mean_income_2025),
+  " & ",
+  format_number(core_size_2008_2025$wage_ratio_2008, 1),
+  " & ",
+  format_number(core_size_2008_2025$wage_ratio_2025, 1),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Employment shares and mean real hourly income by firm size, 2008 and 2025}",
+    "  \\label{tab:descriptive-core-size-2008-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lrrrrrr}",
+    "    \\toprule",
+    "    & \\multicolumn{2}{c}{Employment share} & \\multicolumn{2}{c}{Mean hourly income} & \\multicolumn{2}{c}{Wage ratio to solo} \\\\",
+    "    \\cmidrule(lr){2-3} \\cmidrule(lr){4-5} \\cmidrule(lr){6-7}",
+    "    Firm size & 2008 & 2025 & 2008 & 2025 & 2008 & 2025 \\\\",
+    "    \\midrule",
+    core_size_rows,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Employment shares and wages use GEIH expansion weights. Mean hourly income is expressed in constant 2025 pesos. Wage ratios divide each firm-size mean by the solo-worker mean in the same year.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_core_size_2008_2025_table.tex"
+)
+
 wage_groups_2008_rows <- format_wage_group_rows(wage_groups_2008)
 wage_groups_2025_rows <- format_wage_group_rows(wage_groups_2025)
 
@@ -684,7 +757,7 @@ worker_balance <- geih_model %>%
     women = weighted_mean(female_worker, fex),
     formal = weighted_mean(formal_worker, fex),
     higher_education = weighted_mean(higher_education, fex),
-    mean_log_wage = weighted_mean(log_ingreso_hora_real, fex),
+    mean_age = weighted_mean(edad, fex),
     .groups = "drop"
   ) %>%
   arrange(tamano_empresa)
@@ -705,7 +778,7 @@ balance_rows <- paste0(
   " & ",
   format_pct(worker_balance$higher_education),
   " & ",
-  format_number(worker_balance$mean_log_wage, 3),
+  format_number(worker_balance$mean_age, 1),
   " \\\\"
 )
 
@@ -718,7 +791,7 @@ write_latex_table(
     "  \\small",
     "  \\begin{tabular}{lrrrr}",
     "    \\toprule",
-    "    Firm size & Women & Formal & Higher education & Mean log wage \\\\",
+    "    Firm size & Women & Formal & Higher education & Mean age \\\\",
     "    \\midrule",
     balance_rows,
     "    \\bottomrule",
@@ -740,7 +813,7 @@ worker_balance_2025 <- geih_model %>%
     women = weighted_mean(female_worker, fex),
     formal = weighted_mean(formal_worker, fex),
     higher_education = weighted_mean(higher_education, fex),
-    mean_log_wage = weighted_mean(log_ingreso_hora_real, fex),
+    mean_age = weighted_mean(edad, fex),
     .groups = "drop"
   ) %>%
   arrange(tamano_empresa)
@@ -761,7 +834,7 @@ balance_rows_2025 <- paste0(
   " & ",
   format_pct(worker_balance_2025$higher_education),
   " & ",
-  format_number(worker_balance_2025$mean_log_wage, 3),
+  format_number(worker_balance_2025$mean_age, 1),
   " \\\\"
 )
 
@@ -774,7 +847,7 @@ write_latex_table(
     "  \\small",
     "  \\begin{tabular}{lrrrr}",
     "    \\toprule",
-    "    Firm size & Women & Formal & Higher education & Mean log wage \\\\",
+    "    Firm size & Women & Formal & Higher education & Mean age \\\\",
     "    \\midrule",
     balance_rows_2025,
     "    \\bottomrule",
@@ -1448,6 +1521,62 @@ write.csv(
   row.names = FALSE
 )
 
+sex_income_2025_table <- sex_income_comparison %>%
+  filter(anio == 2025) %>%
+  select(sex, tamano_empresa, mean_income) %>%
+  tidyr::pivot_wider(names_from = sex, values_from = mean_income) %>%
+  arrange(tamano_empresa) %>%
+  mutate(
+    men_ratio = Men / Men[tamano_empresa == "Solo"],
+    women_ratio = Women / Women[tamano_empresa == "Solo"]
+  )
+
+write.csv(
+  sex_income_2025_table,
+  "Paper/tables/descriptive_wage_by_sex_size_2025.csv",
+  row.names = FALSE
+)
+
+sex_income_2025_rows <- paste0(
+  "    ",
+  sex_income_2025_table$tamano_empresa,
+  " & ",
+  format_money(sex_income_2025_table$Men),
+  " & ",
+  format_money(sex_income_2025_table$Women),
+  " & ",
+  format_number(sex_income_2025_table$men_ratio, 1),
+  " & ",
+  format_number(sex_income_2025_table$women_ratio, 1),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Mean real hourly income by firm size and sex, 2025}",
+    "  \\label{tab:descriptive-wage-sex-size-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lrrrr}",
+    "    \\toprule",
+    "    & \\multicolumn{2}{c}{Mean hourly income} & \\multicolumn{2}{c}{Wage ratio to solo} \\\\",
+    "    \\cmidrule(lr){2-3} \\cmidrule(lr){4-5}",
+    "    Firm size & Men & Women & Men & Women \\\\",
+    "    \\midrule",
+    sex_income_2025_rows,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Values are weighted mean real hourly labor income in constant 2025 pesos. Men and women are defined from the worker's reported sex. Wage ratios divide each firm-size mean by the solo-worker mean for the same sex.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_wage_sex_size_2025_table.tex"
+)
+
 sex_income_label_data <- sex_income_comparison %>%
   filter(tamano_empresa == "101+")
 
@@ -1650,6 +1779,65 @@ write.csv(
   education_income_comparison,
   "Paper/tables/descriptive_wage_by_education_year_size.csv",
   row.names = FALSE
+)
+
+education_income_2025_table <- education_income_comparison %>%
+  filter(anio == 2025, tamano_empresa %in% c("Solo", "101+")) %>%
+  select(education_en, tamano_empresa, worker_share, mean_income) %>%
+  tidyr::pivot_wider(
+    names_from = tamano_empresa,
+    values_from = c(worker_share, mean_income),
+    names_glue = "{.value}_{tamano_empresa}"
+  ) %>%
+  mutate(wage_ratio = `mean_income_101+` / mean_income_Solo) %>%
+  arrange(education_en)
+
+write.csv(
+  education_income_2025_table,
+  "Paper/tables/descriptive_wage_by_education_endpoints_2025.csv",
+  row.names = FALSE
+)
+
+education_income_2025_rows <- paste0(
+  "    ",
+  education_income_2025_table$education_en,
+  " & ",
+  format_pct(education_income_2025_table$worker_share_Solo),
+  " & ",
+  format_pct(education_income_2025_table$`worker_share_101+`),
+  " & ",
+  format_money(education_income_2025_table$mean_income_Solo),
+  " & ",
+  format_money(education_income_2025_table$`mean_income_101+`),
+  " & ",
+  format_number(education_income_2025_table$wage_ratio, 1),
+  " \\\\"
+)
+
+write_latex_table(
+  c(
+    "\\begin{table}[htbp]",
+    "  \\centering",
+    "  \\caption{Firm-size endpoints by education group, 2025}",
+    "  \\label{tab:descriptive-education-endpoints-2025}",
+    "  \\small",
+    "  \\begin{tabular}{lrrrrr}",
+    "    \\toprule",
+    "    & \\multicolumn{2}{c}{Employment share} & \\multicolumn{2}{c}{Mean hourly income} & \\\\",
+    "    \\cmidrule(lr){2-3} \\cmidrule(lr){4-5}",
+    "    Education group & Solo & 101+ & Solo & 101+ & Wage ratio \\\\",
+    "    \\midrule",
+    education_income_2025_rows,
+    "    \\bottomrule",
+    "  \\end{tabular}",
+    "  \\vspace{0.3em}",
+    "  \\begin{minipage}{0.95\\textwidth}",
+    "  \\footnotesize",
+    "  Notes: Statistics use 2025 observations and GEIH expansion weights. Employment shares are computed within education group. Mean hourly income is expressed in constant 2025 pesos. The wage ratio divides the 101+ mean by the solo-worker mean within education group.",
+    "  \\end{minipage}",
+    "\\end{table}"
+  ),
+  "Paper/sections/descriptive_education_endpoints_2025_table.tex"
 )
 
 education_income_label_data <- education_income_comparison %>%
