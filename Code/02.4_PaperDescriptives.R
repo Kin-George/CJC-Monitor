@@ -2381,7 +2381,10 @@ wage_gaps_2025 <- bind_rows(
       "Sobre el promedio total",
       "Debajo del promedio total"
     )
-  )
+  ) %>%
+  group_by(dimension_en, dimension_es) %>%
+  mutate(ratio_to_lowest = mean_income / min(mean_income, na.rm = TRUE)) %>%
+  ungroup()
 
 write.csv(
   wage_gaps_2025,
@@ -2422,6 +2425,8 @@ wage_gap_rows_2025 <- paste0(
   format_money(wage_gap_table_data$mean_income),
   " & ",
   format_pct_value(wage_gap_table_data$gap_to_overall),
+  " & ",
+  format_number(wage_gap_table_data$ratio_to_lowest, 2),
   " \\\\"
 )
 
@@ -2432,9 +2437,9 @@ write_latex_table(
     "  \\caption{Mean real hourly labor income gaps by worker group, 2025}",
     "  \\label{tab:descriptive-wage-gaps-2025}",
     "  \\scriptsize",
-    "  \\begin{tabular}{lp{0.38\\textwidth}rrr}",
+    "  \\begin{tabular}{lp{0.34\\textwidth}rrrr}",
     "    \\toprule",
-    "    Dimension & Group & Employment share & Mean income & Gap \\\\",
+    "    Dimension & Group & Employment share & Mean income & Gap & Ratio \\\\",
     "    \\midrule",
     wage_gap_rows_2025,
     "    \\bottomrule",
@@ -2442,7 +2447,7 @@ write_latex_table(
     "  \\vspace{0.3em}",
     "  \\begin{minipage}{0.95\\textwidth}",
     "  \\footnotesize",
-    "  Notes: Statistics use 2025 observations and GEIH expansion weights. Employment shares are computed within each dimension. Mean income is real hourly labor income in constant 2025 pesos. The gap is the percent difference in each group's weighted mean relative to the overall 2025 weighted mean. Formality rows exclude pensioned occupied workers. Sector rows omit extraterritorial organizations.",
+    "  Notes: Statistics use 2025 observations and GEIH expansion weights. Employment shares are computed within each dimension. Mean income is real hourly labor income in constant 2025 pesos. The gap is the percent difference in each group's weighted mean relative to the overall 2025 weighted mean. The ratio divides each group's mean by the lowest mean within the same dimension. Formality rows exclude pensioned occupied workers. Sector rows omit extraterritorial organizations.",
     "  \\end{minipage}",
     "\\end{table}"
   ),
