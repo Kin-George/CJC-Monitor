@@ -564,9 +564,20 @@ core_size_2008_2025 <- employment_size %>%
       select(firm_size, mean_income_2025 = all),
     by = "firm_size"
   ) %>%
+  bind_rows(
+    data.frame(
+      firm_size = "All workers",
+      employment_share_2008 = 1,
+      employment_share_2025 = 1,
+      mean_income_2008 = wage_groups_2008$all[wage_groups_2008$firm_size == "All firm sizes"],
+      mean_income_2025 = wage_groups_2025$all[wage_groups_2025$firm_size == "All firm sizes"],
+      stringsAsFactors = FALSE
+    )
+  ) %>%
   mutate(
     wage_ratio_2008 = mean_income_2008 / mean_income_2008[firm_size == "Solo"],
-    wage_ratio_2025 = mean_income_2025 / mean_income_2025[firm_size == "Solo"]
+    wage_ratio_2025 = mean_income_2025 / mean_income_2025[firm_size == "Solo"],
+    annualized_change = 100 * ((mean_income_2025 / mean_income_2008)^(1 / (2025 - 2008)) - 1)
   )
 
 write.csv(
@@ -575,8 +586,14 @@ write.csv(
   row.names = FALSE
 )
 
+core_size_row_prefix <- if_else(
+  core_size_2008_2025$firm_size == "All workers",
+  "    \\addlinespace\n    ",
+  "    "
+)
+
 core_size_rows <- paste0(
-  "    ",
+  core_size_row_prefix,
   core_size_2008_2025$firm_size,
   " & ",
   format_pct(core_size_2008_2025$employment_share_2008),
@@ -590,6 +607,8 @@ core_size_rows <- paste0(
   format_number(core_size_2008_2025$wage_ratio_2008, 1),
   " & ",
   format_number(core_size_2008_2025$wage_ratio_2025, 1),
+  " & ",
+  format_pct_value(core_size_2008_2025$annualized_change),
   " \\\\"
 )
 
@@ -597,14 +616,14 @@ write_latex_table(
   c(
     "\\begin{table}[htbp]",
     "  \\centering",
-    "  \\caption{Employment shares and mean real hourly income by firm size, 2008 and 2025}",
+    "  \\caption{Employment shares, mean real hourly income, and wage growth by firm size, 2008 and 2025}",
     "  \\label{tab:descriptive-core-size-2008-2025}",
     "  \\small",
-    "  \\begin{tabular}{lrrrrrr}",
+    "  \\begin{tabular}{lrrrrrrr}",
     "    \\toprule",
-    "    & \\multicolumn{2}{c}{Employment share} & \\multicolumn{2}{c}{Mean hourly income} & \\multicolumn{2}{c}{Wage ratio to solo} \\\\",
-    "    \\cmidrule(lr){2-3} \\cmidrule(lr){4-5} \\cmidrule(lr){6-7}",
-    "    Firm size & 2008 & 2025 & 2008 & 2025 & 2008 & 2025 \\\\",
+    "    & \\multicolumn{2}{c}{Employment share} & \\multicolumn{2}{c}{Mean hourly income} & \\multicolumn{2}{c}{Wage ratio to solo} & \\multicolumn{1}{c}{Wage growth} \\\\",
+    "    \\cmidrule(lr){2-3} \\cmidrule(lr){4-5} \\cmidrule(lr){6-7} \\cmidrule(lr){8-8}",
+    "    Firm size & 2008 & 2025 & 2008 & 2025 & 2008 & 2025 & Annualized \\\\",
     "    \\midrule",
     core_size_rows,
     "    \\bottomrule",
@@ -612,7 +631,7 @@ write_latex_table(
     "  \\vspace{0.3em}",
     "  \\begin{minipage}{0.95\\textwidth}",
     "  \\footnotesize",
-    "  Notes: Employment shares and wages use GEIH expansion weights. Mean hourly income is expressed in constant 2025 pesos. Wage ratios divide each firm-size mean by the solo-worker mean in the same year.",
+    "  Notes: Employment shares and wages use GEIH expansion weights. Mean hourly income is expressed in constant 2025 pesos. Wage ratios divide each firm-size mean by the solo-worker mean in the same year. Annualized change is the compound annual change in mean hourly income between 2008 and 2025.",
     "  \\end{minipage}",
     "\\end{table}"
   ),
