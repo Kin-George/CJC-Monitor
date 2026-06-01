@@ -1,15 +1,60 @@
-\documentclass[12pt]{article}
+\documentclass[12pt, a4paper]{article}
 
+% Márgenes
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+
+
+\usepackage{mdframed}  % en el preámbulo
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish]{babel}
 \usepackage{amsmath}
+\usepackage{float} 
+\usepackage{caption}
+\usepackage[margin=10pt, font=small, labelfont=bf]{caption}
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{geometry}
 \usepackage{hyperref}
 \usepackage{natbib}
 \usepackage{longtable}
+
+% Espaciado entre figura y texto
+\setlength{\textfloatsep}{18pt plus 2pt minus 4pt}
+\setlength{\floatsep}{12pt plus 2pt minus 2pt}
+\setlength{\intextsep}{14pt plus 2pt minus 2pt}
+
+% Interlineado
+\usepackage{setspace}
+\setstretch{1.15}
+
+% Párrafos: sangría y espaciado
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+
+% Títulos de sección con mejor formato
+\usepackage{titlesec}
+\titleformat{\section}
+  {\large\bfseries}{\thesection.}{0.5em}{}
+  [\vspace{2pt}\hrule\vspace{4pt}]
+\titleformat{\subsection}
+  {\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing{\section}{0pt}{18pt}{8pt}
+\titlespacing{\subsection}{0pt}{14pt}{6pt}
+
+% Colores y enlaces (opcional, para resumen ejecutivo)
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue!60!black}
+
+% Encabezados y pies de página
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small }
+\lhead{\small \leftmark}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
 
 \geometry{margin=1in}
 \graphicspath{{Paper/figures/}{figures/}}
@@ -18,18 +63,28 @@
 \newif\ifpolicyreport
 \policyreporttrue
 
-\title{Informe CJC Monitor}
+\title{Estructura del empleo y evolución de los ingresos laborales en Colombia, 2010–2025
+Un análisis descriptivo a partir de la GEIH}
 \author{Centro Javeriano de Competitividad}
 \date{\today}
 
 \begin{document}
 
 \maketitle
-
+\begin{mdframed}[
+  linewidth=1pt,
+  linecolor=gray!60,
+  backgroundcolor=gray!6,
+  innertopmargin=12pt,
+  innerbottommargin=12pt,
+  innerleftmargin=14pt,
+  innerrightmargin=14pt
+]
 \section*{Resumen ejecutivo}
-Colombia registró avances importantes en su mercado laboral entre 2008 y 2025. El ingreso laboral real por hora creció un 32,6\%, la tasa de informalidad cayó casi 12 puntos porcentuales, y la brecha salarial de género prácticamente desapareció. Sin embargo, persisten desafíos estructurales relevantes: la brecha entre trabajadores formales e informales se amplió, las diferencias regionales siguen siendo marcadas, y más de la mitad de los trabajadores colombianos aún no cotiza a pensión. El mercado laboral avanza, pero de forma desigual.
+\textbf{Este informe caracteriza la evolución del mercado laboral colombiano entre 2010 y 2025 a partir de los microdatos de la Gran Encuesta Integrada de Hogares (GEIH), con el objetivo de documentar los cambios en el volumen de empleo y en los ingresos laborales por hora según seis dimensiones de análisis: sexo, formalidad, nivel educativo, posición ocupacional, departamento, sector económico y tamaño de empresa.} La motivación central del ejercicio es proveer una lectura sistemática y desagregada del mercado laboral que permita identificar qué grupos de trabajadores han mejorado sus condiciones de ingreso, cuáles permanecen rezagados y qué transformaciones estructurales han marcado el período. Todos los ingresos se expresan en pesos constantes de 2025 para garantizar la comparabilidad real a lo largo del tiempo.
 
-\input{Paper/sections/introductionInforme}
+Los principales hallazgos del informe pueden resumirse en cinco dimensiones. \textbf{Primero, el mercado laboral creció y mejoró en términos agregados:} el número de ocupados pasó de 16,8 a 23,0 millones (2,09\% anual) y el ingreso real por hora aumentó de \$8.039 a \$10.453 (1,77\% anual), con una aceleración marcada en el período 2021--2025 tras el choque pandémico. \textbf{Segundo, la formalización avanzó de manera sostenida pero insuficiente:} la tasa de informalidad cayó 12,5 puntos porcentuales hasta el 55,1\%, aunque más de la mitad de los trabajadores sigue sin cotizar a pensión y la brecha salarial entre formales e informales se amplió, con los formales ganando 2,43 veces más por hora que los informales en 2025. \textbf{Tercero, la composición de la fuerza laboral se modernizó:} la participación de trabajadores con educación superior creció 11 puntos porcentuales, el empleo asalariado privado superó al trabajo por cuenta propia y el peso de las empresas grandes aumentó 5,1 puntos. \textbf{Cuarto, la desigualdad salarial persiste y en varias dimensiones se amplió:} la brecha entre sectores económicos, entre departamentos y entre posiciones ocupacionales creció en términos absolutos, mientras que solo por nivel educativo se observa una leve convergencia relativa. \textbf{Quinto, emergen ganadores y rezagados claros:} el sector de información y comunicaciones, los departamentos del Eje Cafetero y los trabajadores formales con educación superior concentran los mayores avances, mientras que La Guajira, Córdoba, la agricultura y el trabajo informal de baja cualificación acumulan el mayor rezago relativo.
+\end{mdframed}
 
 \input{Paper/sections/CuerpoInforme}
 
