@@ -11,7 +11,7 @@ The main econometric exercise estimates the conditional firm-size wage premium i
   + \lambda_{s \times t}
   + \varepsilon_{ist},    
 \end{equation}
-where \(w_{ist}\) is real hourly labor income for worker \(i\) in sector \(s\) in year \(t\), \(Size_{ist}\) is the harmonized firm-size category, and \(g_0\) is the reference group. We use solo workers as the reference group. This choice makes the coefficient path directly interpretable as the wage premium associated with moving from individual work to increasingly larger firms. Because solo workers may combine self-employment and very small-scale wage employment, we interpret the estimates as conditional gaps relative to the bottom of the firm-size distribution rather than as pure firm effects.
+where \(w_{ist}\) is real hourly labor income for worker \(i\) in sector \(s\) in year \(t\), \(Size_{ist}\) is the harmonized firm-size category, and \(g_0\) is the reference group. We use solo workers as the reference group. This choice makes each coefficient directly interpretable as the conditional wage gap between workers in firm-size group \(g\) and workers at the bottom of the firm-size distribution. Because solo workers may combine self-employment and very small-scale wage employment, we interpret the estimates as conditional gaps relative to solo work rather than as pure firm effects.
 
 The vector \(X_{ist}\) includes a female-worker indicator, age, age squared, education dummies, and a formal-employment indicator. The fixed effect \(\lambda_{s \times t}\) absorbs sector-year conditions, allowing each broad sector to have its own wage level in each year. This is important because large firms are not randomly distributed across sectors, and sectoral shocks may be correlated with both wages and firm size. The model is estimated with GEIH expansion weights, and standard errors are clustered by sector.
 
@@ -44,15 +44,15 @@ This dynamic specification produces a sequence of firm-size premiums by year and
   + \lambda_{s \times t}
   + \varepsilon_{ist},
 \end{equation}
-where \(Trend_t\) is a linear year trend normalized to zero in 2008. The parameter \(\delta_g\) measures whether the wage premium for firm-size group \(g\) changed over time relative to solo workers. We report two-sided tests of \(H_0:\delta_g=0\) against \(H_1:\delta_g\neq0\), because the premium could either widen or narrow over the period. Positive values of \(\delta_g\) imply a steepening firm-size gradient, while negative values imply a flattening one.
+where \(Trend_t\) is a linear year trend normalized to zero in 2008. The parameter \(\delta_g\) measures whether the wage premium for firm-size group \(g\) changed over time relative to solo workers. We report two-sided tests of \(H_0:\delta_g=0\) against \(H_1:\delta_g\neq0\), because the premium could either widen or narrow over the period. Positive values of \(\delta_g\) imply a steeper association between firm size and wages, while negative values imply a flatter one.
 
 
 \subsection{Firm-Size Nonlinearities by Formality Status}
 
 The descriptive evidence suggests that the relationship between firm size and
-hourly income may differ between formal and informal workers. To allow for this
-nonlinearity, we also estimate a specification that interacts all firm-size
-categories with formal employment:
+hourly income may differ between formal and informal workers. We therefore
+estimate a specification that interacts all firm-size categories with formal
+employment:
 
 \begin{equation}\label{eq:formality-interaction}
   \ln(w_{ist}) =
@@ -67,7 +67,3 @@ categories with formal employment:
 \end{equation}
 
 The coefficients \(\beta_g\) measure the firm-size premium among informal workers, relative to informal solo workers. The corresponding premium among formal workers is \(\beta_g+\theta_g\), relative to formal solo workers. The coefficient \(\phi\) measures the formal-informal wage gap among solo workers, while \(\phi+\theta_g\) measures the formal-informal wage gap within firm-size group \(g\).
-
-%To assess whether these within-formality premia change over time, we also estimate the interacted specification year by year. In each year, the model includes firm-size indicators, a formality indicator, and their interaction, with the same set of worker controls and sector fixed effects. This is the year-specific counterpart of a fully interacted \(Size \times Formality \times Year\) specification, and it lets the firm-size premium vary freely across years within formal and informal employment.
-
-%In the results table, we report four nested specifications. The first column includes only firm-size indicators. The second adds sector-year fixed effects.The third adds gender, age, age squared, and education controls, but excludes formality. The fourth adds formality. Comparing the third and fourth columns shows how much of the firm-size gradient is absorbed by differences in formal employment across firm sizes.
