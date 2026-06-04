@@ -148,48 +148,44 @@ elasticity_benchmark <- bind_rows(
     source = "Diegmann et al. (2026)",
     specification = c(
       "No worker-heterogeneity controls",
-      "Observable worker controls",
-      "Worker fixed effects",
-      "AKM employer effects"
+      "Observable worker controls"
     ),
     controls = c(
       "Literature mean",
-      "Literature mean",
-      "Literature mean",
       "Literature mean"
     ),
-    elasticity = c(0.062, 0.036, 0.018, 0.050),
+    elasticity = c(0.062, 0.036),
     std_error = NA_real_,
     p_value = NA_real_,
-    order = 1:4
+    order = 1:2
   ),
   extract_elasticity(
     m_elasticity_raw,
     "Colombia (GEIH)",
     "No controls",
     "None",
-    5
+    3
   ),
   extract_elasticity(
     m_elasticity_full,
     "Colombia (GEIH)",
     "Full sample",
     "Sector-year FE, worker controls, and formality",
-    6
+    4
   ),
   extract_elasticity(
     m_elasticity_formal,
     "Colombia (GEIH)",
     "Formal workers",
     "Sector-year FE and worker controls",
-    7
+    5
   ),
   extract_elasticity(
     m_elasticity_informal,
     "Colombia (GEIH)",
     "Informal workers",
     "Sector-year FE and worker controls",
-    8
+    6
   )
 ) %>%
   arrange(order)
@@ -206,7 +202,7 @@ table_rows <- c()
 for (i in seq_len(nrow(elasticity_benchmark))) {
   row <- elasticity_benchmark[i, ]
 
-  if (row$order == 5) {
+  if (row$order == 3) {
     table_rows <- c(table_rows, "    \\midrule")
   }
 
@@ -231,7 +227,7 @@ for (i in seq_len(nrow(elasticity_benchmark))) {
 elasticity_table <- c(
   "\\begin{table}[htbp]",
   "  \\centering",
-  "  \\caption{Benchmarking approximate firm-size wage elasticities}",
+  "  \\caption{Benchmarking Colombia's approximate firm-size wage elasticity}",
   "  \\label{tab:firm-size-elasticity-benchmark}",
   "  \\small",
   "  \\begin{tabular}{p{0.20\\textwidth}p{0.25\\textwidth}p{0.29\\textwidth}cc}",
@@ -244,7 +240,7 @@ elasticity_table <- c(
   "  \\vspace{0.3em}",
   "  \\begin{minipage}{0.95\\textwidth}",
   "  \\footnotesize",
-  "  Notes: The first four rows reproduce the mean elasticities reported in Table 1 of \\citet{DiegmannMullerSchoefer2026}. Colombian elasticities are approximate log-log slopes estimated with GEIH expansion weights. Because GEIH reports firm size in bins, the estimates assign representative values of 1, 2.5, 4.5, 8, 15, 25, 40.5, 75.5, and 150 workers to the harmonized categories from solo work to 101+ workers. Standard errors for the Colombian estimates are clustered by sector. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
+  "  Notes: Diegmann et al. (2026) benchmarks correspond to the mean elasticities reported in their Table 1 for specifications without worker-heterogeneity controls and with observable worker controls. Their worker fixed-effect and AKM employer-effect benchmarks are not reported because GEIH does not follow workers across employers or identify firms. Colombian elasticities are approximate log-log slopes estimated with GEIH expansion weights. Because GEIH reports firm size in bins, the estimates assign representative values of 1, 2.5, 4.5, 8, 15, 25, 40.5, 75.5, and 150 workers to the harmonized categories from solo work to 101+ workers. Standard errors for the Colombian estimates are clustered by sector. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
   "  \\end{minipage}",
   "\\end{table}"
 )

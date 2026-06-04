@@ -1,9 +1,7 @@
 "source","specification","controls","elasticity","std_error","p_value","order"
 "Diegmann et al. (2026)","No worker-heterogeneity controls","Literature mean",0.062,NA,NA,1
 "Diegmann et al. (2026)","Observable worker controls","Literature mean",0.036,NA,NA,2
-"Diegmann et al. (2026)","Worker fixed effects","Literature mean",0.018,NA,NA,3
-"Diegmann et al. (2026)","AKM employer effects","Literature mean",0.05,NA,NA,4
-"Colombia (GEIH)","No controls","None",0.202697773274195,0.0193043882429969,1.38720708667276e-08,5
-"Colombia (GEIH)","Full sample","Sector-year FE, worker controls, and formality",0.0706305814032569,0.0133682878837361,7.42330275283274e-05,6
-"Colombia (GEIH)","Formal workers","Sector-year FE and worker controls",0.0262751509406419,0.0107557286399117,0.026547253816208,7
-"Colombia (GEIH)","Informal workers","Sector-year FE and worker controls",0.130336811918372,0.0149422455925291,1.77427308869801e-07,8
+"Colombia (GEIH)","No controls","None",0.202697773274195,0.0193043882429969,1.38720708667276e-08,3
+"Colombia (GEIH)","Full sample","Sector-year FE, worker controls, and formality",0.0706305814032569,0.0133682878837361,7.42330275283274e-05,4
+"Colombia (GEIH)","Formal workers","Sector-year FE and worker controls",0.0262751509406419,0.0107557286399117,0.026547253816208,5
+"Colombia (GEIH)","Informal workers","Sector-year FE and worker controls",0.130336811918372,0.0149422455925291,1.77427308869801e-07,6
