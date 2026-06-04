@@ -67,3 +67,31 @@ employment:
 \end{equation}
 
 The coefficients \(\beta_g\) measure the firm-size premium among informal workers, relative to informal solo workers. The corresponding premium among formal workers is \(\beta_g+\theta_g\), relative to formal solo workers. The coefficient \(\phi\) measures the formal-informal wage gap among solo workers, while \(\phi+\theta_g\) measures the formal-informal wage gap within firm-size group \(g\).
+
+\subsection{Approximate Firm-Size Elasticities}
+
+The main specifications treat firm size as a set of categories because this is
+how firm size is reported in GEIH and because the largest category is top-coded.
+This categorical approach is the most transparent way to estimate the Colombian
+firm-size wage premium. However, much of the employer-size wage effect
+literature reports a continuous elasticity of wages with respect to employer
+size. To compare the Colombian evidence with those benchmarks, we also estimate
+an approximate log-log specification:
+\begin{equation}\label{eq:elasticity}
+  \ln(w_{ist}) =
+  \alpha
+  + \eta \ln(\widetilde{Size}_{ist})
+  + X_{ist}'\gamma
+  + \lambda_{s \times t}
+  + \varepsilon_{ist}.
+\end{equation}
+
+The variable \(\widetilde{Size}_{ist}\) assigns representative values to the
+harmonized firm-size bins: 1 for solo workers, 2.5 for firms with 2--3 workers,
+4.5 for 4--5 workers, 8 for 6--10 workers, 15 for 11--19 workers, 25 for
+20--30 workers, 40.5 for 31--50 workers, 75.5 for 51--100 workers, and 150 for
+the top-coded 101+ category. The coefficient \(\eta\) is therefore an
+approximate elasticity: it measures the log-wage slope associated with assigned
+firm size. Because the underlying variable is grouped and top-coded, these
+elasticities are used only as benchmarking statistics. The categorical
+specifications remain the main empirical estimates.
