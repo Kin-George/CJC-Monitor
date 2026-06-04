@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Benchmarking approximate firm-size wage elasticities}
+  \label{tab:firm-size-elasticity-benchmark}
+  \small
+  \begin{tabular}{p{0.20\textwidth}p{0.25\textwidth}p{0.29\textwidth}cc}
+    \toprule
+    Source & Specification & Controls & Elasticity & S.E. \\
+    \midrule
+    Diegmann et al. (2026) & No worker-heterogeneity controls & Literature mean & 0.062 & n.a. \\
+    Diegmann et al. (2026) & Observable worker controls & Literature mean & 0.036 & n.a. \\
+    Diegmann et al. (2026) & Worker fixed effects & Literature mean & 0.018 & n.a. \\
+    Diegmann et al. (2026) & AKM employer effects & Literature mean & 0.050 & n.a. \\
+    \midrule
+    Colombia (GEIH) & No controls & None & 0.203*** & (0.019) \\
+    Colombia (GEIH) & Full sample & Sector-year FE, worker controls, and formality & 0.071*** & (0.013) \\
+    Colombia (GEIH) & Formal workers & Sector-year FE and worker controls & 0.026** & (0.011) \\
+    Colombia (GEIH) & Informal workers & Sector-year FE and worker controls & 0.130*** & (0.015) \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.3em}
+  \begin{minipage}{0.95\textwidth}
+  \footnotesize
+  Notes: The first four rows reproduce the mean elasticities reported in Table 1 of \citet{DiegmannMullerSchoefer2026}. Colombian elasticities are approximate log-log slopes estimated with GEIH expansion weights. Because GEIH reports firm size in bins, the estimates assign representative values of 1, 2.5, 4.5, 8, 15, 25, 40.5, 75.5, and 150 workers to the harmonized categories from solo work to 101+ workers. Standard errors for the Colombian estimates are clustered by sector. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+  \end{minipage}
+\end{table}
