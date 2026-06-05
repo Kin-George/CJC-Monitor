@@ -20,6 +20,9 @@ library(ggplot2)
 library(scales)
 library(ggrepel)
 library(grid)
+library(stringr)
+library(stringi)
+library(purrr)
 
 options(scipen = 999)
 
@@ -4061,6 +4064,1978 @@ g_composicion_depto_area <- ggplot(
 g_composicion_depto_area
 
 #========================================================
+# GRÁFICO. Serie de ingreso por departamento:
+# Risaralda y Caldas, 2010–2025
+# Con flechas y crecimiento anualizado
+#========================================================
+
+#--------------------------------------------------------
+# 1. Preparar datos
+#--------------------------------------------------------
+
+deptos_serie <- c("Risaralda", "Caldas")
+
+serie_ingreso_risaralda_caldas <- geih_ingreso %>%
+  filter(
+    !is.na(anio),
+    anio >= 2010,
+    !is.na(depto_label)
+  ) %>%
+  mutate(
+    depto_label_limpio = stringi::stri_trans_general(
+      stringr::str_squish(as.character(depto_label)),
+      "Latin-ASCII"
+    )
+  ) %>%
+  filter(
+    depto_label_limpio %in% deptos_serie
+  ) %>%
+  group_by(anio, depto_label_limpio) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    ingreso_hora_real_promedio = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    depto_label_limpio = factor(
+      depto_label_limpio,
+      levels = c("Risaralda", "Caldas")
+    )
+  ) %>%
+  arrange(depto_label_limpio, anio)
+
+anio_inicio_serie <- min(serie_ingreso_risaralda_caldas$anio, na.rm = TRUE)
+anio_final_serie  <- max(serie_ingreso_risaralda_caldas$anio, na.rm = TRUE)
+
+#--------------------------------------------------------
+# 2. Etiquetas de inicio y final
+#--------------------------------------------------------
+
+labels_inicio_fin_depto <- serie_ingreso_risaralda_caldas %>%
+  filter(anio %in% c(anio_inicio_serie, anio_final_serie)) %>%
+  mutate(
+    x_label = case_when(
+      anio == anio_inicio_serie ~ anio - 0.22,
+      anio == anio_final_serie  ~ anio + 0.18
+    ),
+    y_label = case_when(
+      # Etiquetas del inicio
+      anio == anio_inicio_serie & depto_label_limpio == "Risaralda" ~ ingreso_hora_real_promedio - 70,
+      anio == anio_inicio_serie & depto_label_limpio == "Caldas"    ~ ingreso_hora_real_promedio - 20,
+      
+      # Etiquetas del final
+      anio == anio_final_serie & depto_label_limpio == "Risaralda" ~ ingreso_hora_real_promedio + 70,
+      anio == anio_final_serie & depto_label_limpio == "Caldas"    ~ ingreso_hora_real_promedio + 20,
+      
+      TRUE ~ ingreso_hora_real_promedio
+    )
+  )
+
+#--------------------------------------------------------
+# 3. Etiquetas con nombre de la serie al final
+#--------------------------------------------------------
+
+labels_nombre_final_depto <- serie_ingreso_risaralda_caldas %>%
+  filter(anio == anio_final_serie) %>%
+  mutate(
+    x_text = anio_final_serie + 0.60,
+    y_text = case_when(
+      depto_label_limpio == "Risaralda" ~ ingreso_hora_real_promedio - 10,
+      depto_label_limpio == "Caldas"    ~ ingreso_hora_real_promedio + 10
+    )
+  )
+
+#--------------------------------------------------------
+# 4. Crecimiento anualizado
+#--------------------------------------------------------
+
+cambio_depto <- serie_ingreso_risaralda_caldas %>%
+  filter(anio %in% c(anio_inicio_serie, anio_final_serie)) %>%
+  select(anio, depto_label_limpio, ingreso_hora_real_promedio) %>%
+  pivot_wider(
+    names_from = anio,
+    values_from = ingreso_hora_real_promedio,
+    names_prefix = "y_"
+  ) %>%
+  mutate(
+    ingreso_inicio = .data[[paste0("y_", anio_inicio_serie)]],
+    ingreso_final  = .data[[paste0("y_", anio_final_serie)]],
+    crecimiento_anualizado = 100 * (
+      (ingreso_final / ingreso_inicio)^(1 / (anio_final_serie - anio_inicio_serie)) - 1
+    ),
+    label_cambio = paste0(
+      "Crec. anualizado: ",
+      ifelse(crecimiento_anualizado >= 0, "+", ""),
+      round(crecimiento_anualizado, 2),
+      "%"
+    )
+  )
+
+max_y <- max(serie_ingreso_risaralda_caldas$ingreso_hora_real_promedio, na.rm = TRUE)
+min_y <- min(serie_ingreso_risaralda_caldas$ingreso_hora_real_promedio, na.rm = TRUE)
+rango_y <- max_y - min_y
+
+pos_cambio_depto <- cambio_depto %>%
+  arrange(desc(crecimiento_anualizado)) %>%
+  mutate(
+    orden_crecimiento = row_number(),
+    x_inicio = anio_inicio_serie,
+    x_fin = anio_final_serie,
+    x_label = (anio_inicio_serie + anio_final_serie) / 2,
+    y_arrow = case_when(
+      orden_crecimiento == 1 ~ max_y + 0.15 * rango_y,
+      orden_crecimiento == 2 ~ max_y + 0.10 * rango_y
+    )
+  )
+
+#--------------------------------------------------------
+# 5. Graficar
+#--------------------------------------------------------
+
+g_ingreso_risaralda_caldas <- ggplot(
+  serie_ingreso_risaralda_caldas,
+  aes(
+    x = anio,
+    y = ingreso_hora_real_promedio,
+    color = depto_label_limpio,
+    group = depto_label_limpio
+  )
+) +
+  geom_line(
+    linewidth = 1.25,
+    alpha = 0.95
+  ) +
+  geom_point(
+    size = 3.3,
+    alpha = 0.95
+  ) +
+  geom_label(
+    data = labels_inicio_fin_depto,
+    aes(
+      x = x_label,
+      y = y_label,
+      label = comma(ingreso_hora_real_promedio, accuracy = 1),
+      fill = depto_label_limpio
+    ),
+    color = "white",
+    fontface = "bold",
+    size = 3.4,
+    label.size = 0.15,
+    label.padding = unit(0.14, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_segment(
+    data = pos_cambio_depto,
+    aes(
+      x = x_inicio,
+      xend = x_fin,
+      y = y_arrow,
+      yend = y_arrow,
+      color = depto_label_limpio
+    ),
+    inherit.aes = FALSE,
+    linewidth = 0.90,
+    arrow = arrow(
+      length = unit(0.18, "cm"),
+      type = "closed"
+    ),
+    show.legend = FALSE
+  ) +
+  geom_label(
+    data = pos_cambio_depto,
+    aes(
+      x = x_label,
+      y = y_arrow,
+      label = label_cambio,
+      fill = depto_label_limpio
+    ),
+    inherit.aes = FALSE,
+    color = "white",
+    fontface = "bold",
+    size = 3.5,
+    label.size = 0.15,
+    label.padding = unit(0.16, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = labels_nombre_final_depto,
+    aes(
+      x = x_text,
+      y = y_text,
+      label = depto_label_limpio,
+      color = depto_label_limpio
+    ),
+    hjust = 0,
+    fontface = "bold",
+    size = 4.2,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(
+    values = c(
+      "Risaralda" = "darkblue",
+      "Caldas"    = "gray50"
+    ),
+    name = NULL
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Risaralda" = "darkblue",
+      "Caldas"    = "gray50"
+    )
+  ) +
+  scale_x_continuous(
+    breaks = sort(unique(serie_ingreso_risaralda_caldas$anio)),
+    limits = c(anio_inicio_serie - 0.5, anio_final_serie + 1.9)
+  ) +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0.08, 0.24))
+  ) +
+  labs(
+    title = paste0(
+      "Evolución del ingreso laboral por hora: Risaralda y Caldas, ",
+      anio_inicio_serie,
+      "–",
+      anio_final_serie
+    ),
+    subtitle = "Pesos constantes de 2025. Promedio ponderado por factores de expansión",
+    x = "",
+    y = "Ingreso laboral por hora promedio"
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 90, vjust = 0.5),
+    axis.text.y = element_text(size = 10),
+    legend.position = "none",
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.35),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 110, 10, 10)
+  )
+
+g_ingreso_risaralda_caldas
+
+#========================================================
+# GRÁFICO. Índice del ingreso laboral por hora:
+# Risaralda y Caldas, 2010–2025
+# Base 2010 = 100
+# Con flechas y crecimiento anualizado
+#========================================================
+
+#--------------------------------------------------------
+# 1. Preparar datos
+#--------------------------------------------------------
+
+deptos_serie <- c("Risaralda", "Caldas")
+
+serie_indice_risaralda_caldas <- geih_ingreso %>%
+  filter(
+    !is.na(anio),
+    anio >= 2010,
+    !is.na(depto_label)
+  ) %>%
+  mutate(
+    depto_label_limpio = stringi::stri_trans_general(
+      stringr::str_squish(as.character(depto_label)),
+      "Latin-ASCII"
+    )
+  ) %>%
+  filter(
+    depto_label_limpio %in% deptos_serie
+  ) %>%
+  group_by(anio, depto_label_limpio) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    ingreso_hora_real_promedio = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    depto_label_limpio = factor(
+      depto_label_limpio,
+      levels = c("Risaralda", "Caldas")
+    )
+  ) %>%
+  arrange(depto_label_limpio, anio)
+
+anio_inicio_serie <- min(serie_indice_risaralda_caldas$anio, na.rm = TRUE)
+anio_final_serie  <- max(serie_indice_risaralda_caldas$anio, na.rm = TRUE)
+
+#--------------------------------------------------------
+# 2. Calcular índice base 2010 = 100
+#--------------------------------------------------------
+
+base_2010_depto <- serie_indice_risaralda_caldas %>%
+  filter(anio == anio_inicio_serie) %>%
+  select(
+    depto_label_limpio,
+    ingreso_base = ingreso_hora_real_promedio
+  )
+
+serie_indice_risaralda_caldas <- serie_indice_risaralda_caldas %>%
+  left_join(
+    base_2010_depto,
+    by = "depto_label_limpio"
+  ) %>%
+  mutate(
+    indice_ingreso = 100 * ingreso_hora_real_promedio / ingreso_base
+  )
+
+#--------------------------------------------------------
+# 3. Etiquetas de inicio y final
+#--------------------------------------------------------
+
+labels_inicio_fin_indice <- serie_indice_risaralda_caldas %>%
+  filter(anio %in% c(anio_inicio_serie, anio_final_serie)) %>%
+  mutate(
+    x_label = case_when(
+      anio == anio_inicio_serie ~ anio - 0.22,
+      anio == anio_final_serie  ~ anio + 0.20
+    ),
+    y_label = case_when(
+      # En 2010 ambos son 100, por eso se separan manualmente
+      anio == anio_inicio_serie & depto_label_limpio == "Risaralda" ~ indice_ingreso - 2.0,
+      anio == anio_inicio_serie & depto_label_limpio == "Caldas"    ~ indice_ingreso + 2.0,
+      
+      # En 2025 se separan para evitar traslape
+      anio == anio_final_serie & depto_label_limpio == "Risaralda" ~ indice_ingreso - 2.0,
+      anio == anio_final_serie & depto_label_limpio == "Caldas"    ~ indice_ingreso + 2.0,
+      
+      TRUE ~ indice_ingreso
+    ),
+    label = round(indice_ingreso, 1)
+  )
+
+#--------------------------------------------------------
+# 4. Etiquetas con nombre del departamento al final
+#--------------------------------------------------------
+
+labels_nombre_final_indice <- serie_indice_risaralda_caldas %>%
+  filter(anio == anio_final_serie) %>%
+  mutate(
+    x_text = anio_final_serie + 0.62,
+    y_text = case_when(
+      depto_label_limpio == "Risaralda" ~ indice_ingreso - 1.2,
+      depto_label_limpio == "Caldas"    ~ indice_ingreso + 1.2
+    )
+  )
+
+#--------------------------------------------------------
+# 5. Crecimiento anualizado
+#--------------------------------------------------------
+
+cambio_indice_depto <- serie_indice_risaralda_caldas %>%
+  filter(anio %in% c(anio_inicio_serie, anio_final_serie)) %>%
+  select(anio, depto_label_limpio, ingreso_hora_real_promedio) %>%
+  pivot_wider(
+    names_from = anio,
+    values_from = ingreso_hora_real_promedio,
+    names_prefix = "y_"
+  ) %>%
+  mutate(
+    ingreso_inicio = .data[[paste0("y_", anio_inicio_serie)]],
+    ingreso_final  = .data[[paste0("y_", anio_final_serie)]],
+    crecimiento_anualizado = 100 * (
+      (ingreso_final / ingreso_inicio)^(1 / (anio_final_serie - anio_inicio_serie)) - 1
+    ),
+    label_cambio = paste0(
+      "Crec. anualizado: ",
+      ifelse(crecimiento_anualizado >= 0, "+", ""),
+      round(crecimiento_anualizado, 2),
+      "%"
+    )
+  )
+
+max_y <- max(serie_indice_risaralda_caldas$indice_ingreso, na.rm = TRUE)
+min_y <- min(serie_indice_risaralda_caldas$indice_ingreso, na.rm = TRUE)
+rango_y <- max_y - min_y
+
+pos_cambio_indice <- cambio_indice_depto %>%
+  arrange(desc(crecimiento_anualizado)) %>%
+  mutate(
+    orden_crecimiento = row_number(),
+    x_inicio = anio_inicio_serie,
+    x_fin = anio_final_serie,
+    x_label = (anio_inicio_serie + anio_final_serie) / 2,
+    y_arrow = case_when(
+      orden_crecimiento == 1 ~ max_y + 0.18 * rango_y,
+      orden_crecimiento == 2 ~ max_y + 0.10 * rango_y
+    )
+  )
+
+#--------------------------------------------------------
+# 6. Graficar
+#--------------------------------------------------------
+
+g_indice_risaralda_caldas <- ggplot(
+  serie_indice_risaralda_caldas,
+  aes(
+    x = anio,
+    y = indice_ingreso,
+    color = depto_label_limpio,
+    group = depto_label_limpio
+  )
+) +
+  geom_hline(
+    yintercept = 100,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.75
+  ) +
+  geom_line(
+    linewidth = 1.25,
+    alpha = 0.95
+  ) +
+  geom_point(
+    size = 3.3,
+    alpha = 0.95
+  ) +
+  geom_label(
+    data = labels_inicio_fin_indice,
+    aes(
+      x = x_label,
+      y = y_label,
+      label = label,
+      fill = depto_label_limpio
+    ),
+    color = "white",
+    fontface = "bold",
+    size = 3.4,
+    label.size = 0.15,
+    label.padding = unit(0.14, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_segment(
+    data = pos_cambio_indice,
+    aes(
+      x = x_inicio,
+      xend = x_fin,
+      y = y_arrow,
+      yend = y_arrow,
+      color = depto_label_limpio
+    ),
+    inherit.aes = FALSE,
+    linewidth = 0.90,
+    arrow = arrow(
+      length = unit(0.18, "cm"),
+      type = "closed"
+    ),
+    show.legend = FALSE
+  ) +
+  geom_label(
+    data = pos_cambio_indice,
+    aes(
+      x = x_label,
+      y = y_arrow,
+      label = label_cambio,
+      fill = depto_label_limpio
+    ),
+    inherit.aes = FALSE,
+    color = "white",
+    fontface = "bold",
+    size = 3.5,
+    label.size = 0.15,
+    label.padding = unit(0.16, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = labels_nombre_final_indice,
+    aes(
+      x = x_text,
+      y = y_text,
+      label = depto_label_limpio,
+      color = depto_label_limpio
+    ),
+    hjust = 0,
+    fontface = "bold",
+    size = 4.2,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(
+    values = c(
+      "Risaralda" = "darkblue",
+      "Caldas"    = "gray50"
+    ),
+    name = NULL
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Risaralda" = "darkblue",
+      "Caldas"    = "gray50"
+    )
+  ) +
+  scale_x_continuous(
+    breaks = sort(unique(serie_indice_risaralda_caldas$anio)),
+    limits = c(anio_inicio_serie - 0.5, anio_final_serie + 1.9)
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(round(x, 0)),
+    expand = expansion(mult = c(0.08, 0.26))
+  ) +
+  labs(
+    title = paste0(
+      "Índice del ingreso laboral por hora: Risaralda y Caldas, ",
+      anio_inicio_serie,
+      "–",
+      anio_final_serie
+    ),
+    subtitle = paste0(
+      "Índice base ",
+      anio_inicio_serie,
+      " = 100. Pesos constantes de 2025"
+    ),
+    x = "",
+    y = paste0(
+      "Índice del ingreso laboral por hora, ",
+      anio_inicio_serie,
+      " = 100"
+    )
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 90, vjust = 0.5),
+    axis.text.y = element_text(size = 10),
+    legend.position = "none",
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.35),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 110, 10, 10)
+  )
+
+g_indice_risaralda_caldas
+
+#========================================================
+# GRÁFICO. Composición ocupacional por departamento
+# Risaralda y Caldas, 2010–2025
+# Un gráfico por departamento
+#========================================================
+
+#--------------------------------------------------------
+# 1. Configuración general
+#--------------------------------------------------------
+
+deptos_ocupacion <- c("Risaralda", "Caldas")
+
+anio_inicio_ocupacion_depto <- 2010
+
+ocupaciones_seleccionadas <- c(
+  "Empleado particular",
+  "Empleado gobierno",
+  "Servicio doméstico",
+  "Cuenta propia",
+  "Patrón/empleador"
+)
+
+orden_ocupacion_comp <- c(
+  "Empleado particular",
+  "Cuenta propia",
+  "Empleado gobierno",
+  "Patrón/empleador",
+  "Servicio doméstico",
+  "Otras posiciones"
+)
+
+colores_ocupacion_comp <- c(
+  "Empleado particular" = "darkblue",
+  "Cuenta propia"      = "#E59F00",
+  "Empleado gobierno"  = "#0B7285",
+  "Patrón/empleador"   = "#6D597A",
+  "Servicio doméstico" = "#A61E4D",
+  "Otras posiciones"   = "#9AA5B1"
+)
+
+#--------------------------------------------------------
+# 2. Preparar datos
+#--------------------------------------------------------
+
+anios_serie_ocupacion <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_ocupacion_depto
+  ) %>%
+  distinct(anio) %>%
+  arrange(anio) %>%
+  pull(anio)
+
+serie_comp_ocupacion_depto <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_ocupacion_depto,
+    !is.na(depto_label),
+    !is.na(fex),
+    fex > 0
+  ) %>%
+  mutate(
+    depto_label_limpio = stringi::stri_trans_general(
+      stringr::str_squish(as.character(depto_label)),
+      "Latin-ASCII"
+    ),
+    ocupacion_label_limpia = stringr::str_squish(as.character(ocupacion_label))
+  ) %>%
+  filter(
+    depto_label_limpio %in% deptos_ocupacion
+  ) %>%
+  mutate(
+    ocupacion_comp = case_when(
+      ocupacion_label_limpia == "Empleado particular" ~ "Empleado particular",
+      ocupacion_label_limpia == "Empleado gobierno" ~ "Empleado gobierno",
+      ocupacion_label_limpia == "Servicio doméstico" ~ "Servicio doméstico",
+      ocupacion_label_limpia == "Cuenta propia" ~ "Cuenta propia",
+      ocupacion_label_limpia == "Patrón/empleador" ~ "Patrón/empleador",
+      TRUE ~ "Otras posiciones"
+    ),
+    depto_label_limpio = factor(
+      depto_label_limpio,
+      levels = c("Risaralda", "Caldas")
+    ),
+    ocupacion_comp = factor(
+      ocupacion_comp,
+      levels = orden_ocupacion_comp
+    )
+  ) %>%
+  group_by(anio, depto_label_limpio, ocupacion_comp) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  tidyr::complete(
+    anio = anios_serie_ocupacion,
+    depto_label_limpio = factor(deptos_ocupacion, levels = deptos_ocupacion),
+    ocupacion_comp = factor(orden_ocupacion_comp, levels = orden_ocupacion_comp),
+    fill = list(
+      observaciones = 0,
+      trabajadores_expandidos = 0
+    )
+  ) %>%
+  group_by(anio, depto_label_limpio) %>%
+  mutate(
+    total_depto_anio = sum(trabajadores_expandidos, na.rm = TRUE),
+    participacion = if_else(
+      total_depto_anio > 0,
+      trabajadores_expandidos / total_depto_anio,
+      0
+    )
+  ) %>%
+  ungroup()
+
+#--------------------------------------------------------
+# 3. Construir posiciones para área apilada
+#--------------------------------------------------------
+
+serie_comp_ocupacion_depto_area <- serie_comp_ocupacion_depto %>%
+  group_by(depto_label_limpio, anio) %>%
+  arrange(ocupacion_comp, .by_group = TRUE) %>%
+  mutate(
+    ymax = cumsum(participacion),
+    ymin = ymax - participacion,
+    ymid = (ymin + ymax) / 2
+  ) %>%
+  ungroup()
+
+anio_inicio_comp <- min(serie_comp_ocupacion_depto_area$anio, na.rm = TRUE)
+anio_final_comp  <- max(serie_comp_ocupacion_depto_area$anio, na.rm = TRUE)
+
+umbral_etiqueta_ocupacion <- 0.035
+
+#--------------------------------------------------------
+# 4. Función para crear gráfico por departamento
+#--------------------------------------------------------
+
+crear_grafico_comp_ocupacion_depto_serie <- function(data, depto_objetivo) {
+  
+  data_plot <- data %>%
+    filter(depto_label_limpio == depto_objetivo)
+  
+  # Etiquetas iniciales: solo porcentaje
+  labels_inicio <- data_plot %>%
+    filter(anio == anio_inicio_comp) %>%
+    mutate(
+      x_label = anio_inicio_comp + 0.25,
+      label = percent(participacion, accuracy = 0.1)
+    ) %>%
+    filter(participacion >= umbral_etiqueta_ocupacion)
+  
+  # Etiquetas finales: nombre + porcentaje
+  labels_final <- data_plot %>%
+    filter(anio == anio_final_comp) %>%
+    mutate(
+      x_label = anio_final_comp + 0.35,
+      label = paste0(
+        stringr::str_wrap(as.character(ocupacion_comp), width = 22),
+        ": ",
+        percent(participacion, accuracy = 0.1)
+      )
+    ) %>%
+    filter(participacion >= umbral_etiqueta_ocupacion)
+  
+  # Cambios en puntos porcentuales
+  cambio_comp <- data_plot %>%
+    filter(anio %in% c(anio_inicio_comp, anio_final_comp)) %>%
+    select(anio, ocupacion_comp, participacion) %>%
+    pivot_wider(
+      names_from = anio,
+      values_from = participacion,
+      names_prefix = "y_"
+    ) %>%
+    mutate(
+      participacion_inicio = .data[[paste0("y_", anio_inicio_comp)]],
+      participacion_final  = .data[[paste0("y_", anio_final_comp)]],
+      cambio_pp = 100 * (participacion_final - participacion_inicio),
+      label_cambio = paste0(
+        ifelse(cambio_pp >= 0, "+", ""),
+        round(cambio_pp, 1),
+        " p.p."
+      )
+    )
+  
+  anio_label_cambio <- data_plot$anio[
+    which.min(abs(
+      data_plot$anio -
+        (anio_inicio_comp + 0.58 * (anio_final_comp - anio_inicio_comp))
+    ))
+  ]
+  
+  labels_cambio <- data_plot %>%
+    filter(anio == anio_label_cambio) %>%
+    select(anio, ocupacion_comp, ymid, participacion) %>%
+    left_join(
+      cambio_comp %>%
+        select(ocupacion_comp, label_cambio),
+      by = "ocupacion_comp"
+    ) %>%
+    mutate(
+      x_label = anio_label_cambio,
+      label = label_cambio
+    ) %>%
+    filter(participacion >= umbral_etiqueta_ocupacion)
+  
+  ggplot(
+    data_plot,
+    aes(
+      x = anio,
+      fill = ocupacion_comp
+    )
+  ) +
+    geom_ribbon(
+      aes(
+        ymin = ymin,
+        ymax = ymax,
+        group = ocupacion_comp
+      ),
+      alpha = 0.96,
+      linewidth = 0
+    ) +
+    geom_line(
+      aes(
+        y = ymax,
+        group = ocupacion_comp
+      ),
+      color = "white",
+      linewidth = 0.60,
+      alpha = 0.80
+    ) +
+    
+    # Etiquetas iniciales: solo porcentaje
+    geom_label(
+      data = labels_inicio,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        fill = ocupacion_comp
+      ),
+      color = "white",
+      fontface = "bold",
+      size = 2.9,
+      label.size = 0.10,
+      label.padding = unit(0.11, "lines"),
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    
+    # Etiquetas de cambio en p.p.
+    geom_label(
+      data = labels_cambio,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        fill = ocupacion_comp
+      ),
+      color = "white",
+      fontface = "bold",
+      size = 2.9,
+      label.size = 0.10,
+      label.padding = unit(0.11, "lines"),
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    
+    # Etiquetas finales directas
+    geom_text(
+      data = labels_final,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        color = ocupacion_comp
+      ),
+      hjust = 0,
+      fontface = "bold",
+      size = 3.3,
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    
+    # Guías hacia etiquetas finales
+    geom_segment(
+      data = labels_final,
+      aes(
+        x = anio_final_comp,
+        xend = x_label - 0.08,
+        y = ymid,
+        yend = ymid,
+        color = ocupacion_comp
+      ),
+      linewidth = 0.50,
+      alpha = 0.80,
+      show.legend = FALSE
+    ) +
+    
+    scale_fill_manual(
+      values = colores_ocupacion_comp
+    ) +
+    scale_color_manual(
+      values = colores_ocupacion_comp
+    ) +
+    scale_x_continuous(
+      breaks = sort(unique(data_plot$anio)),
+      limits = c(anio_inicio_comp, anio_final_comp + 2.6)
+    ) +
+    scale_y_continuous(
+      labels = percent_format(accuracy = 1),
+      limits = c(0, 1),
+      breaks = seq(0, 1, 0.25),
+      expand = expansion(mult = c(0, 0))
+    ) +
+    coord_cartesian(clip = "off") +
+    labs(
+      title = paste0(
+        "Composición ocupacional del empleo en ",
+        depto_objetivo,
+        ", ",
+        anio_inicio_comp,
+        "–",
+        anio_final_comp
+      ),
+      subtitle = "Participación porcentual dentro del total de ocupados del departamento. Cálculo ponderado por factores de expansión",
+      x = "",
+      y = "Participación en el empleo departamental",
+      fill = NULL,
+      color = NULL
+    ) +
+    theme_classic(base_size = 13) +
+    theme(
+      plot.title = element_text(face = "bold", size = 16),
+      plot.subtitle = element_text(size = 11),
+      axis.title = element_text(face = "bold"),
+      axis.text.x = element_text(angle = 90, vjust = 0.5),
+      axis.text.y = element_text(size = 10),
+      legend.position = "none",
+      panel.grid.major.y = element_line(color = "gray88", linewidth = 0.35),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.margin = margin(10, 180, 10, 10)
+    )
+}
+
+#--------------------------------------------------------
+# 5. Crear gráficos
+#--------------------------------------------------------
+
+g_comp_ocupacion_risaralda_serie <- crear_grafico_comp_ocupacion_depto_serie(
+  data = serie_comp_ocupacion_depto_area,
+  depto_objetivo = "Risaralda"
+)
+
+g_comp_ocupacion_caldas_serie <- crear_grafico_comp_ocupacion_depto_serie(
+  data = serie_comp_ocupacion_depto_area,
+  depto_objetivo = "Caldas"
+)
+
+g_comp_ocupacion_risaralda_serie
+g_comp_ocupacion_caldas_serie
+
+#========================================================
+# GRÁFICO. Composición sectorial por departamento
+# Risaralda y Caldas, 2010–2025
+# Un gráfico por departamento
+#========================================================
+
+#--------------------------------------------------------
+# 1. Configuración general
+#--------------------------------------------------------
+
+deptos_sector <- c("Risaralda", "Caldas")
+
+anio_inicio_sector_depto <- 2010
+
+sectores_excluir <- c(
+  "Extraterritoriales",
+  "Organizaciones extraterritoriales",
+  "Actividades de organizaciones y órganos extraterritoriales"
+)
+
+orden_sector_base <- c(
+  "Agricultura",
+  "Minas",
+  "Manufactura",
+  "Servicios públicos",
+  "Construcción",
+  "Comercio",
+  "Alojamiento y comida",
+  "Transporte",
+  "Información y comunicaciones",
+  "Financieras",
+  "Inmobiliarias/profesionales",
+  "Adm. pública",
+  "Educación",
+  "Salud",
+  "Artes y otros servicios",
+  "Hogares empleadores"
+)
+
+colores_sector_depto <- c(
+  "Agricultura"                  = "#6D597A",
+  "Minas"                        = "#495057",
+  "Manufactura"                  = "#B56576",
+  "Servicios públicos"           = "#457B9D",
+  "Construcción"                 = "#E59F00",
+  "Comercio"                     = "darkblue",
+  "Alojamiento y comida"         = "#A61E4D",
+  "Transporte"                   = "#0B7285",
+  "Información y comunicaciones" = "#7B2CBF",
+  "Financieras"                  = "#2A9D8F",
+  "Inmobiliarias/profesionales"  = "#F4A261",
+  "Adm. pública"                 = "#8C1C13",
+  "Educación"                    = "#4361EE",
+  "Salud"                        = "#2B9348",
+  "Artes y otros servicios"      = "#E76F51",
+  "Hogares empleadores"          = "#9C6644"
+)
+
+umbral_etiqueta_sector_depto <- 0.035
+
+#--------------------------------------------------------
+# 2. Preparar datos
+#--------------------------------------------------------
+
+anios_serie_sector <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_sector_depto
+  ) %>%
+  distinct(anio) %>%
+  arrange(anio) %>%
+  pull(anio)
+
+serie_comp_sector_depto <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_sector_depto,
+    !is.na(depto_label),
+    !is.na(sector_label),
+    !is.na(fex),
+    fex > 0
+  ) %>%
+  mutate(
+    depto_label_limpio = stringi::stri_trans_general(
+      stringr::str_squish(as.character(depto_label)),
+      "Latin-ASCII"
+    ),
+    sector_label = stringr::str_squish(as.character(sector_label))
+  ) %>%
+  filter(
+    depto_label_limpio %in% deptos_sector,
+    !(sector_label %in% sectores_excluir)
+  ) %>%
+  mutate(
+    depto_label_limpio = factor(
+      depto_label_limpio,
+      levels = c("Risaralda", "Caldas")
+    ),
+    sector_label = factor(
+      sector_label,
+      levels = orden_sector_base
+    )
+  ) %>%
+  filter(!is.na(sector_label)) %>%
+  group_by(anio, depto_label_limpio, sector_label) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  tidyr::complete(
+    anio = anios_serie_sector,
+    depto_label_limpio = factor(deptos_sector, levels = deptos_sector),
+    sector_label = factor(orden_sector_base, levels = orden_sector_base),
+    fill = list(
+      observaciones = 0,
+      trabajadores_expandidos = 0
+    )
+  ) %>%
+  group_by(anio, depto_label_limpio) %>%
+  mutate(
+    total_depto_anio = sum(trabajadores_expandidos, na.rm = TRUE),
+    participacion = if_else(
+      total_depto_anio > 0,
+      trabajadores_expandidos / total_depto_anio,
+      0
+    )
+  ) %>%
+  ungroup()
+
+#--------------------------------------------------------
+# 3. Construir posiciones para área apilada
+#--------------------------------------------------------
+
+serie_comp_sector_depto_area <- serie_comp_sector_depto %>%
+  group_by(depto_label_limpio, anio) %>%
+  arrange(sector_label, .by_group = TRUE) %>%
+  mutate(
+    ymax = cumsum(participacion),
+    ymin = ymax - participacion,
+    ymid = (ymin + ymax) / 2
+  ) %>%
+  ungroup()
+
+anio_inicio_comp_sector <- min(serie_comp_sector_depto_area$anio, na.rm = TRUE)
+anio_final_comp_sector  <- max(serie_comp_sector_depto_area$anio, na.rm = TRUE)
+
+#--------------------------------------------------------
+# 4. Función para crear gráfico por departamento
+#--------------------------------------------------------
+
+crear_grafico_comp_sector_depto_serie <- function(data, depto_objetivo) {
+  
+  data_plot <- data %>%
+    filter(depto_label_limpio == depto_objetivo)
+  
+  # Etiquetas iniciales: solo porcentaje
+  labels_inicio <- data_plot %>%
+    filter(anio == anio_inicio_comp_sector) %>%
+    mutate(
+      x_label = anio_inicio_comp_sector + 0.25,
+      label = percent(participacion, accuracy = 0.1)
+    ) %>%
+    filter(participacion >= umbral_etiqueta_sector_depto)
+  
+  # Etiquetas finales: nombre + porcentaje
+  labels_final <- data_plot %>%
+    filter(anio == anio_final_comp_sector) %>%
+    mutate(
+      x_label = anio_final_comp_sector + 0.35,
+      label = paste0(
+        stringr::str_wrap(as.character(sector_label), width = 24),
+        ": ",
+        percent(participacion, accuracy = 0.1)
+      )
+    ) %>%
+    filter(participacion >= umbral_etiqueta_sector_depto)
+  
+  # Cambios en puntos porcentuales
+  cambio_comp <- data_plot %>%
+    filter(anio %in% c(anio_inicio_comp_sector, anio_final_comp_sector)) %>%
+    select(anio, sector_label, participacion) %>%
+    pivot_wider(
+      names_from = anio,
+      values_from = participacion,
+      names_prefix = "y_"
+    ) %>%
+    mutate(
+      participacion_inicio = .data[[paste0("y_", anio_inicio_comp_sector)]],
+      participacion_final  = .data[[paste0("y_", anio_final_comp_sector)]],
+      cambio_pp = 100 * (participacion_final - participacion_inicio),
+      label_cambio = paste0(
+        ifelse(cambio_pp >= 0, "+", ""),
+        round(cambio_pp, 1),
+        " p.p."
+      )
+    )
+  
+  anio_label_cambio <- data_plot$anio[
+    which.min(abs(
+      data_plot$anio -
+        (anio_inicio_comp_sector + 0.58 * (anio_final_comp_sector - anio_inicio_comp_sector))
+    ))
+  ]
+  
+  labels_cambio <- data_plot %>%
+    filter(anio == anio_label_cambio) %>%
+    select(anio, sector_label, ymid, participacion) %>%
+    left_join(
+      cambio_comp %>%
+        select(sector_label, label_cambio),
+      by = "sector_label"
+    ) %>%
+    mutate(
+      x_label = anio_label_cambio,
+      label = label_cambio
+    ) %>%
+    filter(participacion >= umbral_etiqueta_sector_depto)
+  
+  ggplot(
+    data_plot,
+    aes(
+      x = anio,
+      fill = sector_label
+    )
+  ) +
+    geom_ribbon(
+      aes(
+        ymin = ymin,
+        ymax = ymax,
+        group = sector_label
+      ),
+      alpha = 0.96,
+      linewidth = 0
+    ) +
+    geom_line(
+      aes(
+        y = ymax,
+        group = sector_label
+      ),
+      color = "white",
+      linewidth = 0.55,
+      alpha = 0.80
+    ) +
+    
+    # Etiquetas iniciales: solo porcentaje
+    geom_label(
+      data = labels_inicio,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        fill = sector_label
+      ),
+      color = "white",
+      fontface = "bold",
+      size = 2.7,
+      label.size = 0.10,
+      label.padding = unit(0.10, "lines"),
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    
+    # Etiquetas de cambio en p.p.
+    geom_label(
+      data = labels_cambio,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        fill = sector_label
+      ),
+      color = "white",
+      fontface = "bold",
+      size = 2.7,
+      label.size = 0.10,
+      label.padding = unit(0.10, "lines"),
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    
+    # Etiquetas finales directas
+    geom_text(
+      data = labels_final,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        color = sector_label
+      ),
+      hjust = 0,
+      fontface = "bold",
+      size = 3.0,
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    
+    # Guías hacia etiquetas finales
+    geom_segment(
+      data = labels_final,
+      aes(
+        x = anio_final_comp_sector,
+        xend = x_label - 0.08,
+        y = ymid,
+        yend = ymid,
+        color = sector_label
+      ),
+      linewidth = 0.45,
+      alpha = 0.80,
+      show.legend = FALSE
+    ) +
+    
+    scale_fill_manual(
+      values = colores_sector_depto
+    ) +
+    scale_color_manual(
+      values = colores_sector_depto
+    ) +
+    scale_x_continuous(
+      breaks = sort(unique(data_plot$anio)),
+      limits = c(anio_inicio_comp_sector, anio_final_comp_sector + 3.0)
+    ) +
+    scale_y_continuous(
+      labels = percent_format(accuracy = 1),
+      breaks = seq(0, 1, 0.25),
+      expand = expansion(mult = c(0, 0))
+    ) +
+    coord_cartesian(
+      ylim = c(0, 1),
+      clip = "off"
+    ) +
+    labs(
+      title = paste0(
+        "Composición sectorial del empleo en ",
+        depto_objetivo,
+        ", ",
+        anio_inicio_comp_sector,
+        "–",
+        anio_final_comp_sector
+      ),
+      subtitle = "Participación porcentual dentro del total de ocupados del departamento. Sectores Rama2D",
+      x = "",
+      y = "Participación en el empleo departamental",
+      fill = NULL,
+      color = NULL
+    ) +
+    theme_classic(base_size = 13) +
+    theme(
+      plot.title = element_text(face = "bold", size = 16),
+      plot.subtitle = element_text(size = 11),
+      axis.title = element_text(face = "bold"),
+      axis.text.x = element_text(angle = 90, vjust = 0.5),
+      axis.text.y = element_text(size = 10),
+      legend.position = "none",
+      panel.grid.major.y = element_line(color = "gray88", linewidth = 0.35),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.margin = margin(10, 220, 10, 10)
+    )
+}
+
+#--------------------------------------------------------
+# 5. Crear gráficos
+#--------------------------------------------------------
+
+g_comp_sector_risaralda_serie <- crear_grafico_comp_sector_depto_serie(
+  data = serie_comp_sector_depto_area,
+  depto_objetivo = "Risaralda"
+)
+
+g_comp_sector_caldas_serie <- crear_grafico_comp_sector_depto_serie(
+  data = serie_comp_sector_depto_area,
+  depto_objetivo = "Caldas"
+)
+
+g_comp_sector_risaralda_serie
+g_comp_sector_caldas_serie
+
+#========================================================
+# GRÁFICO. Composición educativa por departamento
+# Risaralda y Caldas, 2010–2025
+# Un gráfico por departamento
+#========================================================
+
+#--------------------------------------------------------
+# 1. Configuración general
+#--------------------------------------------------------
+
+deptos_educacion <- c("Risaralda", "Caldas")
+
+anio_inicio_educacion_depto <- 2010
+
+orden_educacion_comp <- c(
+  "Ninguno o preescolar",
+  "Básica primaria",
+  "Secundaria o media",
+  "Superior o universitaria"
+)
+
+colores_educacion_depto <- c(
+  "Ninguno o preescolar"      = "#6D597A",
+  "Básica primaria"           = "#E59F00",
+  "Secundaria o media"        = "darkblue",
+  "Superior o universitaria"  = "#0B7285"
+)
+
+umbral_etiqueta_educacion_depto <- 0.035
+
+#--------------------------------------------------------
+# 2. Preparar datos
+#--------------------------------------------------------
+
+anios_serie_educacion <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_educacion_depto
+  ) %>%
+  distinct(anio) %>%
+  arrange(anio) %>%
+  pull(anio)
+
+serie_comp_educacion_depto <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_educacion_depto,
+    !is.na(depto_label),
+    !is.na(educacion),
+    !is.na(fex),
+    fex > 0
+  ) %>%
+  mutate(
+    depto_label_limpio = stringi::stri_trans_general(
+      stringr::str_squish(as.character(depto_label)),
+      "Latin-ASCII"
+    ),
+    educacion_limpia = stringr::str_squish(as.character(educacion)),
+    educacion_ascii = stringi::stri_trans_general(
+      educacion_limpia,
+      "Latin-ASCII"
+    )
+  ) %>%
+  filter(
+    depto_label_limpio %in% deptos_educacion,
+    educacion_ascii != "No sabe, no informa"
+  ) %>%
+  mutate(
+    educacion_comp = case_when(
+      educacion_ascii %in% c("Ninguno", "Preescolar") ~ "Ninguno o preescolar",
+      educacion_ascii == "Basica primaria" ~ "Básica primaria",
+      educacion_ascii %in% c("Basica secundaria", "Media") ~ "Secundaria o media",
+      educacion_ascii == "Superior o universitaria" ~ "Superior o universitaria",
+      TRUE ~ NA_character_
+    ),
+    depto_label_limpio = factor(
+      depto_label_limpio,
+      levels = c("Risaralda", "Caldas")
+    ),
+    educacion_comp = factor(
+      educacion_comp,
+      levels = orden_educacion_comp
+    )
+  ) %>%
+  filter(!is.na(educacion_comp)) %>%
+  group_by(anio, depto_label_limpio, educacion_comp) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  tidyr::complete(
+    anio = anios_serie_educacion,
+    depto_label_limpio = factor(deptos_educacion, levels = deptos_educacion),
+    educacion_comp = factor(orden_educacion_comp, levels = orden_educacion_comp),
+    fill = list(
+      observaciones = 0,
+      trabajadores_expandidos = 0
+    )
+  ) %>%
+  group_by(anio, depto_label_limpio) %>%
+  mutate(
+    total_depto_anio = sum(trabajadores_expandidos, na.rm = TRUE),
+    participacion = if_else(
+      total_depto_anio > 0,
+      trabajadores_expandidos / total_depto_anio,
+      0
+    )
+  ) %>%
+  ungroup()
+
+#--------------------------------------------------------
+# 3. Construir posiciones para área apilada
+#--------------------------------------------------------
+
+serie_comp_educacion_depto_area <- serie_comp_educacion_depto %>%
+  group_by(depto_label_limpio, anio) %>%
+  arrange(educacion_comp, .by_group = TRUE) %>%
+  mutate(
+    ymax = cumsum(participacion),
+    ymin = ymax - participacion,
+    ymid = (ymin + ymax) / 2
+  ) %>%
+  ungroup()
+
+anio_inicio_comp_educacion <- min(
+  serie_comp_educacion_depto_area$anio,
+  na.rm = TRUE
+)
+
+anio_final_comp_educacion <- max(
+  serie_comp_educacion_depto_area$anio,
+  na.rm = TRUE
+)
+
+#--------------------------------------------------------
+# 4. Función para crear gráfico por departamento
+#--------------------------------------------------------
+
+crear_grafico_comp_educacion_depto_serie <- function(data, depto_objetivo) {
+  
+  data_plot <- data %>%
+    filter(depto_label_limpio == depto_objetivo)
+  
+  # Etiquetas iniciales: solo porcentaje
+  labels_inicio <- data_plot %>%
+    filter(anio == anio_inicio_comp_educacion) %>%
+    mutate(
+      x_label = anio_inicio_comp_educacion + 0.25,
+      label = percent(participacion, accuracy = 0.1)
+    ) %>%
+    filter(participacion >= umbral_etiqueta_educacion_depto)
+  
+  # Etiquetas finales: nombre + porcentaje
+  labels_final <- data_plot %>%
+    filter(anio == anio_final_comp_educacion) %>%
+    mutate(
+      x_label = anio_final_comp_educacion + 0.35,
+      label = paste0(
+        stringr::str_wrap(as.character(educacion_comp), width = 24),
+        ": ",
+        percent(participacion, accuracy = 0.1)
+      )
+    ) %>%
+    filter(participacion >= umbral_etiqueta_educacion_depto)
+  
+  # Cambios en puntos porcentuales
+  cambio_comp <- data_plot %>%
+    filter(anio %in% c(anio_inicio_comp_educacion, anio_final_comp_educacion)) %>%
+    select(anio, educacion_comp, participacion) %>%
+    pivot_wider(
+      names_from = anio,
+      values_from = participacion,
+      names_prefix = "y_"
+    ) %>%
+    mutate(
+      participacion_inicio = .data[[paste0("y_", anio_inicio_comp_educacion)]],
+      participacion_final  = .data[[paste0("y_", anio_final_comp_educacion)]],
+      cambio_pp = 100 * (participacion_final - participacion_inicio),
+      label_cambio = paste0(
+        ifelse(cambio_pp >= 0, "+", ""),
+        round(cambio_pp, 1),
+        " p.p."
+      )
+    )
+  
+  anio_label_cambio <- data_plot$anio[
+    which.min(abs(
+      data_plot$anio -
+        (anio_inicio_comp_educacion + 0.58 * (anio_final_comp_educacion - anio_inicio_comp_educacion))
+    ))
+  ]
+  
+  labels_cambio <- data_plot %>%
+    filter(anio == anio_label_cambio) %>%
+    select(anio, educacion_comp, ymid, participacion) %>%
+    left_join(
+      cambio_comp %>%
+        select(educacion_comp, label_cambio),
+      by = "educacion_comp"
+    ) %>%
+    mutate(
+      x_label = anio_label_cambio,
+      label = label_cambio
+    ) %>%
+    filter(participacion >= umbral_etiqueta_educacion_depto)
+  
+  ggplot(
+    data_plot,
+    aes(
+      x = anio,
+      fill = educacion_comp
+    )
+  ) +
+    geom_ribbon(
+      aes(
+        ymin = ymin,
+        ymax = ymax,
+        group = educacion_comp
+      ),
+      alpha = 0.96,
+      linewidth = 0
+    ) +
+    geom_line(
+      aes(
+        y = ymax,
+        group = educacion_comp
+      ),
+      color = "white",
+      linewidth = 0.60,
+      alpha = 0.80
+    ) +
+    
+    # Etiquetas iniciales
+    geom_label(
+      data = labels_inicio,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        fill = educacion_comp
+      ),
+      color = "white",
+      fontface = "bold",
+      size = 2.9,
+      label.size = 0.10,
+      label.padding = unit(0.11, "lines"),
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    
+    # Etiquetas de cambio
+    geom_label(
+      data = labels_cambio,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        fill = educacion_comp
+      ),
+      color = "white",
+      fontface = "bold",
+      size = 2.9,
+      label.size = 0.10,
+      label.padding = unit(0.11, "lines"),
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    
+    # Etiquetas finales directas
+    geom_text(
+      data = labels_final,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        color = educacion_comp
+      ),
+      hjust = 0,
+      fontface = "bold",
+      size = 3.3,
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    
+    # Guías hacia etiquetas finales
+    geom_segment(
+      data = labels_final,
+      aes(
+        x = anio_final_comp_educacion,
+        xend = x_label - 0.08,
+        y = ymid,
+        yend = ymid,
+        color = educacion_comp
+      ),
+      linewidth = 0.50,
+      alpha = 0.80,
+      show.legend = FALSE
+    ) +
+    
+    scale_fill_manual(
+      values = colores_educacion_depto
+    ) +
+    scale_color_manual(
+      values = colores_educacion_depto
+    ) +
+    scale_x_continuous(
+      breaks = sort(unique(data_plot$anio)),
+      limits = c(anio_inicio_comp_educacion, anio_final_comp_educacion + 2.8)
+    ) +
+    scale_y_continuous(
+      labels = percent_format(accuracy = 1),
+      breaks = seq(0, 1, 0.25),
+      expand = expansion(mult = c(0, 0))
+    ) +
+    coord_cartesian(
+      ylim = c(0, 1),
+      clip = "off"
+    ) +
+    labs(
+      title = paste0(
+        "Composición educativa del empleo en ",
+        depto_objetivo,
+        ", ",
+        anio_inicio_comp_educacion,
+        "–",
+        anio_final_comp_educacion
+      ),
+      subtitle = "Participación porcentual dentro del total de ocupados del departamento. Cálculo ponderado por factores de expansión",
+      x = "",
+      y = "Participación en el empleo departamental",
+      fill = NULL,
+      color = NULL
+    ) +
+    theme_classic(base_size = 13) +
+    theme(
+      plot.title = element_text(face = "bold", size = 16),
+      plot.subtitle = element_text(size = 11),
+      axis.title = element_text(face = "bold"),
+      axis.text.x = element_text(angle = 90, vjust = 0.5),
+      axis.text.y = element_text(size = 10),
+      legend.position = "none",
+      panel.grid.major.y = element_line(color = "gray88", linewidth = 0.35),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.margin = margin(10, 190, 10, 10)
+    )
+}
+
+#--------------------------------------------------------
+# 5. Crear gráficos
+#--------------------------------------------------------
+
+g_comp_educacion_risaralda_serie <- crear_grafico_comp_educacion_depto_serie(
+  data = serie_comp_educacion_depto_area,
+  depto_objetivo = "Risaralda"
+)
+
+g_comp_educacion_caldas_serie <- crear_grafico_comp_educacion_depto_serie(
+  data = serie_comp_educacion_depto_area,
+  depto_objetivo = "Caldas"
+)
+
+g_comp_educacion_risaralda_serie
+g_comp_educacion_caldas_serie
+
+#========================================================
+# CRECIMIENTO DE LA REMUNERACIÓN POR SECTOR RAMA2D
+# Risaralda y Caldas, 2010–2025
+#========================================================
+
+#--------------------------------------------------------
+# 1. Configuración general
+#--------------------------------------------------------
+
+deptos_sector_rem <- c("Risaralda", "Caldas")
+
+anio_inicio_sector_rem <- 2010
+
+anio_final_sector_rem <- geih_ingreso %>%
+  filter(anio >= anio_inicio_sector_rem) %>%
+  summarise(
+    anio_final = max(anio, na.rm = TRUE)
+  ) %>%
+  pull(anio_final)
+
+sectores_excluir <- c(
+  "Extraterritoriales",
+  "Organizaciones extraterritoriales",
+  "Actividades de organizaciones y órganos extraterritoriales"
+)
+
+orden_sector_base <- c(
+  "Agricultura",
+  "Minas",
+  "Manufactura",
+  "Servicios públicos",
+  "Construcción",
+  "Comercio",
+  "Alojamiento y comida",
+  "Transporte",
+  "Información y comunicaciones",
+  "Financieras",
+  "Inmobiliarias/profesionales",
+  "Adm. pública",
+  "Educación",
+  "Salud",
+  "Artes y otros servicios",
+  "Hogares empleadores"
+)
+
+#--------------------------------------------------------
+# 2. Ingreso laboral por hora promedio por sector y departamento
+#--------------------------------------------------------
+
+serie_rem_sector_depto <- geih_ingreso %>%
+  filter(
+    !is.na(anio),
+    anio %in% c(anio_inicio_sector_rem, anio_final_sector_rem),
+    !is.na(depto_label),
+    !is.na(sector_label),
+    !is.na(fex),
+    fex > 0,
+    !is.na(ingreso_hora_real)
+  ) %>%
+  mutate(
+    depto_label_limpio = stringi::stri_trans_general(
+      stringr::str_squish(as.character(depto_label)),
+      "Latin-ASCII"
+    ),
+    sector_label = stringr::str_squish(as.character(sector_label))
+  ) %>%
+  filter(
+    depto_label_limpio %in% deptos_sector_rem,
+    !(sector_label %in% sectores_excluir)
+  ) %>%
+  mutate(
+    sector_label = factor(
+      sector_label,
+      levels = orden_sector_base
+    )
+  ) %>%
+  filter(!is.na(sector_label)) %>%
+  group_by(anio, depto_label_limpio, sector_label) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    ingreso_hora_real_promedio = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  )
+
+#--------------------------------------------------------
+# 3. Crecimiento de la remuneración 2010–2025
+#--------------------------------------------------------
+
+crecimiento_rem_sector_depto <- serie_rem_sector_depto %>%
+  select(
+    anio,
+    depto_label_limpio,
+    sector_label,
+    observaciones,
+    trabajadores_expandidos,
+    ingreso_hora_real_promedio
+  ) %>%
+  pivot_wider(
+    names_from = anio,
+    values_from = c(
+      observaciones,
+      trabajadores_expandidos,
+      ingreso_hora_real_promedio
+    ),
+    names_sep = "_"
+  ) %>%
+  filter(
+    !is.na(.data[[paste0("ingreso_hora_real_promedio_", anio_inicio_sector_rem)]]),
+    !is.na(.data[[paste0("ingreso_hora_real_promedio_", anio_final_sector_rem)]])
+  ) %>%
+  mutate(
+    ingreso_inicio = .data[[paste0("ingreso_hora_real_promedio_", anio_inicio_sector_rem)]],
+    ingreso_final  = .data[[paste0("ingreso_hora_real_promedio_", anio_final_sector_rem)]],
+    
+    trabajadores_inicio = .data[[paste0("trabajadores_expandidos_", anio_inicio_sector_rem)]],
+    trabajadores_final  = .data[[paste0("trabajadores_expandidos_", anio_final_sector_rem)]],
+    
+    observaciones_inicio = .data[[paste0("observaciones_", anio_inicio_sector_rem)]],
+    observaciones_final  = .data[[paste0("observaciones_", anio_final_sector_rem)]],
+    
+    indice_final = 100 * ingreso_final / ingreso_inicio,
+    
+    crecimiento_total_pct = 100 * (ingreso_final / ingreso_inicio - 1),
+    
+    crecimiento_anualizado = 100 * (
+      (ingreso_final / ingreso_inicio) ^
+        (1 / (anio_final_sector_rem - anio_inicio_sector_rem)) - 1
+    ),
+    
+    label_crecimiento = paste0(
+      ifelse(crecimiento_anualizado >= 0, "+", ""),
+      round(crecimiento_anualizado, 2),
+      "% anual"
+    ),
+    
+    label_indice = paste0(
+      round(indice_final, 1),
+      " | ",
+      ifelse(crecimiento_anualizado >= 0, "+", ""),
+      round(crecimiento_anualizado, 2),
+      "% anual"
+    )
+  ) %>%
+  arrange(depto_label_limpio, desc(crecimiento_anualizado))
+
+sector_mayor_crecimiento_rem <- crecimiento_rem_sector_depto %>%
+  group_by(depto_label_limpio) %>%
+  slice_max(
+    order_by = crecimiento_anualizado,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup() %>%
+  select(
+    Departamento = depto_label_limpio,
+    Sector = sector_label,
+    ingreso_inicio,
+    ingreso_final,
+    indice_final,
+    crecimiento_total_pct,
+    crecimiento_anualizado,
+    trabajadores_inicio,
+    trabajadores_final,
+    observaciones_inicio,
+    observaciones_final
+  )
+
+sector_mayor_crecimiento_rem
+
+ranking_crecimiento_rem_sector <- crecimiento_rem_sector_depto %>%
+  select(
+    depto_label_limpio,
+    sector_label,
+    ingreso_inicio,
+    ingreso_final,
+    indice_final,
+    crecimiento_total_pct,
+    crecimiento_anualizado,
+    trabajadores_inicio,
+    trabajadores_final,
+    observaciones_inicio,
+    observaciones_final
+  ) %>%
+  arrange(
+    depto_label_limpio,
+    desc(crecimiento_anualizado)
+  )
+
+ranking_crecimiento_rem_sector
+
+#========================================================
+# GRÁFICO. Top sectores por crecimiento de remuneración
+# Risaralda y Caldas, 2010–2025
+#========================================================
+
+top_n_sector_rem <- 8
+
+grafico_crecimiento_rem_sector <- crecimiento_rem_sector_depto %>%
+  group_by(depto_label_limpio) %>%
+  arrange(desc(crecimiento_anualizado), .by_group = TRUE) %>%
+  slice_head(n = top_n_sector_rem) %>%
+  ungroup() %>%
+  arrange(depto_label_limpio, crecimiento_anualizado) %>%
+  mutate(
+    sector_plot = paste0(as.character(sector_label), "___", depto_label_limpio),
+    sector_plot = factor(
+      sector_plot,
+      levels = unique(sector_plot)
+    )
+  )
+
+g_crecimiento_rem_sector_depto <- ggplot(
+  grafico_crecimiento_rem_sector,
+  aes(
+    x = crecimiento_anualizado,
+    y = sector_plot,
+    fill = depto_label_limpio
+  )
+) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.7
+  ) +
+  geom_col(
+    width = 0.68,
+    alpha = 0.95
+  ) +
+  
+  # Etiquetas para crecimientos positivos
+  geom_label(
+    data = grafico_crecimiento_rem_sector %>%
+      filter(crecimiento_anualizado >= 0),
+    aes(
+      label = label_crecimiento
+    ),
+    hjust = -0.08,
+    color = "white",
+    fontface = "bold",
+    size = 3.1,
+    label.size = 0.12,
+    label.padding = unit(0.12, "lines"),
+    show.legend = FALSE
+  ) +
+  
+  # Etiquetas para crecimientos negativos
+  geom_label(
+    data = grafico_crecimiento_rem_sector %>%
+      filter(crecimiento_anualizado < 0),
+    aes(
+      label = label_crecimiento
+    ),
+    hjust = 1.08,
+    color = "white",
+    fontface = "bold",
+    size = 3.1,
+    label.size = 0.12,
+    label.padding = unit(0.12, "lines"),
+    show.legend = FALSE
+  ) +
+  
+  facet_wrap(
+    ~ depto_label_limpio,
+    scales = "free_y",
+    ncol = 1
+  ) +
+  scale_y_discrete(
+    labels = function(x) stringr::str_replace(x, "___.*$", "")
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Risaralda" = "darkblue",
+      "Caldas" = "gray50"
+    )
+  ) +
+  scale_x_continuous(
+    labels = function(x) paste0(round(x, 1), "%"),
+    expand = expansion(mult = c(0.16, 0.26))
+  ) +
+  labs(
+    title = paste0(
+      "Sectores con mayor crecimiento de la remuneración laboral por hora, ",
+      anio_inicio_sector_rem,
+      "–",
+      anio_final_sector_rem
+    ),
+    subtitle = paste0(
+      "Crecimiento anualizado del ingreso laboral por hora real. Top ",
+      top_n_sector_rem,
+      " sectores por departamento"
+    ),
+    x = "Crecimiento anualizado de la remuneración",
+    y = "Sector Rama2D",
+    fill = "Departamento"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.y = element_text(size = 9.5),
+    axis.text.x = element_text(size = 10),
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(face = "bold"),
+    strip.text = element_text(face = "bold", size = 12),
+    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.35),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 100, 10, 10)
+  )
+
+g_crecimiento_rem_sector_depto
+
+
+#========================================================
 # GRÁFICO 19A y 19B. Ingreso por departamento
 # 24 departamentos: 2013 y 2025 por separado
 #========================================================
@@ -4663,6 +6638,2024 @@ g_dumbbell_comp_depto_24 <- ggplot(
   )
 
 g_dumbbell_comp_depto_24
+
+#--------------------------------------------------------
+# 0. Funciones auxiliares
+#--------------------------------------------------------
+
+weighted_mean <- function(x, w) {
+  ok <- !is.na(x) & !is.na(w) & w > 0
+  if (sum(ok) == 0) return(NA_real_)
+  weighted.mean(x[ok], w[ok], na.rm = TRUE)
+}
+
+limpiar_depto_key <- function(x) {
+  stringi::stri_trans_general(
+    stringr::str_squish(as.character(x)),
+    "Latin-ASCII"
+  ) %>%
+    stringr::str_to_lower()
+}
+
+#--------------------------------------------------------
+# 1. Configuración general
+#--------------------------------------------------------
+
+anio_inicio_zoom <- 2013
+
+deptos_zoom <- c(
+  "risaralda",
+  "caldas",
+  "quindio",
+  "la guajira",
+  "cordoba"
+)
+
+nombres_depto_zoom <- c(
+  "risaralda"  = "Risaralda",
+  "caldas"     = "Caldas",
+  "quindio"    = "Quindío",
+  "la guajira" = "La Guajira",
+  "cordoba"    = "Córdoba"
+)
+
+colores_depto_zoom <- c(
+  "risaralda"  = "darkblue",
+  "caldas"     = "gray50",
+  "quindio"    = "#0B7285",
+  "la guajira" = "#A61E4D",
+  "cordoba"    = "#E59F00"
+)
+
+anio_final_zoom <- geih_ingreso %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_zoom,
+    !is.na(depto_label)
+  ) %>%
+  summarise(
+    anio_final = max(anio, na.rm = TRUE)
+  ) %>%
+  pull(anio_final)
+
+#========================================================
+# GRÁFICO 1. Serie de ingreso laboral por hora
+# Departamentos seleccionados, 2013–2025
+#========================================================
+
+serie_ingreso_deptos_zoom <- geih_ingreso %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_zoom,
+    !is.na(depto_label),
+    !is.na(fex),
+    fex > 0,
+    !is.na(ingreso_hora_real)
+  ) %>%
+  mutate(
+    depto_key = limpiar_depto_key(depto_label)
+  ) %>%
+  filter(
+    depto_key %in% deptos_zoom
+  ) %>%
+  group_by(anio, depto_key) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    ingreso_hora_real_promedio = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    depto_label_grafico = nombres_depto_zoom[depto_key],
+    depto_key = factor(depto_key, levels = deptos_zoom),
+    depto_label_grafico = factor(
+      depto_label_grafico,
+      levels = unname(nombres_depto_zoom[deptos_zoom])
+    )
+  ) %>%
+  arrange(depto_key, anio)
+
+anio_inicio_serie_zoom <- min(serie_ingreso_deptos_zoom$anio, na.rm = TRUE)
+anio_final_serie_zoom  <- max(serie_ingreso_deptos_zoom$anio, na.rm = TRUE)
+
+labels_inicio_fin_zoom <- serie_ingreso_deptos_zoom %>%
+  filter(anio %in% c(anio_inicio_serie_zoom, anio_final_serie_zoom)) %>%
+  group_by(anio) %>%
+  arrange(ingreso_hora_real_promedio, .by_group = TRUE) %>%
+  mutate(
+    orden_y = row_number(),
+    ajuste_y = (orden_y - median(orden_y)) * 85,
+    x_label = case_when(
+      anio == anio_inicio_serie_zoom ~ anio - 0.22,
+      anio == anio_final_serie_zoom  ~ anio + 0.20
+    ),
+    y_label = ingreso_hora_real_promedio + ajuste_y
+  ) %>%
+  ungroup()
+
+labels_nombre_final_zoom <- serie_ingreso_deptos_zoom %>%
+  filter(anio == anio_final_serie_zoom) %>%
+  arrange(ingreso_hora_real_promedio) %>%
+  mutate(
+    orden_y = row_number(),
+    ajuste_y = (orden_y - median(orden_y)) * 70,
+    x_text = anio_final_serie_zoom + 0.65,
+    y_text = ingreso_hora_real_promedio + ajuste_y
+  )
+
+cambio_depto_zoom <- serie_ingreso_deptos_zoom %>%
+  filter(anio %in% c(anio_inicio_serie_zoom, anio_final_serie_zoom)) %>%
+  select(anio, depto_key, depto_label_grafico, ingreso_hora_real_promedio) %>%
+  pivot_wider(
+    names_from = anio,
+    values_from = ingreso_hora_real_promedio,
+    names_prefix = "y_"
+  ) %>%
+  mutate(
+    ingreso_inicio = .data[[paste0("y_", anio_inicio_serie_zoom)]],
+    ingreso_final  = .data[[paste0("y_", anio_final_serie_zoom)]],
+    crecimiento_anualizado = 100 * (
+      (ingreso_final / ingreso_inicio) ^
+        (1 / (anio_final_serie_zoom - anio_inicio_serie_zoom)) - 1
+    ),
+    label_cambio = paste0(
+      depto_label_grafico,
+      ": ",
+      ifelse(crecimiento_anualizado >= 0, "+", ""),
+      round(crecimiento_anualizado, 2),
+      "% anual"
+    )
+  )
+
+max_y_zoom <- max(serie_ingreso_deptos_zoom$ingreso_hora_real_promedio, na.rm = TRUE)
+min_y_zoom <- min(serie_ingreso_deptos_zoom$ingreso_hora_real_promedio, na.rm = TRUE)
+rango_y_zoom <- max_y_zoom - min_y_zoom
+
+pos_cambio_depto_zoom <- cambio_depto_zoom %>%
+  arrange(desc(crecimiento_anualizado)) %>%
+  mutate(
+    orden_crecimiento = row_number(),
+    x_inicio = anio_inicio_serie_zoom,
+    x_fin = anio_final_serie_zoom,
+    x_label = (anio_inicio_serie_zoom + anio_final_serie_zoom) / 2,
+    y_arrow = max_y_zoom + (0.08 + 0.045 * (orden_crecimiento - 1)) * rango_y_zoom
+  )
+
+g_ingreso_deptos_zoom <- ggplot(
+  serie_ingreso_deptos_zoom,
+  aes(
+    x = anio,
+    y = ingreso_hora_real_promedio,
+    color = depto_key,
+    group = depto_key
+  )
+) +
+  geom_line(linewidth = 1.20, alpha = 0.95) +
+  geom_point(size = 3.1, alpha = 0.95) +
+  geom_label(
+    data = labels_inicio_fin_zoom,
+    aes(
+      x = x_label,
+      y = y_label,
+      label = comma(ingreso_hora_real_promedio, accuracy = 1),
+      fill = depto_key
+    ),
+    color = "white",
+    fontface = "bold",
+    size = 3.0,
+    label.size = 0.13,
+    label.padding = unit(0.12, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_segment(
+    data = pos_cambio_depto_zoom,
+    aes(
+      x = x_inicio,
+      xend = x_fin,
+      y = y_arrow,
+      yend = y_arrow,
+      color = depto_key
+    ),
+    inherit.aes = FALSE,
+    linewidth = 0.75,
+    arrow = arrow(length = unit(0.16, "cm"), type = "closed"),
+    show.legend = FALSE
+  ) +
+  geom_label(
+    data = pos_cambio_depto_zoom,
+    aes(
+      x = x_label,
+      y = y_arrow,
+      label = label_cambio,
+      fill = depto_key
+    ),
+    inherit.aes = FALSE,
+    color = "white",
+    fontface = "bold",
+    size = 2.9,
+    label.size = 0.12,
+    label.padding = unit(0.12, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = labels_nombre_final_zoom,
+    aes(
+      x = x_text,
+      y = y_text,
+      label = depto_label_grafico,
+      color = depto_key
+    ),
+    hjust = 0,
+    fontface = "bold",
+    size = 3.8,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(values = colores_depto_zoom, name = NULL) +
+  scale_fill_manual(values = colores_depto_zoom) +
+  scale_x_continuous(
+    breaks = sort(unique(serie_ingreso_deptos_zoom$anio)),
+    limits = c(anio_inicio_serie_zoom - 0.5, anio_final_serie_zoom + 2.1)
+  ) +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0.08, 0.34))
+  ) +
+  labs(
+    title = paste0(
+      "Evolución del ingreso laboral por hora en departamentos seleccionados, ",
+      anio_inicio_serie_zoom,
+      "–",
+      anio_final_serie_zoom
+    ),
+    subtitle = "Pesos constantes de 2025. Promedio ponderado por factores de expansión",
+    x = "",
+    y = "Ingreso laboral por hora promedio"
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 90, vjust = 0.5),
+    axis.text.y = element_text(size = 10),
+    legend.position = "none",
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.35),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 135, 10, 10)
+  )
+
+g_ingreso_deptos_zoom
+
+#========================================================
+# GRÁFICO 2. Índice base 2013 = 100
+# Departamentos seleccionados
+#========================================================
+
+base_2013_depto_zoom <- serie_ingreso_deptos_zoom %>%
+  filter(anio == anio_inicio_serie_zoom) %>%
+  select(
+    depto_key,
+    ingreso_base = ingreso_hora_real_promedio
+  )
+
+serie_indice_deptos_zoom <- serie_ingreso_deptos_zoom %>%
+  left_join(
+    base_2013_depto_zoom,
+    by = "depto_key"
+  ) %>%
+  mutate(
+    indice_ingreso = 100 * ingreso_hora_real_promedio / ingreso_base
+  )
+
+labels_inicio_fin_indice_zoom <- serie_indice_deptos_zoom %>%
+  filter(anio %in% c(anio_inicio_serie_zoom, anio_final_serie_zoom)) %>%
+  group_by(anio) %>%
+  arrange(indice_ingreso, .by_group = TRUE) %>%
+  mutate(
+    orden_y = row_number(),
+    ajuste_y = (orden_y - median(orden_y)) * 2.4,
+    x_label = case_when(
+      anio == anio_inicio_serie_zoom ~ anio - 0.22,
+      anio == anio_final_serie_zoom  ~ anio + 0.20
+    ),
+    y_label = indice_ingreso + ajuste_y,
+    label = round(indice_ingreso, 1)
+  ) %>%
+  ungroup()
+
+labels_nombre_final_indice_zoom <- serie_indice_deptos_zoom %>%
+  filter(anio == anio_final_serie_zoom) %>%
+  arrange(indice_ingreso) %>%
+  mutate(
+    orden_y = row_number(),
+    ajuste_y = (orden_y - median(orden_y)) * 2.2,
+    x_text = anio_final_serie_zoom + 0.65,
+    y_text = indice_ingreso + ajuste_y
+  )
+
+max_y_indice_zoom <- max(serie_indice_deptos_zoom$indice_ingreso, na.rm = TRUE)
+min_y_indice_zoom <- min(serie_indice_deptos_zoom$indice_ingreso, na.rm = TRUE)
+rango_y_indice_zoom <- max_y_indice_zoom - min_y_indice_zoom
+
+pos_cambio_indice_zoom <- cambio_depto_zoom %>%
+  arrange(desc(crecimiento_anualizado)) %>%
+  mutate(
+    orden_crecimiento = row_number(),
+    x_inicio = anio_inicio_serie_zoom,
+    x_fin = anio_final_serie_zoom,
+    x_label = (anio_inicio_serie_zoom + anio_final_serie_zoom) / 2,
+    y_arrow = max_y_indice_zoom + (0.10 + 0.05 * (orden_crecimiento - 1)) * rango_y_indice_zoom
+  )
+
+g_indice_deptos_zoom <- ggplot(
+  serie_indice_deptos_zoom,
+  aes(
+    x = anio,
+    y = indice_ingreso,
+    color = depto_key,
+    group = depto_key
+  )
+) +
+  geom_hline(
+    yintercept = 100,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.75
+  ) +
+  geom_line(linewidth = 1.20, alpha = 0.95) +
+  geom_point(size = 3.1, alpha = 0.95) +
+  geom_label(
+    data = labels_inicio_fin_indice_zoom,
+    aes(
+      x = x_label,
+      y = y_label,
+      label = label,
+      fill = depto_key
+    ),
+    color = "white",
+    fontface = "bold",
+    size = 3.0,
+    label.size = 0.13,
+    label.padding = unit(0.12, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_segment(
+    data = pos_cambio_indice_zoom,
+    aes(
+      x = x_inicio,
+      xend = x_fin,
+      y = y_arrow,
+      yend = y_arrow,
+      color = depto_key
+    ),
+    inherit.aes = FALSE,
+    linewidth = 0.75,
+    arrow = arrow(length = unit(0.16, "cm"), type = "closed"),
+    show.legend = FALSE
+  ) +
+  geom_label(
+    data = pos_cambio_indice_zoom,
+    aes(
+      x = x_label,
+      y = y_arrow,
+      label = label_cambio,
+      fill = depto_key
+    ),
+    inherit.aes = FALSE,
+    color = "white",
+    fontface = "bold",
+    size = 2.9,
+    label.size = 0.12,
+    label.padding = unit(0.12, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = labels_nombre_final_indice_zoom,
+    aes(
+      x = x_text,
+      y = y_text,
+      label = depto_label_grafico,
+      color = depto_key
+    ),
+    hjust = 0,
+    fontface = "bold",
+    size = 3.8,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(values = colores_depto_zoom, name = NULL) +
+  scale_fill_manual(values = colores_depto_zoom) +
+  scale_x_continuous(
+    breaks = sort(unique(serie_indice_deptos_zoom$anio)),
+    limits = c(anio_inicio_serie_zoom - 0.5, anio_final_serie_zoom + 2.1)
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(round(x, 0)),
+    expand = expansion(mult = c(0.08, 0.34))
+  ) +
+  labs(
+    title = paste0(
+      "Índice del ingreso laboral por hora en departamentos seleccionados, ",
+      anio_inicio_serie_zoom,
+      "–",
+      anio_final_serie_zoom
+    ),
+    subtitle = paste0(
+      "Índice base ",
+      anio_inicio_serie_zoom,
+      " = 100. Pesos constantes de 2025"
+    ),
+    x = "",
+    y = paste0(
+      "Índice del ingreso laboral por hora, ",
+      anio_inicio_serie_zoom,
+      " = 100"
+    )
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 90, vjust = 0.5),
+    axis.text.y = element_text(size = 10),
+    legend.position = "none",
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.35),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 135, 10, 10)
+  )
+
+g_indice_deptos_zoom
+
+#========================================================
+# FUNCIÓN GENERAL PARA GRÁFICOS DE COMPOSICIÓN
+# Área apilada 100% por departamento
+#========================================================
+
+crear_grafico_area_zoom <- function(
+    data,
+    depto_objetivo,
+    colores_categoria,
+    titulo_tipo,
+    subtitulo,
+    ancho_wrap = 24,
+    umbral = 0.035,
+    margen_derecho = 190
+) {
+  
+  data_plot <- data %>%
+    filter(depto_key == depto_objetivo)
+  
+  nombre_depto <- nombres_depto_zoom[depto_objetivo]
+  
+  anio_inicio_comp <- min(data_plot$anio, na.rm = TRUE)
+  anio_final_comp  <- max(data_plot$anio, na.rm = TRUE)
+  
+  labels_inicio <- data_plot %>%
+    filter(anio == anio_inicio_comp) %>%
+    mutate(
+      x_label = anio_inicio_comp + 0.25,
+      label = percent(participacion, accuracy = 0.1)
+    ) %>%
+    filter(participacion >= umbral)
+  
+  labels_final <- data_plot %>%
+    filter(anio == anio_final_comp) %>%
+    mutate(
+      x_label = anio_final_comp + 0.35,
+      label = paste0(
+        stringr::str_wrap(as.character(categoria), width = ancho_wrap),
+        ": ",
+        percent(participacion, accuracy = 0.1)
+      )
+    ) %>%
+    filter(participacion >= umbral)
+  
+  cambio_comp <- data_plot %>%
+    filter(anio %in% c(anio_inicio_comp, anio_final_comp)) %>%
+    select(anio, categoria, participacion) %>%
+    pivot_wider(
+      names_from = anio,
+      values_from = participacion,
+      names_prefix = "y_"
+    ) %>%
+    mutate(
+      participacion_inicio = .data[[paste0("y_", anio_inicio_comp)]],
+      participacion_final  = .data[[paste0("y_", anio_final_comp)]],
+      cambio_pp = 100 * (participacion_final - participacion_inicio),
+      label_cambio = paste0(
+        ifelse(cambio_pp >= 0, "+", ""),
+        round(cambio_pp, 1),
+        " p.p."
+      )
+    )
+  
+  anio_label_cambio <- data_plot$anio[
+    which.min(abs(
+      data_plot$anio -
+        (anio_inicio_comp + 0.58 * (anio_final_comp - anio_inicio_comp))
+    ))
+  ]
+  
+  labels_cambio <- data_plot %>%
+    filter(anio == anio_label_cambio) %>%
+    select(anio, categoria, ymid, participacion) %>%
+    left_join(
+      cambio_comp %>%
+        select(categoria, label_cambio),
+      by = "categoria"
+    ) %>%
+    mutate(
+      x_label = anio_label_cambio,
+      label = label_cambio
+    ) %>%
+    filter(participacion >= umbral)
+  
+  ggplot(
+    data_plot,
+    aes(
+      x = anio,
+      fill = categoria
+    )
+  ) +
+    geom_ribbon(
+      aes(
+        ymin = ymin,
+        ymax = ymax,
+        group = categoria
+      ),
+      alpha = 0.96,
+      linewidth = 0
+    ) +
+    geom_line(
+      aes(
+        y = ymax,
+        group = categoria
+      ),
+      color = "white",
+      linewidth = 0.60,
+      alpha = 0.80
+    ) +
+    geom_label(
+      data = labels_inicio,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        fill = categoria
+      ),
+      color = "white",
+      fontface = "bold",
+      size = 2.8,
+      label.size = 0.10,
+      label.padding = unit(0.10, "lines"),
+      show.legend = FALSE
+    ) +
+    geom_label(
+      data = labels_cambio,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        fill = categoria
+      ),
+      color = "white",
+      fontface = "bold",
+      size = 2.8,
+      label.size = 0.10,
+      label.padding = unit(0.10, "lines"),
+      show.legend = FALSE
+    ) +
+    geom_text(
+      data = labels_final,
+      aes(
+        x = x_label,
+        y = ymid,
+        label = label,
+        color = categoria
+      ),
+      hjust = 0,
+      fontface = "bold",
+      size = 3.1,
+      lineheight = 0.9,
+      show.legend = FALSE
+    ) +
+    geom_segment(
+      data = labels_final,
+      aes(
+        x = anio_final_comp,
+        xend = x_label - 0.08,
+        y = ymid,
+        yend = ymid,
+        color = categoria
+      ),
+      linewidth = 0.50,
+      alpha = 0.80,
+      show.legend = FALSE
+    ) +
+    scale_fill_manual(values = colores_categoria) +
+    scale_color_manual(values = colores_categoria) +
+    scale_x_continuous(
+      breaks = sort(unique(data_plot$anio)),
+      limits = c(anio_inicio_comp, anio_final_comp + 2.8)
+    ) +
+    scale_y_continuous(
+      labels = percent_format(accuracy = 1),
+      breaks = seq(0, 1, 0.25),
+      expand = expansion(mult = c(0, 0))
+    ) +
+    coord_cartesian(
+      ylim = c(0, 1),
+      clip = "off"
+    ) +
+    labs(
+      title = paste0(
+        titulo_tipo,
+        " en ",
+        nombre_depto,
+        ", ",
+        anio_inicio_comp,
+        "–",
+        anio_final_comp
+      ),
+      subtitle = subtitulo,
+      x = "",
+      y = "Participación en el empleo departamental",
+      fill = NULL,
+      color = NULL
+    ) +
+    theme_classic(base_size = 13) +
+    theme(
+      plot.title = element_text(face = "bold", size = 16),
+      plot.subtitle = element_text(size = 11),
+      axis.title = element_text(face = "bold"),
+      axis.text.x = element_text(angle = 90, vjust = 0.5),
+      axis.text.y = element_text(size = 10),
+      legend.position = "none",
+      panel.grid.major.y = element_line(color = "gray88", linewidth = 0.35),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.margin = margin(10, margen_derecho, 10, 10)
+    )
+}
+
+#========================================================
+# GRÁFICO 3. Composición ocupacional por departamento
+# 2013–2025
+#========================================================
+
+orden_ocupacion_comp <- c(
+  "Empleado particular",
+  "Cuenta propia",
+  "Empleado gobierno",
+  "Patrón/empleador",
+  "Servicio doméstico",
+  "Otras posiciones"
+)
+
+colores_ocupacion_comp <- c(
+  "Empleado particular" = "darkblue",
+  "Cuenta propia"      = "#E59F00",
+  "Empleado gobierno"  = "#0B7285",
+  "Patrón/empleador"   = "#6D597A",
+  "Servicio doméstico" = "#A61E4D",
+  "Otras posiciones"   = "#9AA5B1"
+)
+
+anios_serie_zoom <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_zoom
+  ) %>%
+  distinct(anio) %>%
+  arrange(anio) %>%
+  pull(anio)
+
+serie_comp_ocupacion_zoom <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_zoom,
+    !is.na(depto_label),
+    !is.na(fex),
+    fex > 0
+  ) %>%
+  mutate(
+    depto_key = limpiar_depto_key(depto_label),
+    ocupacion_label_limpia = stringr::str_squish(as.character(ocupacion_label))
+  ) %>%
+  filter(
+    depto_key %in% deptos_zoom
+  ) %>%
+  mutate(
+    categoria = case_when(
+      ocupacion_label_limpia == "Empleado particular" ~ "Empleado particular",
+      ocupacion_label_limpia == "Empleado gobierno" ~ "Empleado gobierno",
+      ocupacion_label_limpia == "Servicio doméstico" ~ "Servicio doméstico",
+      ocupacion_label_limpia == "Cuenta propia" ~ "Cuenta propia",
+      ocupacion_label_limpia == "Patrón/empleador" ~ "Patrón/empleador",
+      TRUE ~ "Otras posiciones"
+    ),
+    depto_key = factor(depto_key, levels = deptos_zoom),
+    categoria = factor(categoria, levels = orden_ocupacion_comp)
+  ) %>%
+  group_by(anio, depto_key, categoria) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  tidyr::complete(
+    anio = anios_serie_zoom,
+    depto_key = factor(deptos_zoom, levels = deptos_zoom),
+    categoria = factor(orden_ocupacion_comp, levels = orden_ocupacion_comp),
+    fill = list(
+      observaciones = 0,
+      trabajadores_expandidos = 0
+    )
+  ) %>%
+  group_by(anio, depto_key) %>%
+  mutate(
+    total_depto_anio = sum(trabajadores_expandidos, na.rm = TRUE),
+    participacion = if_else(
+      total_depto_anio > 0,
+      trabajadores_expandidos / total_depto_anio,
+      0
+    )
+  ) %>%
+  ungroup()
+
+serie_comp_ocupacion_zoom_area <- serie_comp_ocupacion_zoom %>%
+  group_by(depto_key, anio) %>%
+  arrange(categoria, .by_group = TRUE) %>%
+  mutate(
+    ymax = cumsum(participacion),
+    ymin = ymax - participacion,
+    ymid = (ymin + ymax) / 2
+  ) %>%
+  ungroup()
+
+graficos_comp_ocupacion_zoom <- setNames(
+  map(
+    deptos_zoom,
+    ~ crear_grafico_area_zoom(
+      data = serie_comp_ocupacion_zoom_area,
+      depto_objetivo = .x,
+      colores_categoria = colores_ocupacion_comp,
+      titulo_tipo = "Composición ocupacional del empleo",
+      subtitulo = "Participación porcentual dentro del total de ocupados del departamento",
+      ancho_wrap = 22,
+      margen_derecho = 180
+    )
+  ),
+  unname(nombres_depto_zoom[deptos_zoom])
+)
+
+graficos_comp_ocupacion_zoom[["Risaralda"]]
+graficos_comp_ocupacion_zoom[["Caldas"]]
+graficos_comp_ocupacion_zoom[["Quindío"]]
+graficos_comp_ocupacion_zoom[["La Guajira"]]
+graficos_comp_ocupacion_zoom[["Córdoba"]]
+
+#========================================================
+# GRÁFICO 4. Composición sectorial por departamento
+# 2013–2025
+#========================================================
+
+sectores_excluir <- c(
+  "Extraterritoriales",
+  "Organizaciones extraterritoriales",
+  "Actividades de organizaciones y órganos extraterritoriales"
+)
+
+orden_sector_base <- c(
+  "Agricultura",
+  "Minas",
+  "Manufactura",
+  "Servicios públicos",
+  "Construcción",
+  "Comercio",
+  "Alojamiento y comida",
+  "Transporte",
+  "Información y comunicaciones",
+  "Financieras",
+  "Inmobiliarias/profesionales",
+  "Adm. pública",
+  "Educación",
+  "Salud",
+  "Artes y otros servicios",
+  "Hogares empleadores"
+)
+
+colores_sector_depto <- c(
+  "Agricultura"                  = "#6D597A",
+  "Minas"                        = "#495057",
+  "Manufactura"                  = "#B56576",
+  "Servicios públicos"           = "#457B9D",
+  "Construcción"                 = "#E59F00",
+  "Comercio"                     = "darkblue",
+  "Alojamiento y comida"         = "#A61E4D",
+  "Transporte"                   = "#0B7285",
+  "Información y comunicaciones" = "#7B2CBF",
+  "Financieras"                  = "#2A9D8F",
+  "Inmobiliarias/profesionales"  = "#F4A261",
+  "Adm. pública"                 = "#8C1C13",
+  "Educación"                    = "#4361EE",
+  "Salud"                        = "#2B9348",
+  "Artes y otros servicios"      = "#E76F51",
+  "Hogares empleadores"          = "#9C6644"
+)
+
+serie_comp_sector_zoom <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_zoom,
+    !is.na(depto_label),
+    !is.na(sector_label),
+    !is.na(fex),
+    fex > 0
+  ) %>%
+  mutate(
+    depto_key = limpiar_depto_key(depto_label),
+    sector_label = stringr::str_squish(as.character(sector_label))
+  ) %>%
+  filter(
+    depto_key %in% deptos_zoom,
+    !(sector_label %in% sectores_excluir)
+  ) %>%
+  mutate(
+    depto_key = factor(depto_key, levels = deptos_zoom),
+    categoria = factor(sector_label, levels = orden_sector_base)
+  ) %>%
+  filter(!is.na(categoria)) %>%
+  group_by(anio, depto_key, categoria) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  tidyr::complete(
+    anio = anios_serie_zoom,
+    depto_key = factor(deptos_zoom, levels = deptos_zoom),
+    categoria = factor(orden_sector_base, levels = orden_sector_base),
+    fill = list(
+      observaciones = 0,
+      trabajadores_expandidos = 0
+    )
+  ) %>%
+  group_by(anio, depto_key) %>%
+  mutate(
+    total_depto_anio = sum(trabajadores_expandidos, na.rm = TRUE),
+    participacion = if_else(
+      total_depto_anio > 0,
+      trabajadores_expandidos / total_depto_anio,
+      0
+    )
+  ) %>%
+  ungroup()
+
+serie_comp_sector_zoom_area <- serie_comp_sector_zoom %>%
+  group_by(depto_key, anio) %>%
+  arrange(categoria, .by_group = TRUE) %>%
+  mutate(
+    ymax = cumsum(participacion),
+    ymin = ymax - participacion,
+    ymid = (ymin + ymax) / 2
+  ) %>%
+  ungroup()
+
+graficos_comp_sector_zoom <- setNames(
+  map(
+    deptos_zoom,
+    ~ crear_grafico_area_zoom(
+      data = serie_comp_sector_zoom_area,
+      depto_objetivo = .x,
+      colores_categoria = colores_sector_depto,
+      titulo_tipo = "Composición sectorial del empleo",
+      subtitulo = "Participación porcentual dentro del total de ocupados del departamento. Sectores Rama2D",
+      ancho_wrap = 24,
+      margen_derecho = 220
+    )
+  ),
+  unname(nombres_depto_zoom[deptos_zoom])
+)
+
+graficos_comp_sector_zoom[["Risaralda"]]
+graficos_comp_sector_zoom[["Caldas"]]
+graficos_comp_sector_zoom[["Quindío"]]
+graficos_comp_sector_zoom[["La Guajira"]]
+graficos_comp_sector_zoom[["Córdoba"]]
+
+#========================================================
+# GRÁFICO 5. Composición educativa por departamento
+# 2013–2025
+#========================================================
+
+orden_educacion_comp <- c(
+  "Ninguno o preescolar",
+  "Básica primaria",
+  "Secundaria o media",
+  "Superior o universitaria"
+)
+
+colores_educacion_depto <- c(
+  "Ninguno o preescolar"      = "#6D597A",
+  "Básica primaria"           = "#E59F00",
+  "Secundaria o media"        = "darkblue",
+  "Superior o universitaria"  = "#0B7285"
+)
+
+serie_comp_educacion_zoom <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_zoom,
+    !is.na(depto_label),
+    !is.na(educacion),
+    !is.na(fex),
+    fex > 0
+  ) %>%
+  mutate(
+    depto_key = limpiar_depto_key(depto_label),
+    educacion_limpia = stringr::str_squish(as.character(educacion)),
+    educacion_ascii = stringi::stri_trans_general(
+      educacion_limpia,
+      "Latin-ASCII"
+    )
+  ) %>%
+  filter(
+    depto_key %in% deptos_zoom,
+    educacion_ascii != "No sabe, no informa"
+  ) %>%
+  mutate(
+    categoria = case_when(
+      educacion_ascii %in% c("Ninguno", "Preescolar") ~ "Ninguno o preescolar",
+      educacion_ascii == "Basica primaria" ~ "Básica primaria",
+      educacion_ascii %in% c("Basica secundaria", "Media") ~ "Secundaria o media",
+      educacion_ascii == "Superior o universitaria" ~ "Superior o universitaria",
+      TRUE ~ NA_character_
+    ),
+    depto_key = factor(depto_key, levels = deptos_zoom),
+    categoria = factor(categoria, levels = orden_educacion_comp)
+  ) %>%
+  filter(!is.na(categoria)) %>%
+  group_by(anio, depto_key, categoria) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  tidyr::complete(
+    anio = anios_serie_zoom,
+    depto_key = factor(deptos_zoom, levels = deptos_zoom),
+    categoria = factor(orden_educacion_comp, levels = orden_educacion_comp),
+    fill = list(
+      observaciones = 0,
+      trabajadores_expandidos = 0
+    )
+  ) %>%
+  group_by(anio, depto_key) %>%
+  mutate(
+    total_depto_anio = sum(trabajadores_expandidos, na.rm = TRUE),
+    participacion = if_else(
+      total_depto_anio > 0,
+      trabajadores_expandidos / total_depto_anio,
+      0
+    )
+  ) %>%
+  ungroup()
+
+serie_comp_educacion_zoom_area <- serie_comp_educacion_zoom %>%
+  group_by(depto_key, anio) %>%
+  arrange(categoria, .by_group = TRUE) %>%
+  mutate(
+    ymax = cumsum(participacion),
+    ymin = ymax - participacion,
+    ymid = (ymin + ymax) / 2
+  ) %>%
+  ungroup()
+
+graficos_comp_educacion_zoom <- setNames(
+  map(
+    deptos_zoom,
+    ~ crear_grafico_area_zoom(
+      data = serie_comp_educacion_zoom_area,
+      depto_objetivo = .x,
+      colores_categoria = colores_educacion_depto,
+      titulo_tipo = "Composición educativa del empleo",
+      subtitulo = "Participación porcentual dentro del total de ocupados del departamento",
+      ancho_wrap = 24,
+      margen_derecho = 190
+    )
+  ),
+  unname(nombres_depto_zoom[deptos_zoom])
+)
+
+graficos_comp_educacion_zoom[["Risaralda"]]
+graficos_comp_educacion_zoom[["Caldas"]]
+graficos_comp_educacion_zoom[["Quindío"]]
+graficos_comp_educacion_zoom[["La Guajira"]]
+graficos_comp_educacion_zoom[["Córdoba"]]
+
+#========================================================
+# GRÁFICO 6. Sectores que más jalonan el crecimiento
+# Crecimiento anualizado de la remuneración por sector
+# 2013–2025
+# Un gráfico por departamento
+#========================================================
+
+top_n_sector_rem_zoom <- 8
+
+serie_rem_sector_zoom <- geih_ingreso %>%
+  filter(
+    !is.na(anio),
+    anio %in% c(anio_inicio_zoom, anio_final_zoom),
+    !is.na(depto_label),
+    !is.na(sector_label),
+    !is.na(fex),
+    fex > 0,
+    !is.na(ingreso_hora_real)
+  ) %>%
+  mutate(
+    depto_key = limpiar_depto_key(depto_label),
+    sector_label = stringr::str_squish(as.character(sector_label))
+  ) %>%
+  filter(
+    depto_key %in% deptos_zoom,
+    !(sector_label %in% sectores_excluir)
+  ) %>%
+  mutate(
+    sector_label = factor(sector_label, levels = orden_sector_base)
+  ) %>%
+  filter(!is.na(sector_label)) %>%
+  group_by(anio, depto_key, sector_label) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    ingreso_hora_real_promedio = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  )
+
+crecimiento_rem_sector_zoom <- serie_rem_sector_zoom %>%
+  select(
+    anio,
+    depto_key,
+    sector_label,
+    observaciones,
+    trabajadores_expandidos,
+    ingreso_hora_real_promedio
+  ) %>%
+  pivot_wider(
+    names_from = anio,
+    values_from = c(
+      observaciones,
+      trabajadores_expandidos,
+      ingreso_hora_real_promedio
+    ),
+    names_sep = "_"
+  ) %>%
+  filter(
+    !is.na(.data[[paste0("ingreso_hora_real_promedio_", anio_inicio_zoom)]]),
+    !is.na(.data[[paste0("ingreso_hora_real_promedio_", anio_final_zoom)]])
+  ) %>%
+  mutate(
+    ingreso_inicio = .data[[paste0("ingreso_hora_real_promedio_", anio_inicio_zoom)]],
+    ingreso_final  = .data[[paste0("ingreso_hora_real_promedio_", anio_final_zoom)]],
+    
+    trabajadores_inicio = .data[[paste0("trabajadores_expandidos_", anio_inicio_zoom)]],
+    trabajadores_final  = .data[[paste0("trabajadores_expandidos_", anio_final_zoom)]],
+    
+    observaciones_inicio = .data[[paste0("observaciones_", anio_inicio_zoom)]],
+    observaciones_final  = .data[[paste0("observaciones_", anio_final_zoom)]],
+    
+    indice_final = 100 * ingreso_final / ingreso_inicio,
+    
+    crecimiento_total_pct = 100 * (ingreso_final / ingreso_inicio - 1),
+    
+    crecimiento_anualizado = 100 * (
+      (ingreso_final / ingreso_inicio) ^
+        (1 / (anio_final_zoom - anio_inicio_zoom)) - 1
+    ),
+    
+    label_crecimiento = paste0(
+      ifelse(crecimiento_anualizado >= 0, "+", ""),
+      round(crecimiento_anualizado, 2),
+      "% anual"
+    )
+  ) %>%
+  arrange(depto_key, desc(crecimiento_anualizado))
+
+ranking_crecimiento_rem_sector_zoom <- crecimiento_rem_sector_zoom %>%
+  mutate(
+    departamento = nombres_depto_zoom[as.character(depto_key)]
+  ) %>%
+  select(
+    departamento,
+    sector_label,
+    ingreso_inicio,
+    ingreso_final,
+    indice_final,
+    crecimiento_total_pct,
+    crecimiento_anualizado,
+    trabajadores_inicio,
+    trabajadores_final,
+    observaciones_inicio,
+    observaciones_final
+  ) %>%
+  arrange(departamento, desc(crecimiento_anualizado))
+
+ranking_crecimiento_rem_sector_zoom
+
+sector_mayor_crecimiento_rem_zoom <- crecimiento_rem_sector_zoom %>%
+  group_by(depto_key) %>%
+  slice_max(
+    order_by = crecimiento_anualizado,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup() %>%
+  mutate(
+    departamento = nombres_depto_zoom[as.character(depto_key)]
+  ) %>%
+  select(
+    departamento,
+    sector_label,
+    ingreso_inicio,
+    ingreso_final,
+    indice_final,
+    crecimiento_total_pct,
+    crecimiento_anualizado,
+    trabajadores_inicio,
+    trabajadores_final,
+    observaciones_inicio,
+    observaciones_final
+  )
+
+sector_mayor_crecimiento_rem_zoom
+
+#--------------------------------------------------------
+# Función para graficar top sectores de remuneración por departamento
+#--------------------------------------------------------
+
+crear_grafico_crecimiento_rem_sector_zoom <- function(data, depto_objetivo) {
+  
+  data_plot <- data %>%
+    filter(depto_key == depto_objetivo) %>%
+    arrange(desc(crecimiento_anualizado)) %>%
+    slice_head(n = top_n_sector_rem_zoom) %>%
+    arrange(crecimiento_anualizado) %>%
+    mutate(
+      sector_plot = factor(
+        as.character(sector_label),
+        levels = as.character(sector_label)
+      )
+    )
+  
+  nombre_depto <- nombres_depto_zoom[depto_objetivo]
+  color_depto <- colores_depto_zoom[depto_objetivo]
+  
+  ggplot(
+    data_plot,
+    aes(
+      x = crecimiento_anualizado,
+      y = sector_plot
+    )
+  ) +
+    geom_vline(
+      xintercept = 0,
+      linetype = "dashed",
+      color = "gray45",
+      linewidth = 0.7
+    ) +
+    geom_col(
+      fill = color_depto,
+      width = 0.68,
+      alpha = 0.95
+    ) +
+    geom_label(
+      data = data_plot %>% filter(crecimiento_anualizado >= 0),
+      aes(label = label_crecimiento),
+      hjust = -0.08,
+      fill = color_depto,
+      color = "white",
+      fontface = "bold",
+      size = 3.1,
+      label.size = 0.12,
+      label.padding = unit(0.12, "lines"),
+      show.legend = FALSE
+    ) +
+    geom_label(
+      data = data_plot %>% filter(crecimiento_anualizado < 0),
+      aes(label = label_crecimiento),
+      hjust = 1.08,
+      fill = color_depto,
+      color = "white",
+      fontface = "bold",
+      size = 3.1,
+      label.size = 0.12,
+      label.padding = unit(0.12, "lines"),
+      show.legend = FALSE
+    ) +
+    scale_x_continuous(
+      labels = function(x) paste0(round(x, 1), "%"),
+      expand = expansion(mult = c(0.16, 0.26))
+    ) +
+    labs(
+      title = paste0(
+        "Sectores con mayor crecimiento de la remuneración laboral por hora en ",
+        nombre_depto,
+        ", ",
+        anio_inicio_zoom,
+        "–",
+        anio_final_zoom
+      ),
+      subtitle = paste0(
+        "Crecimiento anualizado del ingreso laboral por hora real. Top ",
+        top_n_sector_rem_zoom,
+        " sectores"
+      ),
+      x = "Crecimiento anualizado de la remuneración",
+      y = "Sector Rama2D"
+    ) +
+    theme_classic(base_size = 12) +
+    theme(
+      plot.title = element_text(face = "bold", size = 15),
+      plot.subtitle = element_text(size = 11),
+      axis.title = element_text(face = "bold"),
+      axis.text.y = element_text(size = 9.5),
+      axis.text.x = element_text(size = 10),
+      panel.grid.major.x = element_line(color = "gray90", linewidth = 0.35),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.margin = margin(10, 100, 10, 10)
+    )
+}
+
+graficos_crecimiento_rem_sector_zoom <- setNames(
+  map(
+    deptos_zoom,
+    ~ crear_grafico_crecimiento_rem_sector_zoom(
+      data = crecimiento_rem_sector_zoom,
+      depto_objetivo = .x
+    )
+  ),
+  unname(nombres_depto_zoom[deptos_zoom])
+)
+
+graficos_crecimiento_rem_sector_zoom[["Risaralda"]]
+graficos_crecimiento_rem_sector_zoom[["Caldas"]]
+graficos_crecimiento_rem_sector_zoom[["Quindío"]]
+graficos_crecimiento_rem_sector_zoom[["La Guajira"]]
+graficos_crecimiento_rem_sector_zoom[["Córdoba"]]
+
+#--------------------------------------------------------
+# 0. Funciones auxiliares
+#--------------------------------------------------------
+
+weighted_mean <- function(x, w) {
+  ok <- !is.na(x) & !is.na(w) & w > 0
+  if (sum(ok) == 0) return(NA_real_)
+  weighted.mean(x[ok], w[ok], na.rm = TRUE)
+}
+
+limpiar_key <- function(x) {
+  stringi::stri_trans_general(
+    stringr::str_squish(as.character(x)),
+    "Latin-ASCII"
+  ) %>%
+    stringr::str_to_lower() %>%
+    stringr::str_replace_all("[^a-z0-9 ]", " ") %>%
+    stringr::str_squish()
+}
+
+#--------------------------------------------------------
+# 1. Configuración general
+#--------------------------------------------------------
+
+sector_objetivo <- limpiar_key("Información y comunicaciones")
+
+anio_inicio_info <- 2010
+anio_inicio_depto_24 <- 2013
+
+deptos_24_keys <- c(
+  "antioquia",
+  "atlantico",
+  "bogota d c",
+  "bolivar",
+  "boyaca",
+  "caldas",
+  "caqueta",
+  "cauca",
+  "cesar",
+  "cordoba",
+  "cundinamarca",
+  "choco",
+  "huila",
+  "la guajira",
+  "magdalena",
+  "meta",
+  "narino",
+  "norte de santander",
+  "quindio",
+  "risaralda",
+  "santander",
+  "sucre",
+  "tolima",
+  "valle del cauca"
+)
+
+nombres_deptos_24 <- c(
+  "antioquia"           = "Antioquia",
+  "atlantico"           = "Atlántico",
+  "bogota d c"          = "Bogotá D.C.",
+  "bolivar"             = "Bolívar",
+  "boyaca"              = "Boyacá",
+  "caldas"              = "Caldas",
+  "caqueta"             = "Caquetá",
+  "cauca"               = "Cauca",
+  "cesar"               = "Cesar",
+  "cordoba"             = "Córdoba",
+  "cundinamarca"        = "Cundinamarca",
+  "choco"               = "Chocó",
+  "huila"               = "Huila",
+  "la guajira"          = "La Guajira",
+  "magdalena"           = "Magdalena",
+  "meta"                = "Meta",
+  "narino"              = "Nariño",
+  "norte de santander"  = "Norte de Santander",
+  "quindio"             = "Quindío",
+  "risaralda"           = "Risaralda",
+  "santander"           = "Santander",
+  "sucre"               = "Sucre",
+  "tolima"              = "Tolima",
+  "valle del cauca"     = "Valle del Cauca"
+)
+
+#========================================================
+# GRÁFICO 1. Serie del ingreso laboral por hora
+# Información y comunicaciones, 2010–2025
+#========================================================
+
+#--------------------------------------------------------
+# 1.1. Preparar datos
+#--------------------------------------------------------
+
+serie_ingreso_info_com <- geih_ingreso %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_info,
+    !is.na(sector_label),
+    !is.na(fex),
+    fex > 0,
+    !is.na(ingreso_hora_real)
+  ) %>%
+  mutate(
+    sector_key = limpiar_key(sector_label)
+  ) %>%
+  filter(
+    sector_key == sector_objetivo
+  ) %>%
+  group_by(anio) %>%
+  summarise(
+    observaciones = n(),
+    trabajadores_expandidos = sum(fex, na.rm = TRUE),
+    trabajadores_millones = trabajadores_expandidos / 1e6,
+    ingreso_hora_real_promedio = weighted_mean(ingreso_hora_real, fex),
+    .groups = "drop"
+  ) %>%
+  arrange(anio)
+
+anio_inicio_info_serie <- min(serie_ingreso_info_com$anio, na.rm = TRUE)
+anio_final_info_serie  <- max(serie_ingreso_info_com$anio, na.rm = TRUE)
+
+#--------------------------------------------------------
+# 1.2. Crecimiento anualizado
+#--------------------------------------------------------
+
+cambio_info_com <- serie_ingreso_info_com %>%
+  filter(anio %in% c(anio_inicio_info_serie, anio_final_info_serie)) %>%
+  select(anio, ingreso_hora_real_promedio) %>%
+  pivot_wider(
+    names_from = anio,
+    values_from = ingreso_hora_real_promedio,
+    names_prefix = "y_"
+  ) %>%
+  mutate(
+    ingreso_inicio = .data[[paste0("y_", anio_inicio_info_serie)]],
+    ingreso_final  = .data[[paste0("y_", anio_final_info_serie)]],
+    crecimiento_total_pct = 100 * (ingreso_final / ingreso_inicio - 1),
+    crecimiento_anualizado = 100 * (
+      (ingreso_final / ingreso_inicio) ^
+        (1 / (anio_final_info_serie - anio_inicio_info_serie)) - 1
+    ),
+    label_cambio = paste0(
+      "Crec. anualizado: ",
+      ifelse(crecimiento_anualizado >= 0, "+", ""),
+      round(crecimiento_anualizado, 2),
+      "%"
+    )
+  )
+
+max_y_info <- max(serie_ingreso_info_com$ingreso_hora_real_promedio, na.rm = TRUE)
+min_y_info <- min(serie_ingreso_info_com$ingreso_hora_real_promedio, na.rm = TRUE)
+rango_y_info <- max_y_info - min_y_info
+
+labels_inicio_fin_info <- serie_ingreso_info_com %>%
+  filter(anio %in% c(anio_inicio_info_serie, anio_final_info_serie)) %>%
+  mutate(
+    x_label = case_when(
+      anio == anio_inicio_info_serie ~ anio - 0.25,
+      anio == anio_final_info_serie  ~ anio + 0.25
+    ),
+    y_label = case_when(
+      anio == anio_inicio_info_serie ~ ingreso_hora_real_promedio - 0.05 * rango_y_info,
+      anio == anio_final_info_serie  ~ ingreso_hora_real_promedio + 0.05 * rango_y_info,
+      TRUE ~ ingreso_hora_real_promedio
+    )
+  )
+
+pos_cambio_info <- cambio_info_com %>%
+  mutate(
+    x_inicio = anio_inicio_info_serie,
+    x_fin = anio_final_info_serie,
+    x_label = (anio_inicio_info_serie + anio_final_info_serie) / 2,
+    y_arrow = max_y_info + 0.12 * rango_y_info
+  )
+
+#--------------------------------------------------------
+# 1.3. Graficar
+#--------------------------------------------------------
+
+g_ingreso_info_com <- ggplot(
+  serie_ingreso_info_com,
+  aes(
+    x = anio,
+    y = ingreso_hora_real_promedio
+  )
+) +
+  geom_line(
+    color = "darkblue",
+    linewidth = 1.35,
+    alpha = 0.95
+  ) +
+  geom_point(
+    color = "darkblue",
+    size = 3.5,
+    alpha = 0.95
+  ) +
+  geom_label(
+    data = labels_inicio_fin_info,
+    aes(
+      x = x_label,
+      y = y_label,
+      label = comma(ingreso_hora_real_promedio, accuracy = 1)
+    ),
+    fill = "darkblue",
+    color = "white",
+    fontface = "bold",
+    size = 3.4,
+    label.size = 0.15,
+    label.padding = unit(0.14, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_segment(
+    data = pos_cambio_info,
+    aes(
+      x = x_inicio,
+      xend = x_fin,
+      y = y_arrow,
+      yend = y_arrow
+    ),
+    color = "darkblue",
+    linewidth = 0.90,
+    arrow = arrow(
+      length = unit(0.18, "cm"),
+      type = "closed"
+    ),
+    inherit.aes = FALSE
+  ) +
+  geom_label(
+    data = pos_cambio_info,
+    aes(
+      x = x_label,
+      y = y_arrow,
+      label = label_cambio
+    ),
+    fill = "darkblue",
+    color = "white",
+    fontface = "bold",
+    size = 3.5,
+    label.size = 0.15,
+    label.padding = unit(0.16, "lines"),
+    inherit.aes = FALSE
+  ) +
+  scale_x_continuous(
+    breaks = sort(unique(serie_ingreso_info_com$anio)),
+    limits = c(anio_inicio_info_serie - 0.6, anio_final_info_serie + 0.8)
+  ) +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0.08, 0.25))
+  ) +
+  labs(
+    title = paste0(
+      "Evolución del ingreso laboral por hora en Información y comunicaciones, ",
+      anio_inicio_info_serie,
+      "–",
+      anio_final_info_serie
+    ),
+    subtitle = "Pesos constantes de 2025. Promedio ponderado por factores de expansión",
+    x = "",
+    y = "Ingreso laboral por hora promedio"
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 90, vjust = 0.5),
+    axis.text.y = element_text(size = 10),
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.35),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 70, 10, 10)
+  )
+
+g_ingreso_info_com
+
+#========================================================
+# GRÁFICO 2. Índice del ingreso laboral por hora
+# Información y comunicaciones, base 2010 = 100
+#========================================================
+
+base_info_2010 <- serie_ingreso_info_com %>%
+  filter(anio == anio_inicio_info_serie) %>%
+  summarise(
+    ingreso_base = first(ingreso_hora_real_promedio)
+  ) %>%
+  pull(ingreso_base)
+
+serie_indice_info_com <- serie_ingreso_info_com %>%
+  mutate(
+    indice_ingreso = 100 * ingreso_hora_real_promedio / base_info_2010
+  )
+
+labels_inicio_fin_indice_info <- serie_indice_info_com %>%
+  filter(anio %in% c(anio_inicio_info_serie, anio_final_info_serie)) %>%
+  mutate(
+    x_label = case_when(
+      anio == anio_inicio_info_serie ~ anio - 0.25,
+      anio == anio_final_info_serie  ~ anio + 0.25
+    ),
+    y_label = case_when(
+      anio == anio_inicio_info_serie ~ indice_ingreso - 3,
+      anio == anio_final_info_serie  ~ indice_ingreso + 3,
+      TRUE ~ indice_ingreso
+    ),
+    label = round(indice_ingreso, 1)
+  )
+
+max_y_indice_info <- max(serie_indice_info_com$indice_ingreso, na.rm = TRUE)
+min_y_indice_info <- min(serie_indice_info_com$indice_ingreso, na.rm = TRUE)
+rango_y_indice_info <- max_y_indice_info - min_y_indice_info
+
+pos_cambio_indice_info <- cambio_info_com %>%
+  mutate(
+    x_inicio = anio_inicio_info_serie,
+    x_fin = anio_final_info_serie,
+    x_label = (anio_inicio_info_serie + anio_final_info_serie) / 2,
+    y_arrow = max_y_indice_info + 0.14 * rango_y_indice_info
+  )
+
+g_indice_info_com <- ggplot(
+  serie_indice_info_com,
+  aes(
+    x = anio,
+    y = indice_ingreso
+  )
+) +
+  geom_hline(
+    yintercept = 100,
+    linetype = "dashed",
+    color = "gray45",
+    linewidth = 0.75
+  ) +
+  geom_line(
+    color = "darkblue",
+    linewidth = 1.35,
+    alpha = 0.95
+  ) +
+  geom_point(
+    color = "darkblue",
+    size = 3.5,
+    alpha = 0.95
+  ) +
+  geom_label(
+    data = labels_inicio_fin_indice_info,
+    aes(
+      x = x_label,
+      y = y_label,
+      label = label
+    ),
+    fill = "darkblue",
+    color = "white",
+    fontface = "bold",
+    size = 3.4,
+    label.size = 0.15,
+    label.padding = unit(0.14, "lines"),
+    show.legend = FALSE
+  ) +
+  geom_segment(
+    data = pos_cambio_indice_info,
+    aes(
+      x = x_inicio,
+      xend = x_fin,
+      y = y_arrow,
+      yend = y_arrow
+    ),
+    color = "darkblue",
+    linewidth = 0.90,
+    arrow = arrow(
+      length = unit(0.18, "cm"),
+      type = "closed"
+    ),
+    inherit.aes = FALSE
+  ) +
+  geom_label(
+    data = pos_cambio_indice_info,
+    aes(
+      x = x_label,
+      y = y_arrow,
+      label = label_cambio
+    ),
+    fill = "darkblue",
+    color = "white",
+    fontface = "bold",
+    size = 3.5,
+    label.size = 0.15,
+    label.padding = unit(0.16, "lines"),
+    inherit.aes = FALSE
+  ) +
+  scale_x_continuous(
+    breaks = sort(unique(serie_indice_info_com$anio)),
+    limits = c(anio_inicio_info_serie - 0.6, anio_final_info_serie + 0.8)
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(round(x, 0)),
+    expand = expansion(mult = c(0.08, 0.28))
+  ) +
+  labs(
+    title = paste0(
+      "Índice del ingreso laboral por hora en Información y comunicaciones, ",
+      anio_inicio_info_serie,
+      "–",
+      anio_final_info_serie
+    ),
+    subtitle = paste0(
+      "Índice base ",
+      anio_inicio_info_serie,
+      " = 100. Pesos constantes de 2025"
+    ),
+    x = "",
+    y = paste0(
+      "Índice del ingreso laboral por hora, ",
+      anio_inicio_info_serie,
+      " = 100"
+    )
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 90, vjust = 0.5),
+    axis.text.y = element_text(size = 10),
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.35),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 70, 10, 10)
+  )
+
+g_indice_info_com
+
+#========================================================
+# GRÁFICO 3. Participación de Información y comunicaciones
+# dentro del empleo departamental
+# 24 departamentos, 2013–2025
+#========================================================
+
+#--------------------------------------------------------
+# 3.1. Preparar datos
+#--------------------------------------------------------
+
+serie_part_info_com_depto_24 <- geih %>%
+  filter(
+    !is.na(anio),
+    anio >= anio_inicio_depto_24,
+    !is.na(depto_label),
+    !is.na(sector_label),
+    !is.na(fex),
+    fex > 0
+  ) %>%
+  mutate(
+    depto_key = limpiar_key(depto_label),
+    sector_key = limpiar_key(sector_label)
+  ) %>%
+  filter(
+    depto_key %in% deptos_24_keys
+  ) %>%
+  group_by(anio, depto_key) %>%
+  summarise(
+    trabajadores_total = sum(fex, na.rm = TRUE),
+    trabajadores_info_com = sum(
+      if_else(
+        sector_key == sector_objetivo,
+        fex,
+        0
+      ),
+      na.rm = TRUE
+    ),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    participacion_info_com = trabajadores_info_com / trabajadores_total,
+    depto_label_grafico = nombres_deptos_24[depto_key]
+  )
+
+anio_inicio_part_info <- min(serie_part_info_com_depto_24$anio, na.rm = TRUE)
+anio_final_part_info  <- max(serie_part_info_com_depto_24$anio, na.rm = TRUE)
+
+#--------------------------------------------------------
+# 3.2. Ordenar departamentos según participación en 2025
+#--------------------------------------------------------
+
+orden_deptos_info_2025 <- serie_part_info_com_depto_24 %>%
+  filter(anio == anio_final_part_info) %>%
+  arrange(participacion_info_com) %>%
+  pull(depto_key)
+
+serie_part_info_com_depto_24 <- serie_part_info_com_depto_24 %>%
+  mutate(
+    depto_label_grafico = factor(
+      depto_label_grafico,
+      levels = nombres_deptos_24[orden_deptos_info_2025]
+    )
+  )
+
+#--------------------------------------------------------
+# 3.3. Etiquetas 2025
+#--------------------------------------------------------
+
+labels_part_info_2025 <- serie_part_info_com_depto_24 %>%
+  filter(anio == anio_final_part_info) %>%
+  mutate(
+    x_label = anio_final_part_info + 0.45,
+    label = percent(participacion_info_com, accuracy = 0.1)
+  )
+
+#--------------------------------------------------------
+# 3.4. Graficar heatmap
+#--------------------------------------------------------
+
+g_heatmap_part_info_com_depto_24 <- ggplot(
+  serie_part_info_com_depto_24,
+  aes(
+    x = anio,
+    y = depto_label_grafico,
+    fill = participacion_info_com
+  )
+) +
+  geom_tile(
+    color = "white",
+    linewidth = 0.35
+  ) +
+  geom_text(
+    data = labels_part_info_2025,
+    aes(
+      x = x_label,
+      y = depto_label_grafico,
+      label = label
+    ),
+    inherit.aes = FALSE,
+    hjust = 0,
+    fontface = "bold",
+    size = 3.2,
+    color = "gray20"
+  ) +
+  scale_fill_gradient(
+    low = "gray95",
+    high = "darkblue",
+    labels = percent_format(accuracy = 1),
+    name = "Participación"
+  ) +
+  scale_x_continuous(
+    breaks = sort(unique(serie_part_info_com_depto_24$anio)),
+    limits = c(anio_inicio_part_info - 0.5, anio_final_part_info + 1.8),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  labs(
+    title = paste0(
+      "Participación de Información y comunicaciones en el empleo departamental, ",
+      anio_inicio_part_info,
+      "–",
+      anio_final_part_info
+    ),
+    subtitle = "Porcentaje de ocupados del departamento que trabajan en el sector. 24 departamentos GEIH",
+    x = "",
+    y = "Departamento"
+  ) +
+  coord_cartesian(clip = "off") +
+  theme_classic(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 90, vjust = 0.5),
+    axis.text.y = element_text(size = 9.5),
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(face = "bold"),
+    panel.grid = element_blank(),
+    plot.margin = margin(10, 90, 10, 10)
+  )
+
+g_heatmap_part_info_com_depto_24
+
+#========================================================
+# GRÁFICO 4. Cambio en participación de Información y comunicaciones
+# 24 departamentos, 2013 vs 2025
+# Dumbbell
+#========================================================
+
+dumbbell_part_info_depto_24 <- serie_part_info_com_depto_24 %>%
+  filter(
+    anio %in% c(anio_inicio_part_info, anio_final_part_info)
+  ) %>%
+  select(anio, depto_label_grafico, participacion_info_com) %>%
+  pivot_wider(
+    names_from = anio,
+    values_from = participacion_info_com,
+    names_prefix = "p_"
+  ) %>%
+  mutate(
+    participacion_inicio = .data[[paste0("p_", anio_inicio_part_info)]],
+    participacion_final  = .data[[paste0("p_", anio_final_part_info)]],
+    cambio_pp = 100 * (participacion_final - participacion_inicio),
+    label_cambio = paste0(
+      ifelse(cambio_pp >= 0, "+", ""),
+      round(cambio_pp, 1),
+      " p.p."
+    ),
+    grupo_cambio = case_when(
+      cambio_pp > 0.2  ~ "Aumentó participación",
+      cambio_pp < -0.2 ~ "Redujo participación",
+      TRUE             ~ "Cambio bajo"
+    ),
+    grupo_cambio = factor(
+      grupo_cambio,
+      levels = c(
+        "Aumentó participación",
+        "Cambio bajo",
+        "Redujo participación"
+      )
+    ),
+    x_max = pmax(
+      100 * participacion_inicio,
+      100 * participacion_final
+    ),
+    x_label = x_max + 0.45,
+    depto_label_grafico = reorder(
+      depto_label_grafico,
+      participacion_final
+    )
+  )
+
+puntos_part_info_depto_24 <- dumbbell_part_info_depto_24 %>%
+  select(
+    depto_label_grafico,
+    participacion_inicio,
+    participacion_final
+  ) %>%
+  pivot_longer(
+    cols = c(participacion_inicio, participacion_final),
+    names_to = "anio_tipo",
+    values_to = "participacion"
+  ) %>%
+  mutate(
+    anio = case_when(
+      anio_tipo == "participacion_inicio" ~ as.character(anio_inicio_part_info),
+      anio_tipo == "participacion_final"  ~ as.character(anio_final_part_info)
+    ),
+    anio = factor(
+      anio,
+      levels = c(
+        as.character(anio_inicio_part_info),
+        as.character(anio_final_part_info)
+      )
+    )
+  )
+
+colores_anio_info <- setNames(
+  c("#8ECAE6", "#1D4ED8"),
+  c(as.character(anio_inicio_part_info), as.character(anio_final_part_info))
+)
+
+colores_cambio_info <- c(
+  "Aumentó participación" = "#1B9E77",
+  "Cambio bajo"           = "#9AA5B1",
+  "Redujo participación"  = "#D62828"
+)
+
+g_dumbbell_part_info_com_depto_24 <- ggplot(
+  dumbbell_part_info_depto_24,
+  aes(y = depto_label_grafico)
+) +
+  geom_segment(
+    aes(
+      x = 100 * participacion_inicio,
+      xend = 100 * participacion_final,
+      yend = depto_label_grafico
+    ),
+    color = "gray60",
+    linewidth = 1.15,
+    alpha = 0.90,
+    lineend = "round"
+  ) +
+  geom_point(
+    data = puntos_part_info_depto_24,
+    aes(
+      x = 100 * participacion,
+      y = depto_label_grafico,
+      fill = anio
+    ),
+    shape = 21,
+    color = "white",
+    stroke = 0.8,
+    size = 4.0,
+    alpha = 0.98,
+    inherit.aes = FALSE
+  ) +
+  geom_label(
+    aes(
+      x = x_label,
+      label = label_cambio,
+      fill = grupo_cambio
+    ),
+    color = "white",
+    fontface = "bold",
+    size = 2.8,
+    label.size = 0.10,
+    label.padding = unit(0.10, "lines"),
+    show.legend = FALSE
+  ) +
+  scale_fill_manual(
+    values = c(
+      colores_anio_info,
+      colores_cambio_info
+    ),
+    breaks = c(
+      as.character(anio_inicio_part_info),
+      as.character(anio_final_part_info)
+    ),
+    name = "Año"
+  ) +
+  scale_x_continuous(
+    labels = function(x) paste0(number(x, accuracy = 0.1), "%"),
+    expand = expansion(mult = c(0.04, 0.20))
+  ) +
+  labs(
+    title = paste0(
+      "Cambio en la participación de Información y comunicaciones, ",
+      anio_inicio_part_info,
+      " vs. ",
+      anio_final_part_info
+    ),
+    subtitle = "Participación del sector dentro del empleo total de cada departamento",
+    x = "Participación en el empleo departamental",
+    y = "Departamento"
+  ) +
+  guides(
+    fill = guide_legend(
+      order = 1,
+      override.aes = list(shape = 21, size = 4, color = "white")
+    )
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(face = "bold"),
+    axis.text.y = element_text(size = 9.5),
+    axis.text.x = element_text(size = 10),
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(face = "bold"),
+    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.35),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 100, 10, 10)
+  )
+
+g_dumbbell_part_info_com_depto_24
 
 #========================================================
 # CONFIGURACIÓN GENERAL: SECTORES RAMA2D
