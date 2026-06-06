@@ -60,9 +60,9 @@ SECTOR_SHORT = {
 
 SECTOR_DESCRIPTION = {
     "A": "agricultura, ganadería, caza, silvicultura, pesca y acuicultura",
-    "B": "extracción de carbón, petróleo, gas y otras actividades de minas y canteras",
-    "C": "industrias manufactureras, incluyendo alimentos, textiles, químicos, metales, maquinaria, vehículos, muebles y otras manufacturas",
-    "D+E": "suministro de electricidad, gas y agua, junto con saneamiento, manejo de residuos y actividades relacionadas",
+    "B": "explotación de minas y canteras, incluyendo carbón, petróleo, gas natural, minerales metálicos y otras actividades extractivas",
+    "C": "industrias manufactureras, incluyendo alimentos, bebidas, textiles, químicos, metales, maquinaria, vehículos, muebles y otras manufacturas",
+    "D+E": "suministro de electricidad, gas, vapor y aire acondicionado, junto con distribución de agua, evacuación y tratamiento de aguas residuales, gestión de desechos y saneamiento ambiental",
     "F": "construcción de edificaciones, obras civiles y actividades especializadas de construcción",
     "G+H+I": "comercio al por mayor y al por menor, reparación de vehículos, transporte, almacenamiento, alojamiento y servicios de comida",
     "J": "telecomunicaciones, actividades editoriales y audiovisuales, software, informática y servicios de información",
@@ -71,6 +71,21 @@ SECTOR_DESCRIPTION = {
     "M+N": "actividades profesionales, científicas y técnicas, investigación y desarrollo, y servicios administrativos y de apoyo",
     "O+P+Q": "administración pública y defensa, educación, salud humana y servicios sociales",
     "R+S+T": "actividades artísticas, entretenimiento, recreación, otros servicios personales, asociaciones y hogares como empleadores",
+}
+
+SECTOR_CIIU_CODES = {
+    "A": "A; divisiones 01--03",
+    "B": "B; divisiones 05--09",
+    "C": "C; divisiones 10--33",
+    "D+E": "D y E; divisiones 35--39",
+    "F": "F; divisiones 41--43",
+    "G+H+I": "G, H e I; divisiones 45--56",
+    "J": "J; divisiones 58--63",
+    "K": "K; divisiones 64--66",
+    "L": "L; división 68",
+    "M+N": "M y N; divisiones 69--82",
+    "O+P+Q": "O, P y Q; divisiones 84--88",
+    "R+S+T": "R, S y T; divisiones 90--98",
 }
 
 SUBRAMA_TO_SECTOR = {}
@@ -531,6 +546,38 @@ def write_latex_tables(
     )
 
 
+def write_sector_definition_table() -> None:
+    lines = [
+        r"\begin{longtable}{p{0.22\textwidth}p{0.20\textwidth}p{0.48\textwidth}}",
+        r"\caption{Contenido de las agrupaciones sectoriales CIIU usadas en el informe}",
+        r"\label{tab:sector_definiciones_ciiu}\\",
+        r"\toprule",
+        r"Agrupación & Secciones CIIU & Actividades incluidas \\",
+        r"\midrule",
+        r"\endfirsthead",
+        r"\toprule",
+        r"Agrupación & Secciones CIIU & Actividades incluidas \\",
+        r"\midrule",
+        r"\endhead",
+    ]
+    for code in SECTOR_ORDER:
+        lines.append(
+            f"{escape_latex(SECTOR_SHORT[code])} & "
+            f"{escape_latex(SECTOR_CIIU_CODES[code])} & "
+            f"{escape_latex(SECTOR_DESCRIPTION[code])}. \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\multicolumn{3}{p{0.90\textwidth}}{\footnotesize Nota: la correspondencia sigue la estructura de secciones y divisiones de la CIIU Rev. 4 A.C. del DANE. Las agrupaciones combinadas responden a la disponibilidad del PIB sectorial y a la homologación con subramas de la GEIH usada en este informe. La sección U, organizaciones y entidades extraterritoriales, se excluye del cruce sectorial. Fuente: DANE, CIIU Rev. 4 A.C.; cálculos propios.}\\",
+            r"\end{longtable}",
+        ]
+    )
+    (SECTION_DIR / "pib_geih_productividad_sector_definiciones.tex").write_text(
+        "\n".join(lines), encoding="utf-8"
+    )
+
+
 def fmt_corr_es(value: float) -> str:
     return f"{value:.3f}".replace(".", ",")
 
@@ -776,7 +823,7 @@ def write_sector_detail_sections(sector: pd.DataFrame) -> None:
             [
                 f"\\subsubsection{{{escape_latex(SECTOR_SHORT[code])}}}",
                 "",
-                f"Esta agrupación incluye {SECTOR_DESCRIPTION[code]}.",
+                f"En la CIIU Rev. 4 A.C., esta agrupación corresponde a {SECTOR_CIIU_CODES[code]} e incluye {SECTOR_DESCRIPTION[code]}.",
                 "",
                 *metric_table_lines(
                     metrics,
@@ -1051,6 +1098,7 @@ def main() -> None:
     sector_summary.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
 
     write_latex_tables(total, total_summary, sector_summary)
+    write_sector_definition_table()
     write_sector_correlation_table(sector)
     write_sector_detail_sections(sector)
     draw_index_chart(total)
