@@ -47,11 +47,15 @@
 \graphicspath{{Paper/figures/}{figures/}}
 \newcommand{\tablepath}{Paper/tables/}
 \newcommand{\figurelang}{es}
+\newcommand{\reportseries}{Productividad Colombia}
+\newcommand{\reportseriesdesc}{Evidencia para entender y fomentar la productividad}
+\newcommand{\reportnumber}{Informe 01}
+\newcommand{\reporttitle}{Productividad laboral en Colombia}
+\newcommand{\reportsubtitle}{PIB por trabajador, PIB por hora y diferencias sectoriales, 2010--2025}
 \newif\ifpolicyreport
 \policyreporttrue
 
-\title{Productividad laboral en Colombia, 2010--2025\\
-PIB por trabajador, PIB por hora y diferencias sectoriales}
+\title{\reporttitle\\\reportsubtitle}
 \author{Centro Javeriano de Competitividad}
 \date{\today}
 
@@ -59,16 +63,29 @@ PIB por trabajador, PIB por hora y diferencias sectoriales}
 
 \begin{titlepage}
 \thispagestyle{empty}
-\vspace*{1.0cm}
+\vspace*{0.6cm}
 
-{\large Centro Javeriano de Competitividad\par}
-\vspace{2.4cm}
+\begin{center}
+\includegraphics[width=0.58\textwidth]{logo_cjc_palatino_horizontal.png}
+\end{center}
 
-{\Huge\bfseries Productividad laboral en Colombia, 2010--2025\par}
-\vspace{0.5cm}
-{\Large PIB por trabajador, PIB por hora y diferencias sectoriales\par}
+\vspace{1.5cm}
 
-\vspace{2.0cm}
+\begin{center}
+{\Large\bfseries \reportseries\par}
+\vspace{0.15cm}
+{\large \reportseriesdesc\par}
+
+\vspace{1.4cm}
+
+{\large\bfseries \reportnumber\par}
+\vspace{0.45cm}
+{\Huge\bfseries \reporttitle\par}
+\vspace{0.35cm}
+{\Large \reportsubtitle\par}
+\end{center}
+
+\vspace{1.5cm}
 
 \begin{mdframed}[
   linewidth=1pt,
@@ -86,8 +103,10 @@ Esta serie de informes del Centro Javeriano de Competitividad busca estudiar la 
 
 \vfill
 
-{\large Informe de productividad laboral\par}
+\begin{center}
+{\large Centro Javeriano de Competitividad\par}
 {\large \today\par}
+\end{center}
 
 \end{titlepage}
 
