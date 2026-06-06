@@ -58,6 +58,21 @@ SECTOR_SHORT = {
     "R+S+T": "Artes, otros servicios y hogares",
 }
 
+SECTOR_DESCRIPTION = {
+    "A": "agricultura, ganadería, caza, silvicultura, pesca y acuicultura",
+    "B": "extracción de carbón, petróleo, gas y otras actividades de minas y canteras",
+    "C": "industrias manufactureras, incluyendo alimentos, textiles, químicos, metales, maquinaria, vehículos, muebles y otras manufacturas",
+    "D+E": "suministro de electricidad, gas y agua, junto con saneamiento, manejo de residuos y actividades relacionadas",
+    "F": "construcción de edificaciones, obras civiles y actividades especializadas de construcción",
+    "G+H+I": "comercio al por mayor y al por menor, reparación de vehículos, transporte, almacenamiento, alojamiento y servicios de comida",
+    "J": "telecomunicaciones, actividades editoriales y audiovisuales, software, informática y servicios de información",
+    "K": "intermediación financiera, seguros y actividades auxiliares del sistema financiero",
+    "L": "actividades inmobiliarias, incluyendo alquiler, administración y operación de bienes inmuebles",
+    "M+N": "actividades profesionales, científicas y técnicas, investigación y desarrollo, y servicios administrativos y de apoyo",
+    "O+P+Q": "administración pública y defensa, educación, salud humana y servicios sociales",
+    "R+S+T": "actividades artísticas, entretenimiento, recreación, otros servicios personales, asociaciones y hogares como empleadores",
+}
+
 SUBRAMA_TO_SECTOR = {}
 for code in range(1, 4):
     SUBRAMA_TO_SECTOR[code] = "A"
@@ -298,7 +313,11 @@ def build_productivity() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.D
     return total, total_summary, sector, sector_summary
 
 
-def write_latex_tables(total_summary: pd.DataFrame, sector_summary: pd.DataFrame) -> None:
+def write_latex_tables(
+    total: pd.DataFrame,
+    total_summary: pd.DataFrame,
+    sector_summary: pd.DataFrame,
+) -> None:
     total_lines = [
         r"\begin{table}[H]",
         r"\centering",
@@ -329,6 +348,143 @@ def write_latex_tables(total_summary: pd.DataFrame, sector_summary: pd.DataFrame
     )
     (SECTION_DIR / "pib_geih_productividad_total_table.tex").write_text(
         "\n".join(total_lines), encoding="utf-8"
+    )
+
+    hours = total[total["anio"].between(2010, 2025)].copy()
+    hours = hours[hours["anio"] != 2020].copy()
+    hours["horas_semanales_por_trabajador"] = (
+        hours["horas_anuales"] / hours["ocupados"] / 52
+    )
+    hours_lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        r"\caption{Horas semanales promedio por trabajador, 2010--2025}",
+        r"\label{tab:horas_semanales_promedio}",
+        r"\small",
+        r"\begin{tabular}{lr}",
+        r"\toprule",
+        r"Año & Horas semanales \\",
+        r"\midrule",
+    ]
+    for _, row in hours.sort_values("anio").iterrows():
+        hours_lines.append(
+            f"{int(row['anio'])} & "
+            f"{fmt_num_es(row['horas_semanales_por_trabajador'], 1)} \\\\"
+        )
+    hours_lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: horas semanales promedio calculadas como horas anuales totales divididas por ocupados y por 52 semanas. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con GEIH.}",
+            r"\end{table}",
+        ]
+    )
+    (SECTION_DIR / "horas_semanales_promedio_table.tex").write_text(
+        "\n".join(hours_lines), encoding="utf-8"
+    )
+
+    start_year, end_year = 2010, 2025
+    start = hours.loc[hours["anio"] == start_year].iloc[0]
+    end = hours.loc[hours["anio"] == end_year].iloc[0]
+    labor_summary = pd.DataFrame(
+        [
+            {
+                "indicador": "PIB real",
+                "unidad": "Billones de pesos de 2015",
+                "valor_2010": start["pib_pesos_2015"] / 1e12,
+                "valor_2025": end["pib_pesos_2015"] / 1e12,
+                "crecimiento_anualizado": cagr(
+                    start["pib_pesos_2015"],
+                    end["pib_pesos_2015"],
+                    start_year,
+                    end_year,
+                ),
+            },
+            {
+                "indicador": "Ocupados",
+                "unidad": "Millones de personas",
+                "valor_2010": start["ocupados"] / 1e6,
+                "valor_2025": end["ocupados"] / 1e6,
+                "crecimiento_anualizado": cagr(
+                    start["ocupados"], end["ocupados"], start_year, end_year
+                ),
+            },
+            {
+                "indicador": "Horas semanales por trabajador",
+                "unidad": "Horas por semana",
+                "valor_2010": start["horas_semanales_por_trabajador"],
+                "valor_2025": end["horas_semanales_por_trabajador"],
+                "crecimiento_anualizado": cagr(
+                    start["horas_semanales_por_trabajador"],
+                    end["horas_semanales_por_trabajador"],
+                    start_year,
+                    end_year,
+                ),
+            },
+            {
+                "indicador": "PIB por trabajador",
+                "unidad": "Millones de pesos de 2015 por ocupado",
+                "valor_2010": start["pib_por_trabajador_millones_2015"],
+                "valor_2025": end["pib_por_trabajador_millones_2015"],
+                "crecimiento_anualizado": cagr(
+                    start["pib_por_trabajador_millones_2015"],
+                    end["pib_por_trabajador_millones_2015"],
+                    start_year,
+                    end_year,
+                ),
+            },
+            {
+                "indicador": "PIB por hora trabajada",
+                "unidad": "Miles de pesos de 2015 por hora",
+                "valor_2010": start["pib_por_hora_pesos_2015"] / 1000,
+                "valor_2025": end["pib_por_hora_pesos_2015"] / 1000,
+                "crecimiento_anualizado": cagr(
+                    start["pib_por_hora_pesos_2015"],
+                    end["pib_por_hora_pesos_2015"],
+                    start_year,
+                    end_year,
+                ),
+            },
+        ]
+    )
+    labor_summary.to_csv(
+        TABLE_DIR / "ocupados_horas_resumen.csv", index=False, encoding="utf-8-sig"
+    )
+    labor_summary.to_csv(
+        OUTPUT_TABLE_DIR / "ocupados_horas_resumen.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    labor_lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        r"\caption{PIB, ocupados, horas y productividad laboral, 2010--2025}",
+        r"\label{tab:ocupados_horas_resumen}",
+        r"\small",
+        r"\begin{tabular}{llrrr}",
+        r"\toprule",
+        r"Indicador & Unidad & 2010 & 2025 & Crec. anualizado \\",
+        r"\midrule",
+    ]
+    for _, row in labor_summary.iterrows():
+        labor_lines.append(
+            f"{escape_latex(row['indicador'])} & "
+            f"{escape_latex(row['unidad'])} & "
+            f"{fmt_num_es(row['valor_2010'], 1)} & "
+            f"{fmt_num_es(row['valor_2025'], 1)} & "
+            f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
+        )
+    labor_lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: PIB real en pesos constantes de 2015. Ocupados expandidos con el factor \texttt{fex}. Las horas semanales promedio se calculan como horas anuales totales divididas por ocupados y por 52 semanas. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE, PIB trimestral por el enfoque de producción, y GEIH.}",
+            r"\end{table}",
+        ]
+    )
+    (SECTION_DIR / "ocupados_horas_resumen_table.tex").write_text(
+        "\n".join(labor_lines), encoding="utf-8"
     )
 
     sector_sorted = sector_summary.sort_values("crec_pib_trabajador", ascending=False)
@@ -366,6 +522,201 @@ def write_latex_tables(total_summary: pd.DataFrame, sector_summary: pd.DataFrame
     )
     (SECTION_DIR / "pib_geih_productividad_sector_table.tex").write_text(
         "\n".join(sector_lines), encoding="utf-8"
+    )
+
+
+def classify_growth(value: float) -> str:
+    if pd.isna(value):
+        return "sin información suficiente"
+    if value >= 0.03:
+        return "alto"
+    if value >= 0.01:
+        return "moderado"
+    if value >= 0:
+        return "bajo"
+    return "negativo"
+
+
+def build_metric_rows(start: pd.Series, end: pd.Series) -> pd.DataFrame:
+    start_year = int(start["anio"])
+    end_year = int(end["anio"])
+    start_hours = start["horas_anuales"] / start["ocupados"] / 52
+    end_hours = end["horas_anuales"] / end["ocupados"] / 52
+    rows = [
+        {
+            "indicador": "PIB real",
+            "unidad": "Billones de pesos de 2015",
+            "valor_2010": start["pib_pesos_2015"] / 1e12,
+            "valor_2025": end["pib_pesos_2015"] / 1e12,
+            "crecimiento_anualizado": cagr(
+                start["pib_pesos_2015"], end["pib_pesos_2015"], start_year, end_year
+            ),
+        },
+        {
+            "indicador": "Ocupados",
+            "unidad": "Millones de personas",
+            "valor_2010": start["ocupados"] / 1e6,
+            "valor_2025": end["ocupados"] / 1e6,
+            "crecimiento_anualizado": cagr(
+                start["ocupados"], end["ocupados"], start_year, end_year
+            ),
+        },
+        {
+            "indicador": "Horas semanales por trabajador",
+            "unidad": "Horas por semana",
+            "valor_2010": start_hours,
+            "valor_2025": end_hours,
+            "crecimiento_anualizado": cagr(start_hours, end_hours, start_year, end_year),
+        },
+        {
+            "indicador": "PIB por trabajador",
+            "unidad": "Millones de pesos de 2015 por ocupado",
+            "valor_2010": start["pib_por_trabajador_millones_2015"],
+            "valor_2025": end["pib_por_trabajador_millones_2015"],
+            "crecimiento_anualizado": cagr(
+                start["pib_por_trabajador_millones_2015"],
+                end["pib_por_trabajador_millones_2015"],
+                start_year,
+                end_year,
+            ),
+        },
+        {
+            "indicador": "PIB por hora trabajada",
+            "unidad": "Miles de pesos de 2015 por hora",
+            "valor_2010": start["pib_por_hora_pesos_2015"] / 1000,
+            "valor_2025": end["pib_por_hora_pesos_2015"] / 1000,
+            "crecimiento_anualizado": cagr(
+                start["pib_por_hora_pesos_2015"],
+                end["pib_por_hora_pesos_2015"],
+                start_year,
+                end_year,
+            ),
+        },
+    ]
+    return pd.DataFrame(rows)
+
+
+def metric_table_lines(metrics: pd.DataFrame, label: str, caption: str) -> list[str]:
+    lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        f"\\caption{{{escape_latex(caption)}}}",
+        f"\\label{{{label}}}",
+        r"\scriptsize",
+        r"\begin{tabular}{llrrr}",
+        r"\toprule",
+        r"Indicador & Unidad & 2010 & 2025 & Crec. anualizado \\",
+        r"\midrule",
+    ]
+    for _, row in metrics.iterrows():
+        lines.append(
+            f"{escape_latex(row['indicador'])} & "
+            f"{escape_latex(row['unidad'])} & "
+            f"{fmt_num_es(row['valor_2010'], 1)} & "
+            f"{fmt_num_es(row['valor_2025'], 1)} & "
+            f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
+        )
+    lines.extend([r"\bottomrule", r"\end{tabular}", r"\end{table}"])
+    return lines
+
+
+def write_sector_detail_sections(sector: pd.DataFrame) -> None:
+    detail_rows = []
+    lines = [
+        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones CIIU. En cada caso, el cuadro resume el PIB real sectorial, el número de ocupados, las horas semanales promedio por trabajador, el PIB por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores.",
+        "",
+    ]
+
+    for code in SECTOR_ORDER:
+        part = sector[sector["sector_code"] == code].sort_values("anio")
+        if 2010 not in set(part["anio"]) or 2025 not in set(part["anio"]):
+            continue
+        start = part[part["anio"] == 2010].iloc[0]
+        end = part[part["anio"] == 2025].iloc[0]
+        metrics = build_metric_rows(start, end)
+        metrics["sector_code"] = code
+        metrics["sector"] = SECTOR_SHORT[code]
+        detail_rows.append(metrics)
+
+        pib_growth = metrics.loc[
+            metrics["indicador"].eq("PIB real"), "crecimiento_anualizado"
+        ].iloc[0]
+        emp_growth = metrics.loc[
+            metrics["indicador"].eq("Ocupados"), "crecimiento_anualizado"
+        ].iloc[0]
+        hours_growth = metrics.loc[
+            metrics["indicador"].eq("Horas semanales por trabajador"),
+            "crecimiento_anualizado",
+        ].iloc[0]
+        worker_growth = metrics.loc[
+            metrics["indicador"].eq("PIB por trabajador"),
+            "crecimiento_anualizado",
+        ].iloc[0]
+        hour_growth = metrics.loc[
+            metrics["indicador"].eq("PIB por hora trabajada"),
+            "crecimiento_anualizado",
+        ].iloc[0]
+
+        relation = (
+            "por encima"
+            if hour_growth > worker_growth
+            else "por debajo"
+            if hour_growth < worker_growth
+            else "en línea"
+        )
+        hours_text = (
+            "una reducción de las horas semanales promedio"
+            if hours_growth < 0
+            else "un aumento de las horas semanales promedio"
+            if hours_growth > 0
+            else "estabilidad en las horas semanales promedio"
+        )
+
+        lines.extend(
+            [
+                f"\\subsubsection{{{escape_latex(SECTOR_SHORT[code])}}}",
+                "",
+                f"Esta agrupación incluye {SECTOR_DESCRIPTION[code]}.",
+                "",
+                *metric_table_lines(
+                    metrics,
+                    f"tab:sector_{code.lower().replace('+', '_')}_productividad",
+                    f"{SECTOR_SHORT[code]}: PIB, ocupados, horas y productividad laboral, 2010--2025",
+                ),
+                "",
+                (
+                    f"\\textbf{{En {SECTOR_SHORT[code].lower()}, el crecimiento del PIB real fue "
+                    f"{classify_growth(pib_growth)} y el del PIB por trabajador fue "
+                    f"{classify_growth(worker_growth)}.}} "
+                    f"Entre 2010 y 2025, el PIB real sectorial varió a una tasa anualizada de "
+                    f"{fmt_pct_es(pib_growth)}, mientras que el número de ocupados lo hizo a "
+                    f"{fmt_pct_es(emp_growth)}. Como resultado, el PIB por trabajador varió "
+                    f"{fmt_pct_es(worker_growth)} anual. El PIB por hora se ubicó {relation} de "
+                    f"esa dinámica, con una tasa de {fmt_pct_es(hour_growth)}, en un contexto de "
+                    f"{hours_text} ({fmt_pct_es(hours_growth)} anual)."
+                ),
+                "",
+            ]
+        )
+
+    if detail_rows:
+        detail = pd.concat(detail_rows, ignore_index=True)
+        detail.to_csv(
+            TABLE_DIR / "pib_geih_productividad_sector_detalle.csv",
+            index=False,
+            encoding="utf-8-sig",
+        )
+        detail.to_csv(
+            OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_detalle.csv",
+            index=False,
+            encoding="utf-8-sig",
+        )
+
+    lines.append(
+        r"{\footnotesize Nota general: PIB real en pesos constantes de 2015. Ocupados expandidos con el factor \texttt{fex}. Las horas semanales promedio se calculan como horas anuales totales divididas por ocupados y por 52 semanas. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE, PIB trimestral por el enfoque de producción, y GEIH.}"
+    )
+    (SECTION_DIR / "pib_geih_productividad_sector_detalle.tex").write_text(
+        "\n".join(lines), encoding="utf-8"
     )
 
 
@@ -484,6 +835,12 @@ def main() -> None:
 
     total.to_csv(TABLE_DIR / "pib_geih_productividad_total_series.csv", index=False, encoding="utf-8-sig")
     total.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_total_series.csv", index=False, encoding="utf-8-sig")
+    horas_promedio = total[["anio", "ocupados", "horas_anuales"]].copy()
+    horas_promedio["horas_semanales_por_trabajador"] = (
+        horas_promedio["horas_anuales"] / horas_promedio["ocupados"] / 52
+    )
+    horas_promedio.to_csv(TABLE_DIR / "horas_semanales_promedio.csv", index=False, encoding="utf-8-sig")
+    horas_promedio.to_csv(OUTPUT_TABLE_DIR / "horas_semanales_promedio.csv", index=False, encoding="utf-8-sig")
     total_summary.to_csv(TABLE_DIR / "pib_geih_productividad_total_summary.csv", index=False, encoding="utf-8-sig")
     total_summary.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_total_summary.csv", index=False, encoding="utf-8-sig")
     sector.to_csv(TABLE_DIR / "pib_geih_productividad_sector_series.csv", index=False, encoding="utf-8-sig")
@@ -491,7 +848,8 @@ def main() -> None:
     sector_summary.to_csv(TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
     sector_summary.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
 
-    write_latex_tables(total_summary, sector_summary)
+    write_latex_tables(total, total_summary, sector_summary)
+    write_sector_detail_sections(sector)
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
 
