@@ -530,6 +530,101 @@ def write_latex_tables(
     )
 
 
+def fmt_corr_es(value: float) -> str:
+    return f"{value:.3f}".replace(".", ",")
+
+
+def write_sector_correlation_table(sector: pd.DataFrame) -> None:
+    endpoints = (
+        sector[sector["anio"].isin([2010, 2025])]
+        .pivot(index=["sector_code", "sector_name_short"], columns="anio")
+        .sort_index()
+    )
+    years = 2025 - 2010
+    growth = pd.DataFrame(index=endpoints.index)
+    growth["crec_ocupados"] = (
+        endpoints[("ocupados", 2025)] / endpoints[("ocupados", 2010)]
+    ) ** (1 / years) - 1
+    growth["crec_horas"] = (
+        endpoints[("horas_anuales", 2025)] / endpoints[("horas_anuales", 2010)]
+    ) ** (1 / years) - 1
+    growth["crec_productividad_hora"] = (
+        endpoints[("pib_por_hora_pesos_2015", 2025)]
+        / endpoints[("pib_por_hora_pesos_2015", 2010)]
+    ) ** (1 / years) - 1
+    growth["crec_productividad_trabajador"] = (
+        endpoints[("pib_por_trabajador_millones_2015", 2025)]
+        / endpoints[("pib_por_trabajador_millones_2015", 2010)]
+    ) ** (1 / years) - 1
+    growth = growth.reset_index()
+
+    corr_vars = [
+        "crec_ocupados",
+        "crec_horas",
+        "crec_productividad_hora",
+        "crec_productividad_trabajador",
+    ]
+    labels = {
+        "crec_ocupados": "Ocupados",
+        "crec_horas": "Horas totales",
+        "crec_productividad_hora": "Prod. por hora",
+        "crec_productividad_trabajador": "Prod. por trabajador",
+    }
+    corr = growth[corr_vars].corr()
+    corr.index = [labels[col] for col in corr.index]
+    corr.columns = [labels[col] for col in corr.columns]
+
+    growth.to_csv(
+        TABLE_DIR / "pib_geih_productividad_sector_correlaciones_base.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    growth.to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_correlaciones_base.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    corr.to_csv(
+        TABLE_DIR / "pib_geih_productividad_sector_correlaciones.csv",
+        encoding="utf-8-sig",
+    )
+    corr.to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_correlaciones.csv",
+        encoding="utf-8-sig",
+    )
+
+    lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        r"\caption{Correlaciones entre crecimientos sectoriales, 2010--2025}",
+        r"\label{tab:pib_geih_productividad_sector_correlaciones}",
+        r"\scriptsize",
+        r"\begin{tabular}{lrrrr}",
+        r"\toprule",
+        r"Variable & Ocupados & Horas totales & Prod. por hora & Prod. por trabajador \\",
+        r"\midrule",
+    ]
+    for row_label, row in corr.iterrows():
+        lines.append(
+            f"{escape_latex(row_label)} & "
+            f"{fmt_corr_es(row['Ocupados'])} & "
+            f"{fmt_corr_es(row['Horas totales'])} & "
+            f"{fmt_corr_es(row['Prod. por hora'])} & "
+            f"{fmt_corr_es(row['Prod. por trabajador'])} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: correlaciones de Pearson calculadas entre las tasas de crecimiento anualizado 2010--2025 de las 12 agrupaciones sectoriales CIIU. Las horas corresponden al total anual de horas trabajadas por sector, estimado a partir de GEIH como horas semanales ponderadas por el factor de expansi\'on y multiplicadas por 52. Fuente: c\'alculos propios con DANE y GEIH.}",
+            r"\end{table}",
+        ]
+    )
+    (SECTION_DIR / "pib_geih_productividad_sector_correlaciones.tex").write_text(
+        "\n".join(lines), encoding="utf-8"
+    )
+
+
 def classify_growth(value: float) -> str:
     if pd.isna(value):
         return "sin información suficiente"
@@ -853,6 +948,7 @@ def main() -> None:
     sector_summary.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
 
     write_latex_tables(total, total_summary, sector_summary)
+    write_sector_correlation_table(sector)
     write_sector_detail_sections(sector)
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
