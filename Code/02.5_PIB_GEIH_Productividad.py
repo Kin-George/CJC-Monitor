@@ -929,6 +929,108 @@ def draw_sector_cagr_chart(sector_summary: pd.DataFrame) -> None:
         img.save(directory / "fig_pib_geih_productividad_sector.png")
 
 
+def draw_sector_correlation_scatter(sector: pd.DataFrame) -> None:
+    endpoints = (
+        sector[sector["anio"].isin([2010, 2025])]
+        .pivot(index=["sector_code", "sector_name_short"], columns="anio")
+        .sort_index()
+    )
+    years = 2025 - 2010
+    data = pd.DataFrame(index=endpoints.index)
+    data["ocupados"] = (
+        endpoints[("ocupados", 2025)] / endpoints[("ocupados", 2010)]
+    ) ** (1 / years) - 1
+    data["horas"] = (
+        endpoints[("horas_anuales", 2025)] / endpoints[("horas_anuales", 2010)]
+    ) ** (1 / years) - 1
+    data["prod_trabajador"] = (
+        endpoints[("pib_por_trabajador_millones_2015", 2025)]
+        / endpoints[("pib_por_trabajador_millones_2015", 2010)]
+    ) ** (1 / years) - 1
+    data["prod_hora"] = (
+        endpoints[("pib_por_hora_pesos_2015", 2025)]
+        / endpoints[("pib_por_hora_pesos_2015", 2010)]
+    ) ** (1 / years) - 1
+    data = data.reset_index()
+
+    img = Image.new("RGB", (1800, 1250), "white")
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.load_default()
+    title_font = ImageFont.truetype("arial.ttf", 32) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    label_font = ImageFont.truetype("arial.ttf", 20) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    small_font = ImageFont.truetype("arial.ttf", 17) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+
+    draw.text((70, 35), "Crecimiento sectorial del trabajo y la productividad, 2010--2025", fill="#222222", font=title_font)
+    draw.text((70, 78), "Tasas anualizadas por agrupación CIIU; cada punto representa un sector", fill="#555555", font=label_font)
+
+    panels = [
+        (90, 150, 850, 600, "ocupados", "prod_trabajador", "Ocupados", "PIB por trabajador"),
+        (1010, 150, 1770, 600, "ocupados", "prod_hora", "Ocupados", "PIB por hora"),
+        (90, 720, 850, 1170, "horas", "prod_trabajador", "Horas totales", "PIB por trabajador"),
+        (1010, 720, 1770, 1170, "horas", "prod_hora", "Horas totales", "PIB por hora"),
+    ]
+
+    x_min = math.floor(min(data["ocupados"].min(), data["horas"].min()) * 100) / 100 - 0.01
+    x_max = math.ceil(max(data["ocupados"].max(), data["horas"].max()) * 100) / 100 + 0.01
+    y_min = math.floor(min(data["prod_trabajador"].min(), data["prod_hora"].min()) * 100) / 100 - 0.01
+    y_max = math.ceil(max(data["prod_trabajador"].max(), data["prod_hora"].max()) * 100) / 100 + 0.01
+
+    def pct_label(value: float) -> str:
+        return f"{value * 100:.0f}%"
+
+    for left, top, right, bottom, x_col, y_col, x_lab, y_lab in panels:
+        plot_left, plot_top = left + 90, top + 45
+        plot_right, plot_bottom = right - 35, bottom - 70
+
+        draw.text((left, top), f"{x_lab} vs. {y_lab}", fill="#222222", font=label_font)
+        draw.rectangle((plot_left, plot_top, plot_right, plot_bottom), outline="#333333", width=2)
+
+        def x_pos(value: float) -> float:
+            return plot_left + (value - x_min) / (x_max - x_min) * (plot_right - plot_left)
+
+        def y_pos(value: float) -> float:
+            return plot_bottom - (value - y_min) / (y_max - y_min) * (plot_bottom - plot_top)
+
+        for tick in np.arange(math.ceil(x_min * 100), math.floor(x_max * 100) + 1, 2):
+            value = tick / 100
+            x = x_pos(value)
+            draw.line((x, plot_top, x, plot_bottom), fill="#eeeeee", width=1)
+            draw.text((x - 18, plot_bottom + 12), pct_label(value), fill="#555555", font=small_font)
+        for tick in np.arange(math.ceil(y_min * 100), math.floor(y_max * 100) + 1, 2):
+            value = tick / 100
+            y = y_pos(value)
+            draw.line((plot_left, y, plot_right, y), fill="#eeeeee", width=1)
+            draw.text((plot_left - 58, y - 10), pct_label(value), fill="#555555", font=small_font)
+
+        if x_min < 0 < x_max:
+            x0 = x_pos(0)
+            draw.line((x0, plot_top, x0, plot_bottom), fill="#999999", width=2)
+        if y_min < 0 < y_max:
+            y0 = y_pos(0)
+            draw.line((plot_left, y0, plot_right, y0), fill="#999999", width=2)
+
+        xs = data[x_col].astype(float).to_numpy()
+        ys = data[y_col].astype(float).to_numpy()
+        slope, intercept = np.polyfit(xs, ys, 1)
+        x1, x2 = x_min, x_max
+        draw.line((x_pos(x1), y_pos(slope * x1 + intercept), x_pos(x2), y_pos(slope * x2 + intercept)), fill="#b44b3f", width=3)
+
+        for _, row in data.iterrows():
+            x = x_pos(row[x_col])
+            y = y_pos(row[y_col])
+            draw.ellipse((x - 7, y - 7, x + 7, y + 7), fill="#1f77b4", outline="white", width=2)
+            draw.text((x + 9, y - 10), row["sector_code"], fill="#333333", font=small_font)
+
+        corr = data[[x_col, y_col]].corr().iloc[0, 1]
+        draw.text((plot_left + 10, plot_top + 10), f"r = {corr:.2f}", fill="#b44b3f", font=label_font)
+        draw.text(((plot_left + plot_right) / 2 - 90, bottom - 38), f"Crec. {x_lab.lower()}", fill="#333333", font=small_font)
+
+    draw.text((70, 1210), "Nota: la línea roja muestra la tendencia lineal simple entre sectores.", fill="#555555", font=small_font)
+
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_pib_geih_productividad_sector_correlaciones.png")
+
+
 def main() -> None:
     total, total_summary, sector, sector_summary = build_productivity()
 
@@ -952,6 +1054,7 @@ def main() -> None:
     write_sector_detail_sections(sector)
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
+    draw_sector_correlation_scatter(sector)
 
     print("Resumen total")
     print(total_summary.to_string(index=False))
