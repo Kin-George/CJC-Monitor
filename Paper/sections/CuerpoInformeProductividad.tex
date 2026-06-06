@@ -45,41 +45,19 @@ La comparación también muestra los límites de esa lectura optimista. Costa Ri
 
 \section{Productividad laboral agregada}
 
-Esta sección presenta una primera mirada agregada a la productividad laboral en Colombia. El objetivo es mostrar cómo evolucionaron, entre 2010 y 2025, el PIB real, el número de ocupados, las horas trabajadas y dos medidas complementarias de productividad: el PIB por trabajador y el PIB por hora trabajada. Esta distinción es importante porque un mismo crecimiento del producto puede provenir de márgenes muy distintos: más personas trabajando, más horas por trabajador o mayor valor agregado por cada hora trabajada. Separar estos componentes permite entender si el crecimiento económico estuvo impulsado principalmente por la expansión del empleo o por mejoras en la capacidad productiva del trabajo.
+\textbf{Esta sección presenta una primera mirada agregada a la productividad laboral en Colombia.} El objetivo es mostrar cómo evolucionaron, entre 2010 y 2025, el PIB real, el número de ocupados, las horas trabajadas y dos medidas complementarias de productividad: el PIB por trabajador y el PIB por hora trabajada. Esta distinción es importante porque un mismo crecimiento del producto puede provenir de márgenes muy distintos: más personas trabajando, más horas por trabajador o mayor valor agregado por cada hora trabajada. Separar estos componentes permite entender si el crecimiento económico estuvo impulsado principalmente por la expansión del empleo o por mejoras en la capacidad productiva del trabajo.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.95\textwidth]{Paper/figures/fig_pib_geih_productividad_total.png}
-  \caption{Productividad laboral agregada: PIB por trabajador y PIB por hora}
-  \label{fig:pib_geih_productividad_total}
-\end{figure}
+\textbf{El crecimiento del PIB puede desgregarse entre el crecimiento de los ocupados, el crecimiento de las horas trabajadas por cada ocupado y el crecimiento del PIB por hora trabajada}. El PIB puede expresarce como el producto entre el PIB por trabajdor y el numero de trabajadores, por lo cual el crecimiento del PIB puede desagregarse entre el crecimiento del PIB por trabjador y el crecimiento de los trabajadores:
 
-\input{Paper/sections/ocupados_horas_resumen_table}
-
-El Cuadro \ref{tab:ocupados_horas_resumen} resume la descomposición básica que guía esta sección. El PIB anual se obtiene de las cuentas nacionales del DANE y se expresa en pesos constantes de 2015. Los ocupados y las horas trabajadas provienen de la GEIH, expandidos con el factor de encuesta. Con estas variables, el producto puede escribirse como:
 
 \[
-\text{PIB} = \left(\frac{\text{PIB}}{\text{Horas}}\right) \times \left(\frac{\text{Horas}}{\text{Ocupado}}\right) \times \text{Ocupados}.
+\text{PIB} =
+\left(\frac{\text{PIB}}{\text{Ocupados}}\right)
+\times
+\text{Ocupados}.
 \]
 
-Esta identidad permite separar tres márgenes distintos del crecimiento: cuánto produce la economía por hora trabajada, cuántas horas trabaja en promedio cada ocupado y cuántas personas están ocupadas. En términos de tasas de crecimiento anualizadas, el crecimiento del PIB puede expresarse como la combinación de esos tres componentes:
-
-\[
-1 + g_{\text{PIB}} =
-\left(1 + g_{\text{PIB/Horas}}\right)
-\left(1 + g_{\text{Horas/Ocupado}}\right)
-\left(1 + g_{\text{Ocupados}}\right).
-\]
-
-Para tasas moderadas, esta relación también puede leerse de manera aproximada como una suma:
-
-\[
-g_{\text{PIB}} \approx g_{\text{PIB/Horas}} + g_{\text{Horas/Ocupado}} + g_{\text{Ocupados}}.
-\]
-
-Así, el crecimiento del PIB puede desagregarse entre el crecimiento del PIB por hora, el crecimiento de las horas por ocupado y el crecimiento del número de ocupados. Por eso el cuadro presenta, junto al PIB real, el número de ocupados, las horas semanales promedio por trabajador, el PIB por trabajador y el PIB por hora trabajada. La lectura conjunta de estos indicadores permite distinguir si el crecimiento del producto proviene principalmente de más empleo, de más horas por trabajador o de una mayor productividad por hora.
-
-La misma identidad también permite conectar las dos medidas de productividad usadas en el informe:
+A su vez,  el PIB por trabajador combina dos elementos: cuánto se produce por cada hora trabajada y cuántas horas trabaja, en promedio, cada ocupado:
 
 \[
 \frac{\text{PIB}}{\text{Ocupado}} =
@@ -88,7 +66,28 @@ La misma identidad también permite conectar las dos medidas de productividad us
 \left(\frac{\text{Horas}}{\text{Ocupado}}\right).
 \]
 
-Es decir, el PIB por trabajador combina dos elementos: cuánto se produce por cada hora trabajada y cuántas horas trabaja, en promedio, cada ocupado. Por esta razón, el PIB por trabajador puede crecer menos que el PIB por hora cuando las horas promedio por ocupado disminuyen, incluso si la economía produce más por cada hora efectiva de trabajo.
+
+
+Así, el crecimiento del PIB puede desagregarse entre el crecimiento del PIB por hora, el crecimiento de las horas por ocupado y el crecimiento del número de ocupados. Por eso el cuadro presenta, junto al PIB real, el número de ocupados, las horas semanales promedio por trabajador, el PIB por trabajador y el PIB por hora trabajada:
+
+\[
+\text{PIB} = \left(\frac{\text{PIB}}{\text{Horas}}\right) \times \left(\frac{\text{Horas}}{\text{Ocupado}}\right) \times \text{Ocupados}.
+\]
+
+ La lectura conjunta de estos indicadores permite distinguir si el crecimiento del producto proviene principalmente de más empleo, de más horas por trabajador o de una mayor productividad por hora.
+
+
+
+%\begin{figure}[H]
+%  \centering
+%  \includegraphics[width=0.95\textwidth]{Paper/figures/fig_pib_geih_productividad_total.png}
+%  \caption{Productividad laboral agregada: PIB por trabajador y PIB por hora}
+%  \label{fig:pib_geih_productividad_total}
+%\end{figure}
+
+\input{Paper/sections/ocupados_horas_resumen_table}
+
+El Cuadro \ref{tab:ocupados_horas_resumen} resume la descomposición básica que guía esta sección. El PIB anual se obtiene de las cuentas nacionales del DANE y se expresa en pesos constantes de 2015. Los ocupados y las horas trabajadas provienen de la GEIH, expandidos con el factor de encuesta. 
 
 \textbf{La productividad laboral agregada aumentó entre 2010 y 2025, pero a un ritmo moderado.} El PIB por trabajador pasó de 38,0 a 44,5 millones de pesos constantes de 2015, equivalente a un crecimiento anualizado de 1,05\%. La medida por hora trabajada muestra una dinámica algo más favorable: aumentó de 15.625 a 19.563 pesos constantes de 2015 por hora, con una tasa anualizada de 1,51\%. La diferencia entre ambos indicadores es informativa: el número de ocupados creció con fuerza, de 16,8 a 23,0 millones de personas, pero las horas semanales promedio por trabajador descendieron de 46,8 a 43,7. Por esa razón, el denominador del PIB por hora crece menos que el denominador del PIB por trabajador, haciendo que la productividad por hora aumente más rápido que la productividad por ocupado.
 
