@@ -192,7 +192,11 @@ def load_geih() -> tuple[pd.DataFrame, pd.DataFrame]:
     geih["horas"] = pd.to_numeric(geih["horas"], errors="coerce")
     geih["subrama_det_cod"] = pd.to_numeric(geih["subrama_det_cod"], errors="coerce")
 
-    geih = geih[(geih["anio"].between(2010, 2025)) & (geih["fex"] > 0)].copy()
+    geih = geih[
+        (geih["anio"].between(2010, 2025))
+        & (geih["anio"] != 2020)
+        & (geih["fex"] > 0)
+    ].copy()
     geih["horas_validas"] = geih["horas"].where(geih["horas"].between(1, 112))
     geih["horas_sem_expand"] = geih["fex"] * geih["horas_validas"]
 
@@ -224,12 +228,14 @@ def build_productivity() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.D
     geih_total, geih_sector = load_geih()
 
     total = pib_total.merge(geih_total, on="anio", how="inner")
+    total = total[total["anio"] != 2020].copy()
     total["pib_pesos_2015"] = total["pib_miles_millones_2015"] * 1e9
     total["pib_por_trabajador_millones_2015"] = total["pib_pesos_2015"] / total["ocupados"] / 1e6
     total["pib_por_hora_pesos_2015"] = total["pib_pesos_2015"] / total["horas_anuales"]
     total = total.sort_values("anio")
 
     sector = pib_sector.merge(geih_sector, on=["anio", "sector_code"], how="inner")
+    sector = sector[sector["anio"] != 2020].copy()
     sector["sector_name_short"] = sector["sector_code"].map(SECTOR_SHORT)
     sector["pib_pesos_2015"] = sector["pib_miles_millones_2015"] * 1e9
     sector["pib_por_trabajador_millones_2015"] = sector["pib_pesos_2015"] / sector["ocupados"] / 1e6
@@ -299,15 +305,16 @@ def write_latex_tables(total_summary: pd.DataFrame, sector_summary: pd.DataFrame
         r"\caption{Productividad laboral agregada a partir del PIB y la GEIH, 2010--2025}",
         r"\label{tab:pib_geih_productividad_total}",
         r"\small",
-        r"\begin{tabular}{lrrr}",
+        r"\begin{tabular}{llrrr}",
         r"\toprule",
-        r"Indicador & 2010 & 2025 & Crec. anualizado \\",
+        r"Indicador & Unidad & 2010 & 2025 & Crec. anualizado \\",
         r"\midrule",
     ]
     for _, row in total_summary.iterrows():
         digits = 1 if row["indicador"] == "PIB por trabajador" else 0
         total_lines.append(
             f"{escape_latex(row['indicador'])} & "
+            f"{escape_latex(row['unidad'])} & "
             f"{fmt_num_es(row['valor_2010'], digits)} & "
             f"{fmt_num_es(row['valor_2025'], digits)} & "
             f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
@@ -334,6 +341,7 @@ def write_latex_tables(total_summary: pd.DataFrame, sector_summary: pd.DataFrame
         r"\begin{tabular}{lrrrrrr}",
         r"\toprule",
         r"& \multicolumn{3}{c}{PIB por trabajador} & \multicolumn{3}{c}{PIB por hora} \\",
+        r"& \multicolumn{3}{c}{\footnotesize Millones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Miles de pesos de 2015} \\",
         r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
         r"Sector & 2010 & 2025 & Crec. & 2010 & 2025 & Crec. \\",
         r"\midrule",
@@ -344,15 +352,15 @@ def write_latex_tables(total_summary: pd.DataFrame, sector_summary: pd.DataFrame
             f"{fmt_num_es(row['pib_trabajador_2010'], 1)} & "
             f"{fmt_num_es(row['pib_trabajador_2025'], 1)} & "
             f"{fmt_pct_es(row['crec_pib_trabajador'])} & "
-            f"{fmt_num_es(row['pib_hora_2010'], 0)} & "
-            f"{fmt_num_es(row['pib_hora_2025'], 0)} & "
+            f"{fmt_num_es(row['pib_hora_2010'] / 1000, 1)} & "
+            f"{fmt_num_es(row['pib_hora_2025'] / 1000, 1)} & "
             f"{fmt_pct_es(row['crec_pib_hora'])} \\\\"
         )
     sector_lines.extend(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015 por ocupado; PIB por hora en pesos constantes de 2015 por hora trabajada. Sectores según 12 agrupaciones CIIU Rev. 4 A.C. del DANE; ocupados y horas se agregan desde GEIH usando la homologación de subramas del proyecto. Se excluyen organizaciones extraterritoriales del cruce sectorial por no hacer parte de las 12 agrupaciones. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015 por ocupado; PIB por hora en miles de pesos constantes de 2015 por hora trabajada. La comparación entre ambas columnas debe hacerse por tasas de crecimiento, no por niveles, porque los denominadores y las escalas son distintos. Sectores según 12 agrupaciones CIIU Rev. 4 A.C. del DANE; ocupados y horas se agregan desde GEIH usando la homologación de subramas del proyecto. Se excluyen organizaciones extraterritoriales del cruce sectorial por no hacer parte de las 12 agrupaciones. Fuente: cálculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
