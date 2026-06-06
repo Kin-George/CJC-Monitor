@@ -1,5 +1,70 @@
 \section{Panorama general del mercado laboral}
 
+\subsection{Comparación internacional: productividad laboral}
+
+Antes de analizar la evolución del empleo y de los ingresos laborales en Colombia, conviene ubicar el desempeño del país en perspectiva internacional. Una forma sintética de hacerlo es comparar el PIB por trabajador, una medida amplia de productividad laboral que aproxima el valor agregado generado por cada persona ocupada. Aunque este indicador no captura todas las diferencias en calidad del empleo, informalidad, horas trabajadas o composición sectorial, permite establecer si el crecimiento colombiano ha sido suficiente para cerrar brechas frente a economías comparables y frente a referentes de mayor ingreso.
+
+\begin{table}[H]
+\centering
+\caption{PIB por trabajador y crecimiento anualizado, 2010--2024}
+\label{tab:pib_trabajador_internacional}
+\begin{tabular}{lrrr}
+\toprule
+País & 2010 & 2024 & Crec. anualizado \\
+\midrule
+Costa Rica & 45.175 & 61.875 & 2,27\% \\
+República Dominicana & 40.301 & 53.911 & 2,10\% \\
+Perú & 22.321 & 29.844 & 2,10\% \\
+Colombia & 32.469 & 40.363 & 1,57\% \\
+Estados Unidos & 129.284 & 153.544 & 1,24\% \\
+Chile & 55.677 & 63.924 & 0,99\% \\
+Brasil & 39.603 & 41.441 & 0,32\% \\
+México & 49.943 & 48.671 & -0,18\% \\
+\bottomrule
+\end{tabular}
+\caption*{\footnotesize Nota: valores en dólares internacionales constantes de 2021 ajustados por paridad de poder adquisitivo (PPP). El crecimiento anualizado corresponde a la variación compuesta entre 2010 y 2024. Fuente: Banco Mundial, World Development Indicators, indicador \texttt{SL.GDP.PCAP.EM.KD}.}
+\end{table}
+
+\textbf{En perspectiva internacional, Colombia muestra un avance real de la productividad laboral, pero insuficiente para cerrar de manera clara sus brechas frente a varios pares regionales.} Entre 2010 y 2024, el PIB por trabajador en Colombia pasó de 32.469 a 40.363 dólares internacionales constantes de 2021, equivalente a un crecimiento anualizado de 1,57\%. Esta tasa supera la observada en Estados Unidos, Chile, Brasil y México durante el mismo período, un resultado que a primera vista puede parecer sorprendente. Sin embargo, debe interpretarse a la luz de los niveles iniciales: Estados Unidos y Chile partían de un PIB por trabajador sustancialmente más alto que Colombia, por lo que un crecimiento relativo menor es consistente con la idea, ampliamente documentada en la literatura económica, de que las economías con menor productividad inicial pueden crecer más rápido cuando tienen espacio para adoptar tecnologías, reorganizar procesos productivos y reasignar recursos hacia actividades de mayor valor agregado.
+
+La comparación también muestra los límites de esa lectura optimista. Costa Rica y República Dominicana ya registraban en 2010 un PIB por trabajador superior al colombiano y, aun así, crecieron más rápido entre 2010 y 2024. Esto sugiere que el rezago de Colombia no se explica únicamente por su punto de partida, sino por la velocidad con la que transforma mejoras en empleo, capital humano, formalización y estructura productiva en aumentos sostenidos de productividad. En otras palabras, Colombia ha avanzado, pero no al ritmo necesario para converger con las economías latinoamericanas que han logrado combinar mayores niveles iniciales con una dinámica reciente más vigorosa.
+
+\subsection{Productividad laboral agregada a partir del PIB y la GEIH}
+
+La comparación internacional anterior utiliza una serie estandarizada del Banco Mundial. Para conectar esa lectura con el resto del informe, que se construye a partir de la GEIH, se calcula una medida nacional de productividad laboral usando el PIB trimestral del DANE a precios constantes y los ocupados y horas trabajadas observados en la encuesta de hogares. El procedimiento consiste en sumar los cuatro trimestres del PIB para obtener un flujo anual y dividirlo por el stock anual de ocupados expandidos de la GEIH. Para el indicador por hora, el denominador se construye como el total de horas semanales trabajadas, ponderadas por el factor de expansión, multiplicado por 52 semanas.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Paper/figures/fig_pib_geih_productividad_total.png}
+  \caption{Productividad laboral agregada: PIB por trabajador y PIB por hora}
+  \label{fig:pib_geih_productividad_total}
+\end{figure}
+
+\input{Paper/sections/pib_geih_productividad_total_table}
+
+\textbf{La productividad laboral agregada aumentó entre 2010 y 2025, pero a un ritmo moderado.} El PIB por trabajador pasó de 38,0 a 44,5 millones de pesos constantes de 2015, equivalente a un crecimiento anualizado de 1,05\%. La medida por hora trabajada muestra una dinámica algo más favorable: aumentó de 15.625 a 19.563 pesos constantes de 2015 por hora, con una tasa anualizada de 1,51\%. La diferencia entre ambos indicadores es informativa: parte del avance reciente de la productividad por hora no proviene únicamente de producir más por ocupado, sino también de una reducción gradual en las horas trabajadas por persona, fenómeno que ya aparece en las secciones laborales del informe.
+
+La serie muestra una trayectoria ascendente hasta 2019, una discontinuidad en 2020 por ausencia de GEIH anual comparable en la base del proyecto, y un salto marcado en 2021. Este comportamiento debe interpretarse con cautela: después de la pandemia, el PIB se recuperó más rápido que el empleo y las horas trabajadas, elevando mecánicamente las medidas de productividad. En los años posteriores, el indicador se moderó, pero se mantuvo por encima de los niveles de 2010. Así, el mensaje central no es de estancamiento absoluto, sino de avance insuficiente: Colombia produce más por trabajador y por hora que al inicio de la década, pero la velocidad de mejora sigue siendo limitada frente al tamaño de las brechas productivas documentadas en la comparación internacional.
+
+\subsection{Productividad laboral por sectores CIIU}
+
+La productividad agregada oculta diferencias sustanciales entre ramas de actividad. Para examinarlas, se cruza el PIB sectorial del DANE, reportado en 12 agrupaciones CIIU Rev. 4 A.C., con los ocupados y horas de la GEIH armonizados a esas mismas agrupaciones mediante la variable de subrama homologada del proyecto. Esta aproximación permite estimar, para cada sector, el PIB por trabajador y el PIB por hora trabajada entre 2010 y 2025.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Paper/figures/fig_pib_geih_productividad_sector.png}
+  \caption{Crecimiento anualizado de la productividad laboral por sector}
+  \label{fig:pib_geih_productividad_sector}
+\end{figure}
+
+\input{Paper/sections/pib_geih_productividad_sector_table}
+
+\textbf{La descomposición sectorial revela que el desempeño agregado combina sectores con ganancias rápidas de productividad y sectores con deterioros importantes.} Las mayores tasas de crecimiento del PIB por trabajador se observan en artes, otros servicios y hogares (5,79\% anual), información y comunicaciones (3,74\%) y agropecuario (2,79\%). En estos casos, la productividad por hora crece incluso más rápido que la productividad por trabajador, lo que sugiere que la mejora no solo refleja cambios en el número de ocupados, sino también una mayor producción por unidad efectiva de tiempo trabajado. El caso de información y comunicaciones es especialmente relevante para la agenda de competitividad: parte de un nivel medio-alto en 2010 y aun así registra una expansión acelerada, consistente con el peso creciente de actividades digitales, telecomunicaciones, software y servicios intensivos en conocimiento.
+
+En contraste, servicios públicos, minas, construcción y actividades profesionales y administrativas muestran caídas del PIB por trabajador y del PIB por hora. Estos resultados deben leerse con prudencia, pues mezclan cambios en valor agregado real, empleo, horas y composición interna de cada agrupación. Sin embargo, sí apuntan a una conclusión sustantiva: no todos los sectores que absorben empleo están elevando su productividad al mismo ritmo, y algunos sectores de alta productividad inicial han perdido terreno relativo. Minas y servicios públicos siguen registrando niveles altos de PIB por trabajador frente al promedio nacional, pero su crecimiento negativo indica que la ventaja inicial se redujo durante el período.
+
+La heterogeneidad sectorial refuerza una idea central del informe: el problema de productividad en Colombia no es solo agregado, sino de estructura productiva. La economía combina sectores modernos con capacidad de expansión, sectores intensivos en empleo de baja productividad y ramas con altos niveles iniciales pero bajo dinamismo reciente. Por ello, una agenda de productividad laboral no puede limitarse a aumentar la ocupación o mejorar los ingresos laborales promedio; debe también facilitar la reasignación de trabajadores hacia actividades de mayor valor agregado, elevar la productividad dentro de los sectores de mayor absorción laboral y cerrar las brechas de capital humano, tecnología y formalización que impiden que el crecimiento sectorial se traduzca en mejores ingresos.
+
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{Paper/figures/fig8Informe.png}
