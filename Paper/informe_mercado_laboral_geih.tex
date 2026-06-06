@@ -1,0 +1,82 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+\usepackage{mdframed}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage[margin=10pt, font=small, labelfont=bf]{caption}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{longtable}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+\setlength{\textfloatsep}{18pt plus 2pt minus 4pt}
+\setlength{\floatsep}{12pt plus 2pt minus 2pt}
+\setlength{\intextsep}{14pt plus 2pt minus 2pt}
+\setstretch{1.15}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+
+\titleformat{\section}
+  {\large\bfseries}{\thesection.}{0.5em}{}
+  [\vspace{2pt}\hrule\vspace{4pt}]
+\titleformat{\subsection}
+  {\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing{\section}{0pt}{18pt}{8pt}
+\titlespacing{\subsection}{0pt}{14pt}{6pt}
+
+\hypersetup{colorlinks=true, linkcolor=blue!60!black}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small }
+\lhead{\small \leftmark}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\geometry{margin=1in}
+\graphicspath{{Paper/figures/}{figures/}}
+\newcommand{\tablepath}{Paper/tables/}
+\newcommand{\figurelang}{es}
+\newif\ifpolicyreport
+\policyreporttrue
+
+\title{Mercado laboral, ingresos y brechas en Colombia, 2010--2025\\
+Un análisis descriptivo a partir de la GEIH}
+\author{Centro Javeriano de Competitividad}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\begin{mdframed}[
+  linewidth=1pt,
+  linecolor=gray!60,
+  backgroundcolor=gray!6,
+  innertopmargin=12pt,
+  innerbottommargin=12pt,
+  innerleftmargin=14pt,
+  innerrightmargin=14pt
+]
+\section*{Resumen ejecutivo}
+\textbf{Este informe caracteriza la evolución del mercado laboral colombiano entre 2010 y 2025 a partir de los microdatos de la Gran Encuesta Integrada de Hogares (GEIH).} El documento examina los cambios en ocupación, ingresos laborales por hora y horas trabajadas, y luego desagrega esas dinámicas por sexo, formalidad, nivel educativo, posición ocupacional, departamento, sector económico y tamaño de empresa.
+
+El mercado laboral colombiano terminó el período con más ocupados y mayores ingresos reales por hora. Sin embargo, los avances agregados conviven con brechas persistentes: la informalidad continúa siendo elevada, los retornos a la educación superior siguen marcando diferencias importantes, las desigualdades territoriales son profundas y la composición sectorial del empleo condiciona fuertemente las trayectorias de ingreso.
+
+La motivación del informe es ofrecer una lectura detallada de quiénes han mejorado sus condiciones laborales, quiénes permanecen rezagados y qué dimensiones deberían orientar una agenda de política laboral, formación de capital humano y desarrollo productivo.
+\end{mdframed}
+
+\input{Paper/sections/CuerpoInformeMercadoLaboral}
+
+\bibliographystyle{apalike}
+\bibliography{Paper/references}
+
+\end{document}

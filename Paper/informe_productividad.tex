@@ -1,0 +1,82 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+\usepackage{mdframed}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage[margin=10pt, font=small, labelfont=bf]{caption}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{longtable}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+\setlength{\textfloatsep}{18pt plus 2pt minus 4pt}
+\setlength{\floatsep}{12pt plus 2pt minus 2pt}
+\setlength{\intextsep}{14pt plus 2pt minus 2pt}
+\setstretch{1.15}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+
+\titleformat{\section}
+  {\large\bfseries}{\thesection.}{0.5em}{}
+  [\vspace{2pt}\hrule\vspace{4pt}]
+\titleformat{\subsection}
+  {\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing{\section}{0pt}{18pt}{8pt}
+\titlespacing{\subsection}{0pt}{14pt}{6pt}
+
+\hypersetup{colorlinks=true, linkcolor=blue!60!black}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small }
+\lhead{\small \leftmark}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\geometry{margin=1in}
+\graphicspath{{Paper/figures/}{figures/}}
+\newcommand{\tablepath}{Paper/tables/}
+\newcommand{\figurelang}{es}
+\newif\ifpolicyreport
+\policyreporttrue
+
+\title{Productividad laboral en Colombia, 2010--2025\\
+PIB por trabajador, PIB por hora y diferencias sectoriales}
+\author{Centro Javeriano de Competitividad}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\begin{mdframed}[
+  linewidth=1pt,
+  linecolor=gray!60,
+  backgroundcolor=gray!6,
+  innertopmargin=12pt,
+  innerbottommargin=12pt,
+  innerleftmargin=14pt,
+  innerrightmargin=14pt
+]
+\section*{Resumen ejecutivo}
+\textbf{Este informe analiza la evolución de la productividad laboral en Colombia entre 2010 y 2025, combinando el PIB trimestral del DANE por el enfoque de producción con información de ocupados y horas trabajadas de la GEIH.} El objetivo es medir cuánto produce la economía por trabajador y por hora trabajada, ubicar el desempeño colombiano en perspectiva internacional y documentar la heterogeneidad sectorial detrás del promedio agregado.
+
+El PIB real creció a una tasa anualizada de 3,16\% entre 2010 y 2025, mientras que el número de ocupados aumentó 2,09\% anual y las horas semanales promedio por trabajador cayeron de 46,8 a 43,7. Como resultado, el PIB por trabajador creció 1,05\% anual y el PIB por hora trabajada 1,51\% anual. Esta diferencia es relevante: la productividad por hora mejora más rápido porque el tiempo promedio trabajado por persona disminuye.
+
+La lectura sectorial muestra una economía con dinámicas muy heterogéneas. Información y comunicaciones, agropecuario y artes, otros servicios y hogares registran aumentos importantes en productividad, mientras que minas, construcción, servicios públicos y actividades profesionales y administrativas muestran caídas en el PIB por trabajador. La agenda de productividad, por tanto, no puede limitarse al promedio nacional: requiere entender qué sectores generan valor agregado, cuáles absorben empleo y dónde se están ampliando o cerrando las brechas productivas.
+\end{mdframed}
+
+\input{Paper/sections/CuerpoInformeProductividad}
+
+\bibliographystyle{apalike}
+\bibliography{Paper/references}
+
+\end{document}
