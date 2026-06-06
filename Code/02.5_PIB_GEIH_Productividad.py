@@ -140,6 +140,14 @@ def escape_latex(text: str) -> str:
     return text
 
 
+def indicator_with_unit(row: pd.Series) -> str:
+    unit = str(row.get("unidad", "")).strip()
+    indicator = str(row["indicador"]).strip()
+    if unit:
+        return f"{indicator} ({unit})"
+    return indicator
+
+
 def load_pib_quarterly() -> tuple[pd.DataFrame, pd.DataFrame]:
     raw = pd.read_excel(PIB_XLSX, sheet_name="Cuadro 1", header=None)
     year_row = raw.iloc[11]
@@ -324,16 +332,15 @@ def write_latex_tables(
         r"\caption{Productividad laboral agregada a partir del PIB y la GEIH, 2010--2025}",
         r"\label{tab:pib_geih_productividad_total}",
         r"\small",
-        r"\begin{tabular}{llrrr}",
+        r"\begin{tabular}{lrrr}",
         r"\toprule",
-        r"Indicador & Unidad & 2010 & 2025 & Crec. anualizado \\",
+        r"Indicador & 2010 & 2025 & Crec. anualizado \\",
         r"\midrule",
     ]
     for _, row in total_summary.iterrows():
         digits = 1 if row["indicador"] == "PIB por trabajador" else 0
         total_lines.append(
-            f"{escape_latex(row['indicador'])} & "
-            f"{escape_latex(row['unidad'])} & "
+            f"{escape_latex(indicator_with_unit(row))} & "
             f"{fmt_num_es(row['valor_2010'], digits)} & "
             f"{fmt_num_es(row['valor_2025'], digits)} & "
             f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
@@ -462,15 +469,14 @@ def write_latex_tables(
         r"\caption{PIB, ocupados, horas y productividad laboral, 2010--2025}",
         r"\label{tab:ocupados_horas_resumen}",
         r"\small",
-        r"\begin{tabular}{llrrr}",
+        r"\begin{tabular}{lrrr}",
         r"\toprule",
-        r"Indicador & Unidad & 2010 & 2025 & Crec. anualizado \\",
+        r"Indicador & 2010 & 2025 & Crec. anualizado \\",
         r"\midrule",
     ]
     for _, row in labor_summary.iterrows():
         labor_lines.append(
-            f"{escape_latex(row['indicador'])} & "
-            f"{escape_latex(row['unidad'])} & "
+            f"{escape_latex(indicator_with_unit(row))} & "
             f"{fmt_num_es(row['valor_2010'], 1)} & "
             f"{fmt_num_es(row['valor_2025'], 1)} & "
             f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
@@ -603,15 +609,14 @@ def metric_table_lines(metrics: pd.DataFrame, label: str, caption: str) -> list[
         f"\\caption{{{escape_latex(caption)}}}",
         f"\\label{{{label}}}",
         r"\scriptsize",
-        r"\begin{tabular}{llrrr}",
+        r"\begin{tabular}{lrrr}",
         r"\toprule",
-        r"Indicador & Unidad & 2010 & 2025 & Crec. anualizado \\",
+        r"Indicador & 2010 & 2025 & Crec. anualizado \\",
         r"\midrule",
     ]
     for _, row in metrics.iterrows():
         lines.append(
-            f"{escape_latex(row['indicador'])} & "
-            f"{escape_latex(row['unidad'])} & "
+            f"{escape_latex(indicator_with_unit(row))} & "
             f"{fmt_num_es(row['valor_2010'], 1)} & "
             f"{fmt_num_es(row['valor_2025'], 1)} & "
             f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
