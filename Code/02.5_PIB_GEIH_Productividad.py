@@ -486,14 +486,23 @@ def write_latex_tables(
         r"\small",
         r"\begin{tabular}{lrrr}",
         r"\toprule",
-        r"Indicador & 2010 & 2025 & Crec. anualizado \\",
+        r"Indicador & 2010 & 2025 & Crec. anual \\",
         r"\midrule",
     ]
+    labor_labels = {
+        "PIB real": "PIB real (Billones de pesos de 2015)",
+        "Ocupados": "Ocupados (Millones)",
+        "PIB por trabajador": "PIB por trabajador (Millones de pesos de 2015)",
+        "Horas semanales por trabajador": "Horas semanales por trabajador ",
+        "PIB por hora trabajada": "PIB por hora trabajada (Miles de pesos de 2015)",
+    }
     for _, row in labor_summary.iterrows():
+        indicator = str(row["indicador"])
+        digits = 0 if indicator == "PIB real" else 1
         labor_lines.append(
-            f"{escape_latex(indicator_with_unit(row))} & "
-            f"{fmt_num_es(row['valor_2010'], 1)} & "
-            f"{fmt_num_es(row['valor_2025'], 1)} & "
+            f"{escape_latex(labor_labels[indicator])} & "
+            f"{fmt_num_es(row['valor_2010'], digits)} & "
+            f"{fmt_num_es(row['valor_2025'], digits)} & "
             f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
         )
     labor_lines.extend(
@@ -505,7 +514,7 @@ def write_latex_tables(
         ]
     )
     (SECTION_DIR / "ocupados_horas_resumen_table.tex").write_text(
-        "\n".join(labor_lines), encoding="utf-8"
+        "\n".join(labor_lines) + "\n", encoding="utf-8"
     )
 
     sector_sorted = sector_summary.sort_values("crec_pib_trabajador", ascending=False)
@@ -743,6 +752,13 @@ def metric_growth_lookup(metrics: pd.DataFrame) -> dict[str, float]:
     }
 
 
+def metric_level_lookup(metrics: pd.DataFrame) -> dict[str, float]:
+    return {
+        str(row["indicador"]): float(row["valor_2025"])
+        for _, row in metrics.iterrows()
+    }
+
+
 def relative_to_aggregate(value: float, aggregate_value: float) -> str:
     if abs(value - aggregate_value) <= 0.002:
         return f"muy cerca del agregado ({fmt_pct_es(aggregate_value)})"
@@ -779,6 +795,57 @@ def hours_comparison_fragment(value: float, aggregate_value: float) -> str:
     return (
         f"Las horas semanales por trabajador registraron una tasa anualizada de "
         f"{fmt_pct_es(value)}, {relation}"
+    )
+
+
+def relative_level_to_aggregate(
+    value: float, aggregate_value: float, aggregate_text: str
+) -> str:
+    tolerance = max(abs(aggregate_value) * 0.05, 0.05)
+    if abs(value - aggregate_value) <= tolerance:
+        relation = "muy cerca del agregado"
+    elif value > aggregate_value:
+        relation = "por encima del agregado"
+    else:
+        relation = "por debajo del agregado"
+    return f"{relation} ({aggregate_text})"
+
+
+def sector_level_paragraph(
+    metrics: pd.DataFrame, aggregate_levels: dict[str, float]
+) -> str:
+    levels = metric_level_lookup(metrics)
+    pib_share = levels["PIB real"] / aggregate_levels["PIB real"]
+    occupied_share = levels["Ocupados"] / aggregate_levels["Ocupados"]
+    worker_relation = relative_level_to_aggregate(
+        levels["PIB por trabajador"],
+        aggregate_levels["PIB por trabajador"],
+        f"{fmt_num_es(aggregate_levels['PIB por trabajador'], 1)} millones",
+    )
+    hours_relation = relative_level_to_aggregate(
+        levels["Horas semanales por trabajador"],
+        aggregate_levels["Horas semanales por trabajador"],
+        fmt_num_es(aggregate_levels["Horas semanales por trabajador"], 1),
+    )
+    hourly_relation = relative_level_to_aggregate(
+        levels["PIB por hora trabajada"],
+        aggregate_levels["PIB por hora trabajada"],
+        f"{fmt_num_es(aggregate_levels['PIB por hora trabajada'], 1)} mil",
+    )
+    return (
+        r"\textbf{En niveles de 2025, el tamaño relativo y la productividad del sector también importan.} "
+        f"El sector representó {fmt_pct_es(pib_share, 1)} del PIB real agregado, "
+        f"con {fmt_num_es(levels['PIB real'], 1)} billones de pesos de 2015, "
+        f"y concentró {fmt_pct_es(occupied_share, 1)} de los ocupados, "
+        f"con {fmt_num_es(levels['Ocupados'], 1)} millones de personas. "
+        f"El PIB por trabajador fue {fmt_num_es(levels['PIB por trabajador'], 1)} "
+        f"millones de pesos de 2015 por ocupado, {worker_relation}. "
+        f"Las horas semanales por trabajador fueron "
+        f"{fmt_num_es(levels['Horas semanales por trabajador'], 1)}, "
+        f"{hours_relation}. "
+        f"El PIB por hora trabajada fue "
+        f"{fmt_num_es(levels['PIB por hora trabajada'], 1)} "
+        f"mil pesos de 2015 por hora, {hourly_relation}."
     )
 
 
@@ -832,7 +899,9 @@ def write_sector_detail_sections(sector: pd.DataFrame, total: pd.DataFrame) -> N
     ]
     total_start = total[total["anio"] == 2010].iloc[0]
     total_end = total[total["anio"] == 2025].iloc[0]
-    aggregate_growth = metric_growth_lookup(build_metric_rows(total_start, total_end))
+    aggregate_metrics = build_metric_rows(total_start, total_end)
+    aggregate_growth = metric_growth_lookup(aggregate_metrics)
+    aggregate_levels = metric_level_lookup(aggregate_metrics)
 
     for code in SECTOR_ORDER:
         part = sector[sector["sector_code"] == code].sort_values("anio")
@@ -858,6 +927,8 @@ def write_sector_detail_sections(sector: pd.DataFrame, total: pd.DataFrame) -> N
                 ),
                 "",
                 sector_comparison_paragraph(metrics, aggregate_growth),
+                "",
+                sector_level_paragraph(metrics, aggregate_levels),
                 "",
             ]
         )
