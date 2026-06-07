@@ -546,37 +546,6 @@ def write_latex_tables(
     )
 
 
-def write_sector_definition_table() -> None:
-    lines = [
-        r"\begin{longtable}{p{0.22\textwidth}p{0.20\textwidth}p{0.48\textwidth}}",
-        r"\caption{Contenido de las agrupaciones sectoriales CIIU usadas en el informe}",
-        r"\label{tab:sector_definiciones_ciiu}\\",
-        r"\toprule",
-        r"Agrupación & Secciones CIIU & Actividades incluidas \\",
-        r"\midrule",
-        r"\endfirsthead",
-        r"\toprule",
-        r"Agrupación & Secciones CIIU & Actividades incluidas \\",
-        r"\midrule",
-        r"\endhead",
-    ]
-    for code in SECTOR_ORDER:
-        lines.append(
-            f"{escape_latex(SECTOR_SHORT[code])} & "
-            f"{escape_latex(SECTOR_CIIU_CODES[code])} & "
-            f"{escape_latex(SECTOR_DESCRIPTION[code])}. \\\\"
-        )
-    lines.extend(
-        [
-            r"\bottomrule",
-            r"\multicolumn{3}{p{0.90\textwidth}}{\footnotesize Nota: la correspondencia sigue la estructura de secciones y divisiones de la CIIU Rev. 4 A.C. del DANE. Las agrupaciones combinadas responden a la disponibilidad del PIB sectorial y a la homologación con subramas de la GEIH usada en este informe. La sección U, organizaciones y entidades extraterritoriales, se excluye del cruce sectorial. Fuente: DANE, CIIU Rev. 4 A.C.; cálculos propios.}\\",
-            r"\end{longtable}",
-        ]
-    )
-    (SECTION_DIR / "pib_geih_productividad_sector_definiciones.tex").write_text(
-        "\n".join(lines), encoding="utf-8"
-    )
-
 
 def fmt_corr_es(value: float) -> str:
     return f"{value:.3f}".replace(".", ",")
@@ -823,7 +792,7 @@ def write_sector_detail_sections(sector: pd.DataFrame) -> None:
             [
                 f"\\subsubsection{{{escape_latex(SECTOR_SHORT[code])}}}",
                 "",
-                f"En la CIIU Rev. 4 A.C., esta agrupación corresponde a {SECTOR_CIIU_CODES[code]} e incluye {SECTOR_DESCRIPTION[code]}.",
+                f"Esta actividad económica agrupa {SECTOR_DESCRIPTION[code]}. En la CIIU Rev. 4 A.C. corresponde a {SECTOR_CIIU_CODES[code]}.",
                 "",
                 *metric_table_lines(
                     metrics,
@@ -1098,7 +1067,6 @@ def main() -> None:
     sector_summary.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
 
     write_latex_tables(total, total_summary, sector_summary)
-    write_sector_definition_table()
     write_sector_correlation_table(sector)
     write_sector_detail_sections(sector)
     draw_index_chart(total)
