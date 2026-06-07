@@ -59,18 +59,18 @@ SECTOR_SHORT = {
 }
 
 SECTOR_DESCRIPTION = {
-    "A": "agricultura, ganadería, caza, silvicultura, pesca y acuicultura",
-    "B": "explotación de minas y canteras, incluyendo carbón, petróleo, gas natural, minerales metálicos y otras actividades extractivas",
-    "C": "industrias manufactureras, incluyendo alimentos, bebidas, textiles, químicos, metales, maquinaria, vehículos, muebles y otras manufacturas",
-    "D+E": "suministro de electricidad, gas, vapor y aire acondicionado, junto con distribución de agua, evacuación y tratamiento de aguas residuales, gestión de desechos y saneamiento ambiental",
-    "F": "construcción de edificaciones, obras civiles y actividades especializadas de construcción",
-    "G+H+I": "comercio al por mayor y al por menor, reparación de vehículos, transporte, almacenamiento, alojamiento y servicios de comida",
-    "J": "telecomunicaciones, actividades editoriales y audiovisuales, software, informática y servicios de información",
-    "K": "intermediación financiera, seguros y actividades auxiliares del sistema financiero",
-    "L": "actividades inmobiliarias, incluyendo alquiler, administración y operación de bienes inmuebles",
-    "M+N": "actividades profesionales, científicas y técnicas, investigación y desarrollo, y servicios administrativos y de apoyo",
-    "O+P+Q": "administración pública y defensa, educación, salud humana y servicios sociales",
-    "R+S+T": "actividades artísticas, entretenimiento, recreación, otros servicios personales, asociaciones y hogares como empleadores",
+    "A": "agricultura, ganadería, caza, silvicultura y pesca",
+    "B": "explotación de minas y canteras",
+    "C": "industrias manufactureras",
+    "D+E": "suministro de electricidad, gas, vapor y aire acondicionado; distribución de agua; evacuación y tratamiento de aguas residuales, gestión de desechos y actividades de saneamiento ambiental",
+    "F": "construcción",
+    "G+H+I": "comercio al por mayor y al por menor; reparación de vehículos automotores y motocicletas; transporte y almacenamiento; alojamiento y servicios de comida",
+    "J": "información y comunicaciones",
+    "K": "actividades financieras y de seguros",
+    "L": "actividades inmobiliarias",
+    "M+N": "actividades profesionales, científicas y técnicas; actividades de servicios administrativos y de apoyo",
+    "O+P+Q": "administración pública y defensa; planes de seguridad social de afiliación obligatoria; educación; actividades de atención de la salud humana y de servicios sociales",
+    "R+S+T": "actividades artísticas, de entretenimiento y recreación y otras actividades de servicios; actividades de los hogares individuales en calidad de empleadores; actividades no diferenciadas de los hogares individuales como productores de bienes y servicios para uso propio",
 }
 
 SECTOR_CIIU_CODES = {
@@ -739,7 +739,7 @@ def metric_table_lines(metrics: pd.DataFrame, label: str, caption: str) -> list[
 def write_sector_detail_sections(sector: pd.DataFrame) -> None:
     detail_rows = []
     lines = [
-        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones CIIU. En cada caso, el cuadro resume el PIB real sectorial, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores.",
+        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones CIIU. En cada caso, el cuadro resume el PIB real sectorial, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones sectoriales siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
         "",
     ]
 
@@ -792,7 +792,7 @@ def write_sector_detail_sections(sector: pd.DataFrame) -> None:
             [
                 f"\\subsection{{{escape_latex(SECTOR_SHORT[code])}}}",
                 "",
-                f"Esta actividad económica agrupa {SECTOR_DESCRIPTION[code]}. En la CIIU Rev. 4 A.C. corresponde a {SECTOR_CIIU_CODES[code]}.",
+                f"Esta agrupación reúne {SECTOR_DESCRIPTION[code]}. En la CIIU Rev. 4 A.C. corresponde a {SECTOR_CIIU_CODES[code]}.",
                 "",
                 *metric_table_lines(
                     metrics,
