@@ -432,18 +432,6 @@ def write_latex_tables(
                 ),
             },
             {
-                "indicador": "Horas semanales por trabajador",
-                "unidad": "Horas por semana",
-                "valor_2010": start["horas_semanales_por_trabajador"],
-                "valor_2025": end["horas_semanales_por_trabajador"],
-                "crecimiento_anualizado": cagr(
-                    start["horas_semanales_por_trabajador"],
-                    end["horas_semanales_por_trabajador"],
-                    start_year,
-                    end_year,
-                ),
-            },
-            {
                 "indicador": "PIB por trabajador",
                 "unidad": "Millones de pesos de 2015 por ocupado",
                 "valor_2010": start["pib_por_trabajador_millones_2015"],
@@ -451,6 +439,18 @@ def write_latex_tables(
                 "crecimiento_anualizado": cagr(
                     start["pib_por_trabajador_millones_2015"],
                     end["pib_por_trabajador_millones_2015"],
+                    start_year,
+                    end_year,
+                ),
+            },
+            {
+                "indicador": "Horas semanales por trabajador",
+                "unidad": "Horas por semana",
+                "valor_2010": start["horas_semanales_por_trabajador"],
+                "valor_2025": end["horas_semanales_por_trabajador"],
+                "crecimiento_anualizado": cagr(
+                    start["horas_semanales_por_trabajador"],
+                    end["horas_semanales_por_trabajador"],
                     start_year,
                     end_year,
                 ),
@@ -710,13 +710,6 @@ def build_metric_rows(start: pd.Series, end: pd.Series) -> pd.DataFrame:
             ),
         },
         {
-            "indicador": "Horas semanales por trabajador",
-            "unidad": "Horas por semana",
-            "valor_2010": start_hours,
-            "valor_2025": end_hours,
-            "crecimiento_anualizado": cagr(start_hours, end_hours, start_year, end_year),
-        },
-        {
             "indicador": "PIB por trabajador",
             "unidad": "Millones de pesos de 2015 por ocupado",
             "valor_2010": start["pib_por_trabajador_millones_2015"],
@@ -727,6 +720,13 @@ def build_metric_rows(start: pd.Series, end: pd.Series) -> pd.DataFrame:
                 start_year,
                 end_year,
             ),
+        },
+        {
+            "indicador": "Horas semanales por trabajador",
+            "unidad": "Horas por semana",
+            "valor_2010": start_hours,
+            "valor_2025": end_hours,
+            "crecimiento_anualizado": cagr(start_hours, end_hours, start_year, end_year),
         },
         {
             "indicador": "PIB por hora trabajada",
@@ -770,7 +770,7 @@ def metric_table_lines(metrics: pd.DataFrame, label: str, caption: str) -> list[
 def write_sector_detail_sections(sector: pd.DataFrame) -> None:
     detail_rows = []
     lines = [
-        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones CIIU. En cada caso, el cuadro resume el PIB real sectorial, el número de ocupados, las horas semanales promedio por trabajador, el PIB por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores.",
+        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones CIIU. En cada caso, el cuadro resume el PIB real sectorial, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores.",
         "",
     ]
 
