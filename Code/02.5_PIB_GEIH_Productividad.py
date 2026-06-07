@@ -790,7 +790,7 @@ def write_sector_detail_sections(sector: pd.DataFrame) -> None:
 
         lines.extend(
             [
-                f"\\subsubsection{{{escape_latex(SECTOR_SHORT[code])}}}",
+                f"\\subsection{{{escape_latex(SECTOR_SHORT[code])}}}",
                 "",
                 f"Esta actividad económica agrupa {SECTOR_DESCRIPTION[code]}. En la CIIU Rev. 4 A.C. corresponde a {SECTOR_CIIU_CODES[code]}.",
                 "",
