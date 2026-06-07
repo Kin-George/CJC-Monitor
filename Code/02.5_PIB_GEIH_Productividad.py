@@ -736,12 +736,103 @@ def metric_table_lines(metrics: pd.DataFrame, label: str, caption: str) -> list[
     return lines
 
 
-def write_sector_detail_sections(sector: pd.DataFrame) -> None:
+def metric_growth_lookup(metrics: pd.DataFrame) -> dict[str, float]:
+    return {
+        str(row["indicador"]): float(row["crecimiento_anualizado"])
+        for _, row in metrics.iterrows()
+    }
+
+
+def relative_to_aggregate(value: float, aggregate_value: float) -> str:
+    if abs(value - aggregate_value) <= 0.002:
+        return f"muy cerca del agregado ({fmt_pct_es(aggregate_value)})"
+    if value > aggregate_value:
+        return f"por encima del agregado ({fmt_pct_es(aggregate_value)})"
+    return f"por debajo del agregado ({fmt_pct_es(aggregate_value)})"
+
+
+def comparison_fragment(
+    subject: str, verb: str, value: float, aggregate_value: float
+) -> str:
+    return (
+        f"{subject} {verb} una tasa anualizada de {fmt_pct_es(value)}, "
+        f"{relative_to_aggregate(value, aggregate_value)}"
+    )
+
+
+def hours_comparison_fragment(value: float, aggregate_value: float) -> str:
+    if value < 0 and aggregate_value < 0:
+        if abs(value - aggregate_value) <= 0.002:
+            relation = f"muy cerca de la caída agregada ({fmt_pct_es(aggregate_value)})"
+        elif value < aggregate_value:
+            relation = (
+                f"una caída más pronunciada que la del agregado "
+                f"({fmt_pct_es(aggregate_value)})"
+            )
+        else:
+            relation = (
+                f"una caída menos pronunciada que la del agregado "
+                f"({fmt_pct_es(aggregate_value)})"
+            )
+    else:
+        relation = relative_to_aggregate(value, aggregate_value)
+    return (
+        f"Las horas semanales por trabajador registraron una tasa anualizada de "
+        f"{fmt_pct_es(value)}, {relation}"
+    )
+
+
+def sector_comparison_paragraph(
+    metrics: pd.DataFrame, aggregate_growth: dict[str, float]
+) -> str:
+    growth = metric_growth_lookup(metrics)
+    return (
+        r"\textbf{Frente al agregado nacional, la comparación variable por variable muestra diferencias relevantes.} "
+        + comparison_fragment(
+            "El PIB real sectorial",
+            "registró",
+            growth["PIB real"],
+            aggregate_growth["PIB real"],
+        )
+        + ". "
+        + comparison_fragment(
+            "La ocupación del sector",
+            "registró",
+            growth["Ocupados"],
+            aggregate_growth["Ocupados"],
+        )
+        + ". "
+        + comparison_fragment(
+            "El PIB por trabajador",
+            "registró",
+            growth["PIB por trabajador"],
+            aggregate_growth["PIB por trabajador"],
+        )
+        + ". "
+        + hours_comparison_fragment(
+            growth["Horas semanales por trabajador"],
+            aggregate_growth["Horas semanales por trabajador"],
+        )
+        + ". "
+        + comparison_fragment(
+            "El PIB por hora trabajada",
+            "registró",
+            growth["PIB por hora trabajada"],
+            aggregate_growth["PIB por hora trabajada"],
+        )
+        + "."
+    )
+
+
+def write_sector_detail_sections(sector: pd.DataFrame, total: pd.DataFrame) -> None:
     detail_rows = []
     lines = [
         "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones CIIU. En cada caso, el cuadro resume el PIB real sectorial, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones sectoriales siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
         "",
     ]
+    total_start = total[total["anio"] == 2010].iloc[0]
+    total_end = total[total["anio"] == 2025].iloc[0]
+    aggregate_growth = metric_growth_lookup(build_metric_rows(total_start, total_end))
 
     for code in SECTOR_ORDER:
         part = sector[sector["sector_code"] == code].sort_values("anio")
@@ -753,40 +844,6 @@ def write_sector_detail_sections(sector: pd.DataFrame) -> None:
         metrics["sector_code"] = code
         metrics["sector"] = SECTOR_SHORT[code]
         detail_rows.append(metrics)
-
-        pib_growth = metrics.loc[
-            metrics["indicador"].eq("PIB real"), "crecimiento_anualizado"
-        ].iloc[0]
-        emp_growth = metrics.loc[
-            metrics["indicador"].eq("Ocupados"), "crecimiento_anualizado"
-        ].iloc[0]
-        hours_growth = metrics.loc[
-            metrics["indicador"].eq("Horas semanales por trabajador"),
-            "crecimiento_anualizado",
-        ].iloc[0]
-        worker_growth = metrics.loc[
-            metrics["indicador"].eq("PIB por trabajador"),
-            "crecimiento_anualizado",
-        ].iloc[0]
-        hour_growth = metrics.loc[
-            metrics["indicador"].eq("PIB por hora trabajada"),
-            "crecimiento_anualizado",
-        ].iloc[0]
-
-        relation = (
-            "por encima"
-            if hour_growth > worker_growth
-            else "por debajo"
-            if hour_growth < worker_growth
-            else "en línea"
-        )
-        hours_text = (
-            "una reducción de las horas semanales promedio"
-            if hours_growth < 0
-            else "un aumento de las horas semanales promedio"
-            if hours_growth > 0
-            else "estabilidad en las horas semanales promedio"
-        )
 
         lines.extend(
             [
@@ -800,17 +857,7 @@ def write_sector_detail_sections(sector: pd.DataFrame) -> None:
                     f"{SECTOR_SHORT[code]}: PIB, ocupados, horas y productividad laboral, 2010--2025",
                 ),
                 "",
-                (
-                    f"\\textbf{{En {SECTOR_SHORT[code].lower()}, el crecimiento del PIB real fue "
-                    f"{classify_growth(pib_growth)} y el del PIB por trabajador fue "
-                    f"{classify_growth(worker_growth)}.}} "
-                    f"Entre 2010 y 2025, el PIB real sectorial varió a una tasa anualizada de "
-                    f"{fmt_pct_es(pib_growth)}, mientras que el número de ocupados lo hizo a "
-                    f"{fmt_pct_es(emp_growth)}. Como resultado, el PIB por trabajador varió "
-                    f"{fmt_pct_es(worker_growth)} anual. El PIB por hora se ubicó {relation} de "
-                    f"esa dinámica, con una tasa de {fmt_pct_es(hour_growth)}, en un contexto de "
-                    f"{hours_text} ({fmt_pct_es(hours_growth)} anual)."
-                ),
+                sector_comparison_paragraph(metrics, aggregate_growth),
                 "",
             ]
         )
@@ -1068,7 +1115,7 @@ def main() -> None:
 
     write_latex_tables(total, total_summary, sector_summary)
     write_sector_correlation_table(sector)
-    write_sector_detail_sections(sector)
+    write_sector_detail_sections(sector, total)
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
     draw_sector_correlation_scatter(sector)
