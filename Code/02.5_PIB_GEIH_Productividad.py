@@ -387,6 +387,17 @@ AGG61_POOLS = [
     {"subramas": [45], "groups": ["109"]},
 ]
 
+AGG61_TO_SECTOR = {}
+for pool in AGG61_POOLS:
+    pool_sectors = {
+        SUBRAMA_TO_SECTOR[subrama]
+        for subrama in pool["subramas"]
+        if subrama in SUBRAMA_TO_SECTOR
+    }
+    if len(pool_sectors) == 1:
+        for group_code in pool["groups"]:
+            AGG61_TO_SECTOR[group_code] = next(iter(pool_sectors))
+
 AGG61_SHORT.update(
     {
         "001,002,004-008,013": "Cultivos y apoyo agropecuario",
@@ -1256,11 +1267,43 @@ def sector_comparison_paragraph(
     )
 
 
-def agg25_zoom_lines(summary25: pd.DataFrame | None, sector_code: str) -> list[str]:
-    if summary25 is None or summary25.empty or "sector_code" not in summary25.columns:
-        return []
+def join_latex_items(items: list[str]) -> str:
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} y {items[1]}"
+    if any("," in item for item in items):
+        return f"{'; '.join(items[:-1])}; y {items[-1]}"
+    return f"{', '.join(items[:-1])} y {items[-1]}"
 
-    subset = summary25[summary25["sector_code"] == sector_code].copy()
+
+def tied_activity_names(data: pd.DataFrame, column: str, value: float) -> str:
+    tied = data[data[column].round(10) == round(value, 10)].copy()
+    names = [escape_latex(name) for name in tied["actividad_corta"].tolist()]
+    if len(names) > 3:
+        shown = names[:3]
+        shown.append(f"{len(names) - 3} más")
+        names = shown
+    return join_latex_items(names)
+
+
+def sector_zoom_lines(
+    summary25: pd.DataFrame | None,
+    summary61: pd.DataFrame | None,
+    sector_code: str,
+) -> list[str]:
+    subset25 = pd.DataFrame()
+    subset61 = pd.DataFrame()
+    if summary25 is not None and not summary25.empty and "sector_code" in summary25.columns:
+        subset25 = summary25[summary25["sector_code"] == sector_code].copy()
+    if summary61 is not None and not summary61.empty and "sector_code" in summary61.columns:
+        subset61 = summary61[summary61["sector_code"] == sector_code].copy()
+
+    use61 = len(subset25) == 1 and len(subset61) > 1
+    level = 61 if use61 else 25
+    subset = subset61 if use61 else subset25
     if subset.empty:
         return []
 
@@ -1270,8 +1313,8 @@ def agg25_zoom_lines(summary25: pd.DataFrame | None, sector_code: str) -> list[s
     if len(subset) == 1:
         row = subset.iloc[0]
         return [
-            r"\textbf{Zoom a 25 agrupaciones.} "
-            f"En esta actividad, la apertura a 25 agrupaciones coincide con la agrupación de 12: "
+            f"\\textbf{{Zoom a {level} agrupaciones.}} "
+            f"En esta actividad, la apertura a {level} agrupaciones coincide con la agrupación de 12: "
             f"{escape_latex(row['actividad_corta'])}. Por eso, el cuadro anterior ya resume la lectura relevante a este nivel.",
             "",
         ]
@@ -1282,21 +1325,40 @@ def agg25_zoom_lines(summary25: pd.DataFrame | None, sector_code: str) -> list[s
     bottom_hour = subset.sort_values("crec_pib_hora", ascending=True).iloc[0]
     label_code = sector_code.lower().replace("+", "_")
 
+    if use61:
+        intro = (
+            f"\\textbf{{Zoom a {level} agrupaciones.}} "
+            f"En {sector_label.lower()}, la apertura a 25 agrupaciones coincide con la agrupación de 12. "
+            "Por eso, el zoom usa la apertura a 61 agrupaciones, que permite mirar subactividades más específicas."
+        )
+        note = (
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
+            r"Cuando la GEIH no separa ocupados y horas al mismo nivel de las cuentas nacionales, se asignan proporcionalmente al PIB dentro del grupo laboral comparable. "
+            r"Fuente: cálculos propios con DANE y GEIH.}"
+        )
+    else:
+        intro = (
+            r"\textbf{Zoom a 25 agrupaciones.} "
+            f"Dentro de {sector_label.lower()}, la apertura a 25 agrupaciones permite ver diferencias que el promedio de la actividad oculta."
+        )
+        note = (
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. Fuente: cálculos propios con DANE y GEIH.}"
+        )
+
     lines = [
-        r"\textbf{Zoom a 25 agrupaciones.} "
-        f"Dentro de {sector_label.lower()}, la apertura a 25 agrupaciones permite ver diferencias que el promedio de la actividad oculta.",
+        intro,
         "",
         r"\begin{table}[H]",
         r"\centering",
-        f"\\caption{{{escape_latex(sector_label)}: apertura de productividad laboral a 25 agrupaciones, 2010--2025}}",
-        f"\\label{{tab:sector_{label_code}_zoom25}}",
+        f"\\caption{{{escape_latex(sector_label)}: apertura de productividad laboral a {level} agrupaciones, 2010--2025}}",
+        f"\\label{{tab:sector_{label_code}_zoom{level}}}",
         r"\scriptsize",
         r"\begin{tabular}{p{0.40\textwidth}rrrr}",
         r"\toprule",
         r"Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\",
         r"\midrule",
     ]
-    if sector_code == "F":
+    if sector_code == "F" and level == 25:
         lines = [
             lines[0],
             lines[1],
@@ -1316,7 +1378,7 @@ def agg25_zoom_lines(summary25: pd.DataFrame | None, sector_code: str) -> list[s
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. Fuente: cálculos propios con DANE y GEIH.}",
+            note,
             r"\end{table}",
             "",
         ]
@@ -1331,14 +1393,24 @@ def agg25_zoom_lines(summary25: pd.DataFrame | None, sector_code: str) -> list[s
             ]
         )
     else:
+        top_worker_names = tied_activity_names(
+            subset, "crec_pib_trabajador", top_worker["crec_pib_trabajador"]
+        )
+        bottom_worker_names = tied_activity_names(
+            subset, "crec_pib_trabajador", bottom_worker["crec_pib_trabajador"]
+        )
+        top_hour_names = tied_activity_names(subset, "crec_pib_hora", top_hour["crec_pib_hora"])
+        bottom_hour_names = tied_activity_names(
+            subset, "crec_pib_hora", bottom_hour["crec_pib_hora"]
+        )
         lines.extend(
             [
-                f"En esta apertura, el mayor crecimiento del PIB por trabajador se observa en {escape_latex(top_worker['actividad_corta'])} "
+                f"En esta apertura, el mayor crecimiento del PIB por trabajador se observa en {top_worker_names} "
                 f"({fmt_pct_es(top_worker['crec_pib_trabajador'])}), mientras que el menor se registra en "
-                f"{escape_latex(bottom_worker['actividad_corta'])} ({fmt_pct_es(bottom_worker['crec_pib_trabajador'])}). "
-                f"Por hora trabajada, el mejor desempeño corresponde a {escape_latex(top_hour['actividad_corta'])} "
+                f"{bottom_worker_names} ({fmt_pct_es(bottom_worker['crec_pib_trabajador'])}). "
+                f"Por hora trabajada, el mejor desempeño corresponde a {top_hour_names} "
                 f"({fmt_pct_es(top_hour['crec_pib_hora'])}) y el más rezagado a "
-                f"{escape_latex(bottom_hour['actividad_corta'])} ({fmt_pct_es(bottom_hour['crec_pib_hora'])}).",
+                f"{bottom_hour_names} ({fmt_pct_es(bottom_hour['crec_pib_hora'])}).",
                 "",
             ]
         )
@@ -1346,11 +1418,14 @@ def agg25_zoom_lines(summary25: pd.DataFrame | None, sector_code: str) -> list[s
 
 
 def write_sector_detail_sections(
-    sector: pd.DataFrame, total: pd.DataFrame, summary25: pd.DataFrame | None = None
+    sector: pd.DataFrame,
+    total: pd.DataFrame,
+    summary25: pd.DataFrame | None = None,
+    summary61: pd.DataFrame | None = None,
 ) -> None:
     detail_rows = []
     lines = [
-        "La lectura por doce agrupaciones es la columna vertebral del análisis sectorial. Dentro de cada subsección se incluye, cuando corresponde, un zoom a 25 agrupaciones para mostrar qué ocurre al abrir la actividad amplia en subsectores más específicos.",
+        "La lectura por doce agrupaciones es la columna vertebral del análisis sectorial. Dentro de cada subsección se incluye, cuando corresponde, un zoom a 25 agrupaciones para mostrar qué ocurre al abrir la actividad amplia en subsectores más específicos. En las actividades donde la apertura a 25 agrupaciones coincide con la de 12, pero la apertura a 61 sí ofrece mayor detalle, el zoom usa esa desagregación más fina.",
         "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones de actividad económica CIIU. En cada caso, el cuadro resume el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del producto, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
         "",
     ]
@@ -1387,7 +1462,7 @@ def write_sector_detail_sections(
                 "",
                 sector_level_paragraph(metrics, aggregate_levels),
                 "",
-                *agg25_zoom_lines(summary25, code),
+                *sector_zoom_lines(summary25, summary61, code),
             ]
         )
 
@@ -2016,11 +2091,13 @@ def write_va_disaggregation_sections(
     summary61 = summarize_productivity_disaggregation(prod61, AGG61_ORDER)
     summary25_zoom = summary25.copy()
     summary25_zoom["sector_code"] = summary25_zoom["codigo"].map(AGG25_TO_SECTOR)
+    summary61_zoom = summary61.copy()
+    summary61_zoom["sector_code"] = summary61_zoom["codigo"].map(AGG61_TO_SECTOR)
     write_productivity_25_section(prod25, summary25, total)
     write_productivity_61_section(prod61, summary61)
     write_va_25_section(summarize_va_disaggregation(va25, AGG25_SHORT))
     write_va_61_section(summarize_va_disaggregation(va61, AGG61_SHORT))
-    return summary25_zoom, summary61
+    return summary25_zoom, summary61_zoom
 
 
 def draw_index_chart(total: pd.DataFrame) -> None:
@@ -2253,10 +2330,10 @@ def main() -> None:
     sector_summary.to_csv(TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
     sector_summary.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
 
-    summary25, _ = write_va_disaggregation_sections(geih_subrama, total)
+    summary25, summary61 = write_va_disaggregation_sections(geih_subrama, total)
     write_latex_tables(total, total_summary, sector_summary)
     write_sector_correlation_table(sector)
-    write_sector_detail_sections(sector, total, summary25)
+    write_sector_detail_sections(sector, total, summary25, summary61)
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
     draw_sector_correlation_scatter(sector)
