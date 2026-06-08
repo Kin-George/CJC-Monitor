@@ -274,6 +274,17 @@ AGG25_POOLS = [
     {"subramas": [45], "groups": ["T"]},
 ]
 
+AGG25_TO_SECTOR = {}
+for pool in AGG25_POOLS:
+    pool_sectors = {
+        SUBRAMA_TO_SECTOR[subrama]
+        for subrama in pool["subramas"]
+        if subrama in SUBRAMA_TO_SECTOR
+    }
+    if len(pool_sectors) == 1:
+        for group_code in pool["groups"]:
+            AGG25_TO_SECTOR[group_code] = next(iter(pool_sectors))
+
 AGG61_ORDER = [
     "001,002,004-008,013",
     "003",
@@ -1245,9 +1256,101 @@ def sector_comparison_paragraph(
     )
 
 
-def write_sector_detail_sections(sector: pd.DataFrame, total: pd.DataFrame) -> None:
+def agg25_zoom_lines(summary25: pd.DataFrame | None, sector_code: str) -> list[str]:
+    if summary25 is None or summary25.empty or "sector_code" not in summary25.columns:
+        return []
+
+    subset = summary25[summary25["sector_code"] == sector_code].copy()
+    if subset.empty:
+        return []
+
+    subset = subset.sort_values("crec_pib_trabajador", ascending=False)
+    sector_label = SECTOR_SHORT[sector_code]
+
+    if len(subset) == 1:
+        row = subset.iloc[0]
+        return [
+            r"\textbf{Zoom a 25 agrupaciones.} "
+            f"En esta actividad, la apertura a 25 agrupaciones coincide con la agrupación de 12: "
+            f"{escape_latex(row['actividad_corta'])}. Por eso, el cuadro anterior ya resume la lectura relevante a este nivel.",
+            "",
+        ]
+
+    top_worker = subset.iloc[0]
+    bottom_worker = subset.sort_values("crec_pib_trabajador", ascending=True).iloc[0]
+    top_hour = subset.sort_values("crec_pib_hora", ascending=False).iloc[0]
+    bottom_hour = subset.sort_values("crec_pib_hora", ascending=True).iloc[0]
+    label_code = sector_code.lower().replace("+", "_")
+
+    lines = [
+        r"\textbf{Zoom a 25 agrupaciones.} "
+        f"Dentro de {sector_label.lower()}, la apertura a 25 agrupaciones permite ver diferencias que el promedio de la actividad oculta.",
+        "",
+        r"\begin{table}[H]",
+        r"\centering",
+        f"\\caption{{{escape_latex(sector_label)}: apertura de productividad laboral a 25 agrupaciones, 2010--2025}}",
+        f"\\label{{tab:sector_{label_code}_zoom25}}",
+        r"\scriptsize",
+        r"\begin{tabular}{p{0.40\textwidth}rrrr}",
+        r"\toprule",
+        r"Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\",
+        r"\midrule",
+    ]
+    if sector_code == "F":
+        lines = [
+            lines[0],
+            lines[1],
+            "En construcción, la GEIH histórica no permite separar ocupados y horas entre edificaciones, obras civiles y actividades especializadas. Por eso, esta apertura distribuye ocupados y horas proporcionalmente al PIB de cada subactividad dentro de construcción.",
+            "",
+            *lines[2:],
+        ]
+    for _, row in subset.iterrows():
+        lines.append(
+            f"{escape_latex(row['actividad_corta'])} & "
+            f"{fmt_num_es(row['pib_trabajador_2025'], 1)} & "
+            f"{fmt_pct_es(row['crec_pib_trabajador'])} & "
+            f"{fmt_num_es(row['pib_hora_2025'], 1)} & "
+            f"{fmt_pct_es(row['crec_pib_hora'])} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\end{table}",
+            "",
+        ]
+    )
+    same_worker_growth = subset["crec_pib_trabajador"].round(10).nunique(dropna=True) == 1
+    same_hour_growth = subset["crec_pib_hora"].round(10).nunique(dropna=True) == 1
+    if same_worker_growth and same_hour_growth:
+        lines.extend(
+            [
+                "En esta apertura, las tasas estimadas de productividad son iguales entre las subactividades porque la información laboral comparable no permite separar ocupados y horas con ese nivel de detalle. Por eso, la tabla debe leerse como una apertura descriptiva del PIB dentro de la actividad amplia, no como evidencia de diferencias efectivas de productividad entre esas subactividades.",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                f"En esta apertura, el mayor crecimiento del PIB por trabajador se observa en {escape_latex(top_worker['actividad_corta'])} "
+                f"({fmt_pct_es(top_worker['crec_pib_trabajador'])}), mientras que el menor se registra en "
+                f"{escape_latex(bottom_worker['actividad_corta'])} ({fmt_pct_es(bottom_worker['crec_pib_trabajador'])}). "
+                f"Por hora trabajada, el mejor desempeño corresponde a {escape_latex(top_hour['actividad_corta'])} "
+                f"({fmt_pct_es(top_hour['crec_pib_hora'])}) y el más rezagado a "
+                f"{escape_latex(bottom_hour['actividad_corta'])} ({fmt_pct_es(bottom_hour['crec_pib_hora'])}).",
+                "",
+            ]
+        )
+    return lines
+
+
+def write_sector_detail_sections(
+    sector: pd.DataFrame, total: pd.DataFrame, summary25: pd.DataFrame | None = None
+) -> None:
     detail_rows = []
     lines = [
+        "La lectura por doce agrupaciones es la columna vertebral del análisis sectorial. Dentro de cada subsección se incluye, cuando corresponde, un zoom a 25 agrupaciones para mostrar qué ocurre al abrir la actividad amplia en subsectores más específicos.",
         "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones de actividad económica CIIU. En cada caso, el cuadro resume el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del producto, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
         "",
     ]
@@ -1284,6 +1387,7 @@ def write_sector_detail_sections(sector: pd.DataFrame, total: pd.DataFrame) -> N
                 "",
                 sector_level_paragraph(metrics, aggregate_levels),
                 "",
+                *agg25_zoom_lines(summary25, code),
             ]
         )
 
@@ -1650,7 +1754,7 @@ def write_productivity_25_section(
         "Productividad laboral por actividad económica, 25 agrupaciones CIIU, 2010--2025",
         note,
     )
-    table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8")
+    table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8").rstrip()
 
     total_start = total[total["anio"] == 2010].iloc[0]
     total_end = total[total["anio"] == 2025].iloc[0]
@@ -1772,23 +1876,11 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
         note,
         use_longtable=True,
     )
-    table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8")
+    table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8").rstrip()
     lines = [
-        "La apertura a 61 agrupaciones lleva el ejercicio al mayor detalle disponible en el anexo de producción del DANE. Esta sección mantiene la misma lógica: combinar PIB, ocupados y horas para estimar PIB por trabajador y PIB por hora trabajada. La ventaja es que permite ubicar con más precisión dónde se originan las diferencias de productividad; la cautela es que, en varias actividades, la información laboral histórica no separa ocupados y horas con el mismo detalle que las cuentas nacionales.",
+        "La tabla presenta la apertura completa a 61 agrupaciones de actividad económica. Debe leerse como una referencia de consulta y transparencia: en varias actividades la GEIH histórica no separa ocupados y horas con el mismo detalle de las cuentas nacionales, por lo que la asignación laboral se hace proporcional al PIB dentro del grupo laboral comparable.",
         "",
         table_text,
-        "",
-        r"\textbf{La mirada a 61 agrupaciones confirma que las diferencias de productividad no solo ocurren entre grandes sectores, sino también dentro de ellos.} Las mayores tasas de crecimiento del PIB por trabajador se observan en "
-        + productivity_items(summary, "crec_pib_trabajador", ascending=False, n=4)
-        + ". Las menores tasas se registran en "
-        + productivity_items(summary, "crec_pib_trabajador", ascending=True, n=4)
-        + ". Medida por hora trabajada, la productividad crece con más fuerza en "
-        + productivity_items(summary, "crec_pib_hora", ascending=False, n=4)
-        + ", mientras que las caídas más pronunciadas aparecen en "
-        + productivity_items(summary, "crec_pib_hora", ascending=True, n=4)
-        + ".",
-        "",
-        "Esta apertura no reemplaza la lectura de doce y veinticinco agrupaciones, sino que la complementa. Su principal aporte es mostrar en qué subactividades se concentran los avances y rezagos que, en las agrupaciones amplias, pueden quedar compensados por dinámicas internas muy distintas.",
     ]
     (SECTION_DIR / "pib_geih_productividad_61_agrupaciones.tex").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"
@@ -1901,7 +1993,9 @@ def write_va_61_section(summary: pd.DataFrame) -> None:
     )
 
 
-def write_va_disaggregation_sections(geih_subrama: pd.DataFrame, total: pd.DataFrame) -> None:
+def write_va_disaggregation_sections(
+    geih_subrama: pd.DataFrame, total: pd.DataFrame
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     va25 = load_va_disaggregation("Cuadro 2", code_col=2, concept_col=3)
     va61 = load_va_disaggregation("Cuadro 3", code_col=2, concept_col=3)
     prod25 = build_productivity_disaggregation(
@@ -1920,10 +2014,13 @@ def write_va_disaggregation_sections(geih_subrama: pd.DataFrame, total: pd.DataF
     )
     summary25 = summarize_productivity_disaggregation(prod25, AGG25_ORDER)
     summary61 = summarize_productivity_disaggregation(prod61, AGG61_ORDER)
+    summary25_zoom = summary25.copy()
+    summary25_zoom["sector_code"] = summary25_zoom["codigo"].map(AGG25_TO_SECTOR)
     write_productivity_25_section(prod25, summary25, total)
     write_productivity_61_section(prod61, summary61)
     write_va_25_section(summarize_va_disaggregation(va25, AGG25_SHORT))
     write_va_61_section(summarize_va_disaggregation(va61, AGG61_SHORT))
+    return summary25_zoom, summary61
 
 
 def draw_index_chart(total: pd.DataFrame) -> None:
@@ -2156,10 +2253,10 @@ def main() -> None:
     sector_summary.to_csv(TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
     sector_summary.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
 
+    summary25, _ = write_va_disaggregation_sections(geih_subrama, total)
     write_latex_tables(total, total_summary, sector_summary)
     write_sector_correlation_table(sector)
-    write_sector_detail_sections(sector, total)
-    write_va_disaggregation_sections(geih_subrama, total)
+    write_sector_detail_sections(sector, total, summary25)
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
     draw_sector_correlation_scatter(sector)
