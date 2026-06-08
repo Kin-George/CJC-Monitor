@@ -779,6 +779,13 @@ def build_metric_rows(start: pd.Series, end: pd.Series) -> pd.DataFrame:
 
 
 def metric_table_lines(metrics: pd.DataFrame, label: str, caption: str) -> list[str]:
+    display_labels = {
+        "Valor agregado real": "Valor agregado  (Billones de pesos de 2015)",
+        "Ocupados": "Ocupados (Millones)",
+        "Valor agregado por trabajador": "Valor agregado por trabajador (Millones de pesos de 2015)",
+        "Horas semanales por trabajador": "Horas semanales por trabajador",
+        "Valor agregado por hora trabajada": "Valor agregado por hora trabajada (Miles de pesos de 2015)",
+    }
     lines = [
         r"\begin{table}[H]",
         r"\centering",
@@ -787,12 +794,13 @@ def metric_table_lines(metrics: pd.DataFrame, label: str, caption: str) -> list[
         r"\small",
         r"\begin{tabular}{lrrr}",
         r"\toprule",
-        r"Indicador & 2010 & 2025 & Crec. anualizado \\",
+        r"Indicador & 2010 & 2025 & Crec. anual \\",
         r"\midrule",
     ]
     for _, row in metrics.iterrows():
+        indicator = display_labels.get(str(row["indicador"]), indicator_with_unit(row))
         lines.append(
-            f"{escape_latex(indicator_with_unit(row))} & "
+            f"{escape_latex(indicator)} & "
             f"{fmt_num_es(row['valor_2010'], 1)} & "
             f"{fmt_num_es(row['valor_2025'], 1)} & "
             f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
