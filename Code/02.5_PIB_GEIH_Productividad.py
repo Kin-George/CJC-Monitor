@@ -521,7 +521,7 @@ def write_latex_tables(
     sector_lines = [
         r"\begin{table}[H]",
         r"\centering",
-        r"\caption{Productividad laboral por sector CIIU, 2010--2025}",
+        r"\caption{Productividad laboral por actividad económica CIIU, 2010--2025}",
         r"\label{tab:pib_geih_productividad_sector}",
         r"\small",
         r"\begin{tabular}{lrrrrrr}",
@@ -529,7 +529,7 @@ def write_latex_tables(
         r"& \multicolumn{3}{c}{PIB por trabajador} & \multicolumn{3}{c}{PIB por hora} \\",
         r"& \multicolumn{3}{c}{\footnotesize Millones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Miles de pesos de 2015} \\",
         r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
-        r"Sector & 2010 & 2025 & Crec. & 2010 & 2025 & Crec. \\",
+        r"Actividad económica & 2010 & 2025 & Crec. & 2010 & 2025 & Crec. \\",
         r"\midrule",
     ]
     for _, row in sector_sorted.iterrows():
@@ -546,7 +546,7 @@ def write_latex_tables(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015 por ocupado; PIB por hora en miles de pesos constantes de 2015 por hora trabajada. La comparación entre ambas columnas debe hacerse por tasas de crecimiento, no por niveles, porque los denominadores y las escalas son distintos. Sectores según 12 agrupaciones CIIU Rev. 4 A.C. del DANE; ocupados y horas se agregan desde GEIH usando la homologación de subramas del proyecto. Se excluyen organizaciones extraterritoriales del cruce sectorial por no hacer parte de las 12 agrupaciones. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015 por ocupado; PIB por hora en miles de pesos constantes de 2015 por hora trabajada. La comparación entre ambas columnas debe hacerse por tasas de crecimiento, no por niveles, porque los denominadores y las escalas son distintos. Actividades económicas según 12 agrupaciones CIIU Rev. 4 A.C. del DANE; ocupados y horas se agregan desde GEIH usando la actividad económica reportada en la encuesta. Se excluyen organizaciones extraterritoriales del cruce por actividad económica por no hacer parte de las 12 agrupaciones. Fuente: cálculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -622,7 +622,7 @@ def write_sector_correlation_table(sector: pd.DataFrame) -> None:
     lines = [
         r"\begin{table}[H]",
         r"\centering",
-        r"\caption{Correlaciones entre crecimientos sectoriales, 2010--2025}",
+        r"\caption{Correlaciones entre crecimientos por actividad económica, 2010--2025}",
         r"\label{tab:pib_geih_productividad_sector_correlaciones}",
         r"\small",
         r"\begin{tabular}{lrrrr}",
@@ -642,7 +642,7 @@ def write_sector_correlation_table(sector: pd.DataFrame) -> None:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: correlaciones de Pearson calculadas entre las tasas de crecimiento anualizado 2010--2025 de las 12 agrupaciones sectoriales CIIU. Las horas corresponden al total anual de horas trabajadas por sector, estimado a partir de GEIH como horas semanales ponderadas por el factor de expansi\'on y multiplicadas por 52. Fuente: c\'alculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: correlaciones de Pearson calculadas entre las tasas de crecimiento anualizado 2010--2025 de las 12 agrupaciones de actividad económica CIIU. Las horas corresponden al total anual de horas trabajadas por actividad económica, estimado a partir de GEIH como horas semanales ponderadas por el factor de expansi\'on y multiplicadas por 52. Fuente: c\'alculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -833,8 +833,8 @@ def sector_level_paragraph(
         f"{fmt_num_es(aggregate_levels['PIB por hora trabajada'], 1)} mil",
     )
     return (
-        r"\textbf{En niveles de 2025, el tamaño relativo y la productividad del sector también importan.} "
-        f"El sector representó {fmt_pct_es(pib_share, 1)} del PIB real agregado, "
+        r"\textbf{En niveles de 2025, el tamaño relativo y la productividad de la actividad económica también importan.} "
+        f"La actividad representó {fmt_pct_es(pib_share, 1)} del PIB real agregado, "
         f"con {fmt_num_es(levels['PIB real'], 1)} billones de pesos de 2015, "
         f"y concentró {fmt_pct_es(occupied_share, 1)} de los ocupados, "
         f"con {fmt_num_es(levels['Ocupados'], 1)} millones de personas. "
@@ -856,14 +856,14 @@ def sector_comparison_paragraph(
     return (
         r"\textbf{Frente al agregado nacional, la comparación variable por variable muestra diferencias relevantes.} "
         + comparison_fragment(
-            "El PIB real sectorial",
+            "El PIB real de la actividad",
             "registró",
             growth["PIB real"],
             aggregate_growth["PIB real"],
         )
         + ". "
         + comparison_fragment(
-            "La ocupación del sector",
+            "La ocupación en la actividad",
             "registró",
             growth["Ocupados"],
             aggregate_growth["Ocupados"],
@@ -894,7 +894,7 @@ def sector_comparison_paragraph(
 def write_sector_detail_sections(sector: pd.DataFrame, total: pd.DataFrame) -> None:
     detail_rows = []
     lines = [
-        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones CIIU. En cada caso, el cuadro resume el PIB real sectorial, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones sectoriales siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
+        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones de actividad económica CIIU. En cada caso, el cuadro resume el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
         "",
     ]
     total_start = total[total["anio"] == 2010].iloc[0]
@@ -1026,7 +1026,7 @@ def draw_sector_cagr_chart(sector_summary: pd.DataFrame) -> None:
     title_font = ImageFont.truetype("arial.ttf", 30) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
     label_font = ImageFont.truetype("arial.ttf", 18) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
 
-    draw.text((80, 35), "Crecimiento anualizado de la productividad laboral por sector, 2010--2025", fill="#222222", font=title_font)
+    draw.text((80, 35), "Crecimiento anualizado de la productividad laboral por actividad económica, 2010--2025", fill="#222222", font=title_font)
     draw.text((80, 73), "PIB por trabajador y PIB por hora trabajada", fill="#555555", font=label_font)
 
     left, top, right, bottom = 520, 150, 1480, 900
@@ -1095,8 +1095,8 @@ def draw_sector_correlation_scatter(sector: pd.DataFrame) -> None:
     label_font = ImageFont.truetype("arial.ttf", 20) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
     small_font = ImageFont.truetype("arial.ttf", 17) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
 
-    draw.text((70, 35), "Crecimiento sectorial del trabajo y la productividad, 2010--2025", fill="#222222", font=title_font)
-    draw.text((70, 78), "Tasas anualizadas por agrupación CIIU; cada punto representa un sector", fill="#555555", font=label_font)
+    draw.text((70, 35), "Crecimiento del trabajo y la productividad por actividad económica, 2010--2025", fill="#222222", font=title_font)
+    draw.text((70, 78), "Tasas anualizadas por agrupación CIIU; cada punto representa una actividad económica", fill="#555555", font=label_font)
 
     panels = [
         (90, 150, 850, 600, "ocupados", "prod_trabajador", "Ocupados", "PIB por trabajador"),
@@ -1160,7 +1160,7 @@ def draw_sector_correlation_scatter(sector: pd.DataFrame) -> None:
         draw.text((plot_left + 10, plot_top + 10), f"r = {corr:.2f}", fill="#b44b3f", font=label_font)
         draw.text(((plot_left + plot_right) / 2 - 90, bottom - 38), f"Crec. {x_lab.lower()}", fill="#333333", font=small_font)
 
-    draw.text((70, 1210), "Nota: la línea roja muestra la tendencia lineal simple entre sectores.", fill="#555555", font=small_font)
+    draw.text((70, 1210), "Nota: la línea roja muestra la tendencia lineal simple entre actividades económicas.", fill="#555555", font=small_font)
 
     for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
         img.save(directory / "fig_pib_geih_productividad_sector_correlaciones.png")
@@ -1193,7 +1193,7 @@ def main() -> None:
 
     print("Resumen total")
     print(total_summary.to_string(index=False))
-    print("\nSectores ordenados por crecimiento de PIB por trabajador")
+    print("\nActividades económicas ordenadas por crecimiento de PIB por trabajador")
     print(sector_summary.sort_values("crec_pib_trabajador", ascending=False).to_string(index=False))
 
 
