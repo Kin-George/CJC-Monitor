@@ -1310,6 +1310,13 @@ def sector_zoom_lines(
     subset = subset.sort_values("crec_pib_trabajador", ascending=False)
     sector_label = SECTOR_SHORT[sector_code]
 
+    if sector_code == "F" and level == 25:
+        return [
+            r"\textbf{Zoom a 25 agrupaciones.} "
+            "El DANE abre construcción en edificaciones, obras civiles y actividades especializadas de construcción. Sin embargo, la GEIH histórica comparable no permite separar ocupados y horas entre esas tres subactividades. Por esa razón, no se presenta un cuadro de PIB por trabajador o PIB por hora a este nivel: cualquier apertura asignaría el empleo y las horas de manera proporcional al PIB y produciría diferencias mecánicas, no estimaciones independientes de productividad laboral.",
+            "",
+        ]
+
     if len(subset) == 1:
         row = subset.iloc[0]
         return [
@@ -1358,14 +1365,6 @@ def sector_zoom_lines(
         r"Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\",
         r"\midrule",
     ]
-    if sector_code == "F" and level == 25:
-        lines = [
-            lines[0],
-            lines[1],
-            "En construcción, la GEIH histórica no permite separar ocupados y horas entre edificaciones, obras civiles y actividades especializadas. Por eso, esta apertura distribuye ocupados y horas proporcionalmente al PIB de cada subactividad dentro de construcción.",
-            "",
-            *lines[2:],
-        ]
     for _, row in subset.iterrows():
         lines.append(
             f"{escape_latex(row['actividad_corta'])} & "
