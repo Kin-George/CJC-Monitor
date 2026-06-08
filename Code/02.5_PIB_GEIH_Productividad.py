@@ -164,6 +164,285 @@ for code in range(43, 46):
     SUBRAMA_TO_SECTOR[code] = "R+S+T"
 
 
+AGG25_ORDER = [
+    "A",
+    "B",
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "D",
+    "E",
+    "F01",
+    "F02",
+    "F03",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M+N",
+    "O",
+    "P",
+    "Q",
+    "R+S",
+    "T",
+]
+
+AGG25_DESCRIPTION = {
+    "A": "agricultura, ganadería, caza, silvicultura y pesca",
+    "B": "explotación de minas y canteras",
+    "C01": "elaboración de productos alimenticios, bebidas y tabaco",
+    "C02": "textiles, confecciones, cuero, calzado y artículos de viaje",
+    "C03": "madera, papel, cartón, impresión y reproducción de grabaciones",
+    "C04": "refinación, químicos, farmacéuticos, caucho, plástico y minerales no metálicos",
+    "C05": "metalurgia, productos metálicos, equipo eléctrico, productos electrónicos, maquinaria, vehículos y equipo de transporte",
+    "C06": "muebles, colchones, somieres y otras industrias manufactureras",
+    "D": "suministro de electricidad, gas, vapor y aire acondicionado",
+    "E": "agua, saneamiento, residuos, desechos y saneamiento ambiental",
+    "F01": "construcción de edificaciones residenciales y no residenciales",
+    "F02": "construcción de carreteras, vías férreas, proyectos de servicio público y obras de ingeniería civil",
+    "F03": "actividades especializadas para construcción de edificaciones y obras de ingeniería civil",
+    "G": "comercio al por mayor y al por menor, y reparación de vehículos automotores y motocicletas",
+    "H": "transporte y almacenamiento",
+    "I": "alojamiento y servicios de comida",
+    "J": "información y comunicaciones",
+    "K": "actividades financieras y de seguros",
+    "L": "actividades inmobiliarias",
+    "M+N": "actividades profesionales, científicas y técnicas, y servicios administrativos y de apoyo",
+    "O": "administración pública y defensa, y planes de seguridad social de afiliación obligatoria",
+    "P": "educación",
+    "Q": "actividades de atención de la salud humana y de servicios sociales",
+    "R+S": "actividades artísticas, entretenimiento, recreación y otros servicios",
+    "T": "actividades de los hogares como empleadores y producción no diferenciada de los hogares para uso propio",
+}
+
+AGG25_CIIU_CODES = {
+    "A": "A; divisiones 01--03",
+    "B": "B; divisiones 05--09",
+    "C01": "C; divisiones 10--12",
+    "C02": "C; divisiones 13--15",
+    "C03": "C; divisiones 16--18",
+    "C04": "C; divisiones 19--23",
+    "C05": "C; divisiones 24--30 y 33",
+    "C06": "C; divisiones 31--32",
+    "D": "D; división 35",
+    "E": "E; divisiones 36--39",
+    "F01": "F; división 41",
+    "F02": "F; división 42",
+    "F03": "F; división 43",
+    "G": "G; divisiones 45--47",
+    "H": "H; divisiones 49--53",
+    "I": "I; divisiones 55--56",
+    "J": "J; divisiones 58--63",
+    "K": "K; divisiones 64--66",
+    "L": "L; división 68",
+    "M+N": "M y N; divisiones 69--82",
+    "O": "O; división 84",
+    "P": "P; división 85",
+    "Q": "Q; divisiones 86--88",
+    "R+S": "R y S; divisiones 90--96",
+    "T": "T; divisiones 97--98",
+}
+
+AGG25_POOLS = [
+    {"subramas": [1, 2, 3], "groups": ["A"]},
+    {"subramas": [4, 5], "groups": ["B"]},
+    {"subramas": [6], "groups": ["C01"]},
+    {"subramas": [7, 8], "groups": ["C02"]},
+    {"subramas": [9, 10], "groups": ["C03"]},
+    {"subramas": [11, 12], "groups": ["C04"]},
+    {"subramas": [13, 14, 15], "groups": ["C05"]},
+    {"subramas": [16], "groups": ["C06"]},
+    {"subramas": [17], "groups": ["D"]},
+    {"subramas": [18], "groups": ["E"]},
+    {"subramas": [19], "groups": ["F01", "F02", "F03"]},
+    {"subramas": [20, 21, 22], "groups": ["G"]},
+    {"subramas": [25, 26, 27], "groups": ["H"]},
+    {"subramas": [23, 24], "groups": ["I"]},
+    {"subramas": [28, 29, 30, 31, 32], "groups": ["J"]},
+    {"subramas": [33, 34], "groups": ["K"]},
+    {"subramas": [35], "groups": ["L"]},
+    {"subramas": [36, 37, 38], "groups": ["M+N"]},
+    {"subramas": [39], "groups": ["O"]},
+    {"subramas": [40], "groups": ["P"]},
+    {"subramas": [41, 42], "groups": ["Q"]},
+    {"subramas": [43, 44], "groups": ["R+S"]},
+    {"subramas": [45], "groups": ["T"]},
+]
+
+AGG61_ORDER = [
+    "001,002,004-008,013",
+    "003",
+    "009-012",
+    "014,015",
+    "016",
+    "017",
+    "018,021",
+    "019",
+    "020",
+    "022",
+    "023-025",
+    "026",
+    "027",
+    "028,032,035",
+    "029",
+    "030,031",
+    "033",
+    "034",
+    "036",
+    "037,038",
+    "039",
+    "040",
+    "041",
+    "042",
+    "043,044",
+    "045-047",
+    "048",
+    "049",
+    "050,051",
+    "052",
+    "053,057",
+    "054",
+    "055",
+    "056",
+    "058-060",
+    "061",
+    "062",
+    "063,064,066",
+    "065",
+    "067",
+    "068",
+    "069",
+    "070",
+    "071",
+    "072,074",
+    "073",
+    "075",
+    "076",
+    "077",
+    "078-080",
+    "081-084",
+    "085-088",
+    "089",
+    "090-093",
+    "094-097",
+    "098,099",
+    "100",
+    "101",
+    "102,103",
+    "104-108",
+    "109",
+]
+
+AGG61_POOLS = [
+    {"subramas": [1], "groups": ["001,002,004-008,013", "003", "009-012"]},
+    {"subramas": [2], "groups": ["014,015"]},
+    {"subramas": [3], "groups": ["016"]},
+    {"subramas": [4], "groups": ["017", "018,021", "022"]},
+    {"subramas": [5], "groups": ["019", "020"]},
+    {"subramas": [6], "groups": ["023-025", "026", "027", "028,032,035", "029", "030,031", "033", "034", "036"]},
+    {"subramas": [7], "groups": ["037,038"]},
+    {"subramas": [8], "groups": ["039"]},
+    {"subramas": [9], "groups": ["040", "041"]},
+    {"subramas": [10], "groups": ["042"]},
+    {"subramas": [11], "groups": ["043,044", "045-047"]},
+    {"subramas": [12], "groups": ["048", "049"]},
+    {"subramas": [13], "groups": ["050,051"]},
+    {"subramas": [14], "groups": ["052", "053,057"]},
+    {"subramas": [15], "groups": ["054"]},
+    {"subramas": [16], "groups": ["053,057", "055", "056"]},
+    {"subramas": [17], "groups": ["058-060", "061"]},
+    {"subramas": [18], "groups": ["062", "063,064,066", "065"]},
+    {"subramas": [19], "groups": ["067", "068", "069"]},
+    {"subramas": [20], "groups": ["070", "071"]},
+    {"subramas": [21, 22], "groups": ["070"]},
+    {"subramas": [25], "groups": ["072,074"]},
+    {"subramas": [26], "groups": ["073", "075"]},
+    {"subramas": [27], "groups": ["076", "077"]},
+    {"subramas": [23, 24], "groups": ["078-080"]},
+    {"subramas": [28, 29, 30, 31, 32], "groups": ["081-084"]},
+    {"subramas": [33, 34], "groups": ["085-088"]},
+    {"subramas": [35], "groups": ["089"]},
+    {"subramas": [36, 37], "groups": ["090-093"]},
+    {"subramas": [38], "groups": ["094-097"]},
+    {"subramas": [39], "groups": ["098,099"]},
+    {"subramas": [40], "groups": ["100", "101"]},
+    {"subramas": [41, 42], "groups": ["102,103"]},
+    {"subramas": [43, 44], "groups": ["104-108"]},
+    {"subramas": [45], "groups": ["109"]},
+]
+
+AGG61_SHORT.update(
+    {
+        "001,002,004-008,013": "Cultivos y apoyo agropecuario",
+        "003": "Café",
+        "009-012": "Ganadería",
+        "014,015": "Silvicultura",
+        "016": "Pesca y acuicultura",
+        "017": "Carbón",
+        "018,021": "Petróleo, gas y apoyo conexo",
+        "019": "Minerales metalíferos",
+        "020": "Otras minas y canteras",
+        "022": "Apoyo a otras actividades mineras",
+        "023-025": "Carnes, aves y pescado",
+        "026": "Aceites y grasas",
+        "027": "Lácteos",
+        "028,032,035": "Molinería, panadería y alimentos",
+        "029": "Productos de café",
+        "030,031": "Azúcar y panela",
+        "033": "Cacao y confitería",
+        "034": "Frutas, hortalizas y otros alimentos",
+        "036": "Bebidas y tabaco",
+        "037,038": "Textiles y confecciones",
+        "039": "Cuero, calzado y artículos de viaje",
+        "040": "Madera",
+        "041": "Papel y cartón",
+        "042": "Impresión y reproducción",
+        "043,044": "Coquización y refinación",
+        "045-047": "Químicos y farmacéuticos",
+        "048": "Caucho y plástico",
+        "049": "Minerales no metálicos",
+        "050,051": "Metalurgia y productos metálicos",
+        "052": "Equipo eléctrico y electrónico",
+        "053,057": "Maquinaria e instalación",
+        "054": "Vehículos y equipo de transporte",
+        "055": "Muebles y colchones",
+        "056": "Otras manufactureras",
+        "058-060": "Energía eléctrica",
+        "061": "Gas, vapor y aire acondicionado",
+        "062": "Agua",
+        "063,064,066": "Aguas residuales, desechos y saneamiento",
+        "065": "Reciclaje",
+        "067": "Edificaciones",
+        "068": "Obras civiles",
+        "069": "Actividades especializadas de construcción",
+        "070": "Comercio",
+        "071": "Reparación de vehículos",
+        "072,074": "Transporte terrestre y tuberías",
+        "073": "Transporte acuático",
+        "075": "Transporte aéreo",
+        "076": "Almacenamiento y apoyo al transporte",
+        "077": "Correo y mensajería",
+        "078-080": "Alojamiento y comida",
+        "081-084": "Información y comunicaciones",
+        "085-088": "Financieras y seguros",
+        "089": "Inmobiliarias",
+        "090-093": "Profesionales, científicas y técnicas",
+        "094-097": "Servicios administrativos y de apoyo",
+        "098,099": "Administración pública y defensa",
+        "100": "Educación de mercado",
+        "101": "Educación de no mercado",
+        "102,103": "Salud y servicios sociales",
+        "104-108": "Artes, entretenimiento y otros servicios",
+        "109": "Hogares como empleadores",
+    }
+)
+
+
 def parse_year(value) -> int | None:
     if pd.isna(value):
         return None
@@ -275,10 +554,10 @@ def load_pib_quarterly() -> tuple[pd.DataFrame, pd.DataFrame]:
     return annual_total, annual_sector
 
 
-def load_geih() -> tuple[pd.DataFrame, pd.DataFrame]:
+def load_geih() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     geih = pd.read_stata(
         GEIH_DTA,
-        columns=["anio", "fex", "horas", "subrama_det_cod"],
+        columns=["anio", "fex", "horas", "subrama_det_cod", "subrama_det"],
         convert_categoricals=False,
     )
     geih["anio"] = geih["anio"].astype(int)
@@ -314,12 +593,23 @@ def load_geih() -> tuple[pd.DataFrame, pd.DataFrame]:
         .assign(horas_anuales=lambda x: x["horas_sem_expandidas"] * 52)
     )
     sector["sector_name_short"] = sector["sector_code"].map(SECTOR_SHORT)
-    return total, sector
+
+    subrama = (
+        geih.dropna(subset=["subrama_det_cod"])
+        .groupby(["anio", "subrama_det_cod"], as_index=False)
+        .agg(
+            ocupados=("fex", "sum"),
+            horas_sem_expandidas=("horas_sem_expand", "sum"),
+        )
+        .assign(horas_anuales=lambda x: x["horas_sem_expandidas"] * 52)
+    )
+    subrama["subrama_det_cod"] = subrama["subrama_det_cod"].astype(int)
+    return total, sector, subrama
 
 
-def build_productivity() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def build_productivity() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     pib_total, pib_sector = load_pib_quarterly()
-    geih_total, geih_sector = load_geih()
+    geih_total, geih_sector, geih_subrama = load_geih()
 
     total = pib_total.merge(geih_total, on="anio", how="inner")
     total = total[total["anio"] != 2020].copy()
@@ -389,7 +679,7 @@ def build_productivity() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.D
             }
         )
     sector_summary = pd.DataFrame(sector_summary_rows)
-    return total, total_summary, sector, sector_summary
+    return total, total_summary, sector, sector_summary, geih_subrama
 
 
 def write_latex_tables(
@@ -1089,11 +1379,419 @@ def summarize_va_disaggregation(
     return pd.DataFrame(rows)
 
 
+def allocate_labor_to_groups(
+    geih_subrama: pd.DataFrame,
+    annual: pd.DataFrame,
+    pools: list[dict[str, list]],
+) -> pd.DataFrame:
+    allocations = []
+    annual_codes = set(annual["group_code"].astype(str))
+    va = annual[["anio", "group_code", "pib_miles_millones_2015"]].copy()
+
+    for pool_id, pool in enumerate(pools, start=1):
+        groups = [code for code in pool["groups"] if code in annual_codes]
+        if not groups:
+            continue
+
+        labor = (
+            geih_subrama[geih_subrama["subrama_det_cod"].isin(pool["subramas"])]
+            .groupby("anio", as_index=False)
+            .agg(
+                ocupados_pool=("ocupados", "sum"),
+                horas_sem_expandidas_pool=("horas_sem_expandidas", "sum"),
+                horas_anuales_pool=("horas_anuales", "sum"),
+            )
+        )
+        if labor.empty:
+            continue
+
+        weights = va[va["group_code"].isin(groups)].copy()
+        weights["pib_pool"] = weights.groupby("anio")["pib_miles_millones_2015"].transform("sum")
+        weights = weights[weights["pib_pool"] > 0].copy()
+        weights["allocation_share"] = weights["pib_miles_millones_2015"] / weights["pib_pool"]
+        allocated = weights.merge(labor, on="anio", how="inner")
+        allocated["ocupados"] = allocated["ocupados_pool"] * allocated["allocation_share"]
+        allocated["horas_sem_expandidas"] = (
+            allocated["horas_sem_expandidas_pool"] * allocated["allocation_share"]
+        )
+        allocated["horas_anuales"] = allocated["horas_anuales_pool"] * allocated["allocation_share"]
+        allocated["pool_id"] = pool_id
+        allocations.append(
+            allocated[
+                [
+                    "anio",
+                    "group_code",
+                    "ocupados",
+                    "horas_sem_expandidas",
+                    "horas_anuales",
+                    "pool_id",
+                    "allocation_share",
+                ]
+            ]
+        )
+
+    if not allocations:
+        return pd.DataFrame(
+            columns=["anio", "group_code", "ocupados", "horas_sem_expandidas", "horas_anuales"]
+        )
+
+    allocated_all = pd.concat(allocations, ignore_index=True)
+    return (
+        allocated_all.groupby(["anio", "group_code"], as_index=False)
+        .agg(
+            ocupados=("ocupados", "sum"),
+            horas_sem_expandidas=("horas_sem_expandidas", "sum"),
+            horas_anuales=("horas_anuales", "sum"),
+        )
+    )
+
+
+def build_productivity_disaggregation(
+    annual: pd.DataFrame,
+    geih_subrama: pd.DataFrame,
+    pools: list[dict[str, list]],
+    order: list[str],
+    short_labels: dict[str, str] | None = None,
+) -> pd.DataFrame:
+    labor = allocate_labor_to_groups(geih_subrama, annual, pools)
+    data = annual.merge(labor, on=["anio", "group_code"], how="inner")
+    data = data[data["anio"] != 2020].copy()
+    data["pib_pesos_2015"] = data["pib_miles_millones_2015"] * 1e9
+    data["pib_por_trabajador_millones_2015"] = data["pib_pesos_2015"] / data["ocupados"] / 1e6
+    data["pib_por_hora_pesos_2015"] = data["pib_pesos_2015"] / data["horas_anuales"]
+    data["group_label_short"] = data.apply(
+        lambda row: short_labels.get(row["group_code"], shorten_label(row["group_name"], 64))
+        if short_labels
+        else shorten_label(row["group_name"], 64),
+        axis=1,
+    )
+    data["group_order"] = data["group_code"].map({code: i for i, code in enumerate(order)})
+    return data.sort_values(["group_order", "anio"])
+
+
+def summarize_productivity_disaggregation(
+    data: pd.DataFrame,
+    order: list[str],
+) -> pd.DataFrame:
+    start_year, end_year = 2010, 2025
+    rows = []
+    for code in order:
+        part = data[data["group_code"] == code].sort_values("anio")
+        if start_year not in set(part["anio"]) or end_year not in set(part["anio"]):
+            continue
+        start = part[part["anio"] == start_year].iloc[0]
+        end = part[part["anio"] == end_year].iloc[0]
+        start_hours = start["horas_anuales"] / start["ocupados"] / 52
+        end_hours = end["horas_anuales"] / end["ocupados"] / 52
+        rows.append(
+            {
+                "codigo": code,
+                "actividad": end["group_name"],
+                "actividad_corta": end["group_label_short"],
+                "pib_2010_billones": start["pib_pesos_2015"] / 1e12,
+                "pib_2025_billones": end["pib_pesos_2015"] / 1e12,
+                "crec_pib": cagr(
+                    start["pib_pesos_2015"],
+                    end["pib_pesos_2015"],
+                    start_year,
+                    end_year,
+                ),
+                "ocupados_2010_millones": start["ocupados"] / 1e6,
+                "ocupados_2025_millones": end["ocupados"] / 1e6,
+                "crec_ocupados": cagr(start["ocupados"], end["ocupados"], start_year, end_year),
+                "horas_semanales_2010": start_hours,
+                "horas_semanales_2025": end_hours,
+                "crec_horas_semanales": cagr(start_hours, end_hours, start_year, end_year),
+                "pib_trabajador_2010": start["pib_por_trabajador_millones_2015"],
+                "pib_trabajador_2025": end["pib_por_trabajador_millones_2015"],
+                "crec_pib_trabajador": cagr(
+                    start["pib_por_trabajador_millones_2015"],
+                    end["pib_por_trabajador_millones_2015"],
+                    start_year,
+                    end_year,
+                ),
+                "pib_hora_2010": start["pib_por_hora_pesos_2015"] / 1000,
+                "pib_hora_2025": end["pib_por_hora_pesos_2015"] / 1000,
+                "crec_pib_hora": cagr(
+                    start["pib_por_hora_pesos_2015"],
+                    end["pib_por_hora_pesos_2015"],
+                    start_year,
+                    end_year,
+                ),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def growth_items(summary: pd.DataFrame, ascending: bool, n: int = 3) -> str:
     data = summary.sort_values("crecimiento_anualizado", ascending=ascending).head(n)
     return "; ".join(
         f"{row['actividad_corta']} ({fmt_pct_es(row['crecimiento_anualizado'])})"
         for _, row in data.iterrows()
+    )
+
+
+def productivity_items(summary: pd.DataFrame, column: str, ascending: bool, n: int = 3) -> str:
+    data = summary.sort_values(column, ascending=ascending).head(n)
+    return "; ".join(
+        f"{row['actividad_corta']} ({fmt_pct_es(row[column])})" for _, row in data.iterrows()
+    )
+
+
+def write_productivity_summary_table(
+    summary: pd.DataFrame,
+    filename: str,
+    label: str,
+    caption: str,
+    note: str,
+    use_longtable: bool = False,
+) -> None:
+    table = summary.sort_values("crec_pib_trabajador", ascending=False)
+    if use_longtable:
+        lines = [
+            r"\begingroup",
+            r"\footnotesize",
+            r"\begin{longtable}{p{0.34\textwidth}rrrrrr}",
+            f"\\caption{{{escape_latex(caption)}}}\\label{{{label}}}\\\\",
+            r"\toprule",
+            r"& \multicolumn{3}{c}{PIB por trabajador} & \multicolumn{3}{c}{PIB por hora} \\",
+            r"& \multicolumn{3}{c}{\footnotesize Millones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Miles de pesos de 2015} \\",
+            r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
+            r"Actividad económica & 2010 & 2025 & Crec. & 2010 & 2025 & Crec. \\",
+            r"\midrule",
+            r"\endfirsthead",
+            r"\toprule",
+            r"& \multicolumn{3}{c}{PIB por trabajador} & \multicolumn{3}{c}{PIB por hora} \\",
+            r"& \multicolumn{3}{c}{\footnotesize Millones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Miles de pesos de 2015} \\",
+            r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
+            r"Actividad económica & 2010 & 2025 & Crec. & 2010 & 2025 & Crec. \\",
+            r"\midrule",
+            r"\endhead",
+        ]
+        end_lines = [
+            r"\bottomrule",
+            r"\end{longtable}",
+            r"\endgroup",
+            f"{{\\footnotesize {note}}}",
+        ]
+    else:
+        lines = [
+            r"\begin{table}[H]",
+            r"\centering",
+            f"\\caption{{{escape_latex(caption)}}}",
+            f"\\label{{{label}}}",
+            r"\footnotesize",
+            r"\begin{tabular}{p{0.36\textwidth}rrrrrr}",
+            r"\toprule",
+            r"& \multicolumn{3}{c}{PIB por trabajador} & \multicolumn{3}{c}{PIB por hora} \\",
+            r"& \multicolumn{3}{c}{\footnotesize Millones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Miles de pesos de 2015} \\",
+            r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
+            r"Actividad económica & 2010 & 2025 & Crec. & 2010 & 2025 & Crec. \\",
+            r"\midrule",
+        ]
+        end_lines = [
+            r"\bottomrule",
+            r"\end{tabular}",
+            f"\\caption*{{\\footnotesize {note}}}",
+            r"\end{table}",
+        ]
+
+    for _, row in table.iterrows():
+        lines.append(
+            f"{escape_latex(row['actividad_corta'])} & "
+            f"{fmt_num_es(row['pib_trabajador_2010'], 1)} & "
+            f"{fmt_num_es(row['pib_trabajador_2025'], 1)} & "
+            f"{fmt_pct_es(row['crec_pib_trabajador'])} & "
+            f"{fmt_num_es(row['pib_hora_2010'], 1)} & "
+            f"{fmt_num_es(row['pib_hora_2025'], 1)} & "
+            f"{fmt_pct_es(row['crec_pib_hora'])} \\\\"
+        )
+    lines.extend(end_lines)
+    (SECTION_DIR / filename).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def write_productivity_25_section(
+    data: pd.DataFrame,
+    summary: pd.DataFrame,
+    total: pd.DataFrame,
+) -> None:
+    summary.to_csv(
+        TABLE_DIR / "pib_geih_productividad_25_summary.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    summary.to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_25_summary.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    data.to_csv(
+        TABLE_DIR / "pib_geih_productividad_25_series.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    data.to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_25_series.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    note = (
+        "Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
+        "A nivel de actividad económica, el numerador corresponde estrictamente al valor agregado bruto de cada actividad. "
+        "Ocupados y horas se agregan desde GEIH usando subramas homologadas. Cuando la apertura del DANE es más fina que la apertura laboral comparable, "
+        "los ocupados y las horas se asignan proporcionalmente al PIB de cada subactividad dentro del grupo comparable. Fuente: cálculos propios con DANE y GEIH."
+    )
+    table_lines_file = "pib_geih_productividad_25_table.tex"
+    write_productivity_summary_table(
+        summary,
+        table_lines_file,
+        "tab:pib_geih_productividad_25",
+        "Productividad laboral por actividad económica, 25 agrupaciones CIIU, 2010--2025",
+        note,
+    )
+    table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8")
+
+    total_start = total[total["anio"] == 2010].iloc[0]
+    total_end = total[total["anio"] == 2025].iloc[0]
+    aggregate_metrics = build_metric_rows(total_start, total_end)
+    aggregate_growth = metric_growth_lookup(aggregate_metrics)
+    aggregate_levels = metric_level_lookup(aggregate_metrics)
+
+    detail_rows = []
+    lines = [
+        "La apertura a 25 agrupaciones permite mirar dentro de algunas de las grandes actividades económicas usadas en la sección anterior y repetir el mismo ejercicio de productividad laboral con una mayor desagregación. En cada actividad se cruza el PIB reportado por el DANE con ocupados y horas de la GEIH, de modo que el análisis mantiene las dos medidas centrales del informe: PIB por trabajador y PIB por hora trabajada.",
+        "",
+        table_text,
+        "",
+        r"\textbf{La desagregación a 25 agrupaciones muestra que la heterogeneidad de la productividad es mayor que la observada en las doce agrupaciones.} Las mayores tasas de crecimiento del PIB por trabajador se observan en "
+        + productivity_items(summary, "crec_pib_trabajador", ascending=False, n=3)
+        + ". En el otro extremo, las menores tasas aparecen en "
+        + productivity_items(summary, "crec_pib_trabajador", ascending=True, n=3)
+        + ". La lectura por hora confirma el mismo mensaje general: las mayores mejoras en PIB por hora se concentran en "
+        + productivity_items(summary, "crec_pib_hora", ascending=False, n=3)
+        + ", mientras que los rezagos más marcados se ubican en "
+        + productivity_items(summary, "crec_pib_hora", ascending=True, n=3)
+        + ".",
+        "",
+        "A continuación se presenta el detalle de cada agrupación. Las comparaciones se hacen frente al agregado nacional para mantener el mismo punto de referencia usado en la sección anterior.",
+        "",
+    ]
+
+    for code in AGG25_ORDER:
+        part = data[data["group_code"] == code].sort_values("anio")
+        if 2010 not in set(part["anio"]) or 2025 not in set(part["anio"]):
+            continue
+        start = part[part["anio"] == 2010].iloc[0]
+        end = part[part["anio"] == 2025].iloc[0]
+        metrics = build_metric_rows(start, end)
+        metrics["codigo"] = code
+        metrics["actividad"] = AGG25_SHORT.get(code, end["group_label_short"])
+        detail_rows.append(metrics)
+
+        allocation_sentence = ""
+        if code in {"F01", "F02", "F03"}:
+            allocation_sentence = (
+                " Para esta apertura de construcción, los ocupados y las horas se asignan desde la agrupación laboral de construcción según la participación de cada subactividad en el PIB de construcción de cada año."
+            )
+
+        lines.extend(
+            [
+                f"\\subsection{{{escape_latex(AGG25_SHORT.get(code, end['group_label_short']))}}}",
+                "",
+                f"Esta agrupación reúne {AGG25_DESCRIPTION[code]}. En la CIIU Rev. 4 A.C. corresponde a {AGG25_CIIU_CODES[code]}.{allocation_sentence}",
+                "",
+                *metric_table_lines(
+                    metrics,
+                    f"tab:agg25_{code.lower().replace('+', '_')}_productividad",
+                    f"{AGG25_SHORT.get(code, end['group_label_short'])}: PIB, ocupados, horas y productividad laboral, 2010--2025",
+                ),
+                "",
+                sector_comparison_paragraph(metrics, aggregate_growth),
+                "",
+                sector_level_paragraph(metrics, aggregate_levels),
+                "",
+            ]
+        )
+
+    if detail_rows:
+        detail = pd.concat(detail_rows, ignore_index=True)
+        detail.to_csv(
+            TABLE_DIR / "pib_geih_productividad_25_detalle.csv",
+            index=False,
+            encoding="utf-8-sig",
+        )
+        detail.to_csv(
+            OUTPUT_TABLE_DIR / "pib_geih_productividad_25_detalle.csv",
+            index=False,
+            encoding="utf-8-sig",
+        )
+
+    lines.append(
+        r"{\footnotesize Nota general: para facilitar la lectura, el informe usa PIB por actividad económica; en sentido estricto, el numerador corresponde al valor agregado bruto de cada actividad reportado por el DANE. Ocupados expandidos con el factor \texttt{fex}. Las horas semanales promedio se calculan como horas anuales totales divididas por ocupados y por 52 semanas. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE y GEIH.}"
+    )
+    (SECTION_DIR / "pib_geih_productividad_25_agrupaciones.tex").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
+    )
+
+
+def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> None:
+    summary.to_csv(
+        TABLE_DIR / "pib_geih_productividad_61_summary.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    summary.to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_61_summary.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    data.to_csv(
+        TABLE_DIR / "pib_geih_productividad_61_series.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    data.to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_61_series.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    note = (
+        "Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
+        "A nivel de actividad económica, el numerador corresponde estrictamente al valor agregado bruto de cada actividad. "
+        "La GEIH histórica no siempre separa ocupados y horas al mismo nivel de las 61 agrupaciones del DANE; en esos casos, la asignación se hace proporcional al PIB dentro del grupo laboral comparable. "
+        "Por esa razón, las diferencias entre subactividades muy finas deben interpretarse como una aproximación descriptiva. Fuente: cálculos propios con DANE y GEIH."
+    )
+    table_lines_file = "pib_geih_productividad_61_table.tex"
+    write_productivity_summary_table(
+        summary,
+        table_lines_file,
+        "tab:pib_geih_productividad_61",
+        "Productividad laboral por actividad económica, 61 agrupaciones CIIU, 2010--2025",
+        note,
+        use_longtable=True,
+    )
+    table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8")
+    lines = [
+        "La apertura a 61 agrupaciones lleva el ejercicio al mayor detalle disponible en el anexo de producción del DANE. Esta sección mantiene la misma lógica: combinar PIB, ocupados y horas para estimar PIB por trabajador y PIB por hora trabajada. La ventaja es que permite ubicar con más precisión dónde se originan las diferencias de productividad; la cautela es que, en varias actividades, la información laboral histórica no separa ocupados y horas con el mismo detalle que las cuentas nacionales.",
+        "",
+        table_text,
+        "",
+        r"\textbf{La mirada a 61 agrupaciones confirma que las diferencias de productividad no solo ocurren entre grandes sectores, sino también dentro de ellos.} Las mayores tasas de crecimiento del PIB por trabajador se observan en "
+        + productivity_items(summary, "crec_pib_trabajador", ascending=False, n=4)
+        + ". Las menores tasas se registran en "
+        + productivity_items(summary, "crec_pib_trabajador", ascending=True, n=4)
+        + ". Medida por hora trabajada, la productividad crece con más fuerza en "
+        + productivity_items(summary, "crec_pib_hora", ascending=False, n=4)
+        + ", mientras que las caídas más pronunciadas aparecen en "
+        + productivity_items(summary, "crec_pib_hora", ascending=True, n=4)
+        + ".",
+        "",
+        "Esta apertura no reemplaza la lectura de doce y veinticinco agrupaciones, sino que la complementa. Su principal aporte es mostrar en qué subactividades se concentran los avances y rezagos que, en las agrupaciones amplias, pueden quedar compensados por dinámicas internas muy distintas.",
+    ]
+    (SECTION_DIR / "pib_geih_productividad_61_agrupaciones.tex").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
     )
 
 
@@ -1203,9 +1901,27 @@ def write_va_61_section(summary: pd.DataFrame) -> None:
     )
 
 
-def write_va_disaggregation_sections() -> None:
+def write_va_disaggregation_sections(geih_subrama: pd.DataFrame, total: pd.DataFrame) -> None:
     va25 = load_va_disaggregation("Cuadro 2", code_col=2, concept_col=3)
     va61 = load_va_disaggregation("Cuadro 3", code_col=2, concept_col=3)
+    prod25 = build_productivity_disaggregation(
+        va25,
+        geih_subrama,
+        AGG25_POOLS,
+        AGG25_ORDER,
+        AGG25_SHORT,
+    )
+    prod61 = build_productivity_disaggregation(
+        va61,
+        geih_subrama,
+        AGG61_POOLS,
+        AGG61_ORDER,
+        AGG61_SHORT,
+    )
+    summary25 = summarize_productivity_disaggregation(prod25, AGG25_ORDER)
+    summary61 = summarize_productivity_disaggregation(prod61, AGG61_ORDER)
+    write_productivity_25_section(prod25, summary25, total)
+    write_productivity_61_section(prod61, summary61)
     write_va_25_section(summarize_va_disaggregation(va25, AGG25_SHORT))
     write_va_61_section(summarize_va_disaggregation(va61, AGG61_SHORT))
 
@@ -1423,7 +2139,7 @@ def draw_sector_correlation_scatter(sector: pd.DataFrame) -> None:
 
 
 def main() -> None:
-    total, total_summary, sector, sector_summary = build_productivity()
+    total, total_summary, sector, sector_summary, geih_subrama = build_productivity()
 
     total.to_csv(TABLE_DIR / "pib_geih_productividad_total_series.csv", index=False, encoding="utf-8-sig")
     total.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_total_series.csv", index=False, encoding="utf-8-sig")
@@ -1443,7 +2159,7 @@ def main() -> None:
     write_latex_tables(total, total_summary, sector_summary)
     write_sector_correlation_table(sector)
     write_sector_detail_sections(sector, total)
-    write_va_disaggregation_sections()
+    write_va_disaggregation_sections(geih_subrama, total)
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
     draw_sector_correlation_scatter(sector)
