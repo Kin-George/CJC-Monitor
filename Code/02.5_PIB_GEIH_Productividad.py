@@ -88,6 +88,57 @@ SECTOR_CIIU_CODES = {
     "R+S+T": "R, S y T; divisiones 90--98",
 }
 
+AGG25_SHORT = {
+    "A": "Agropecuario",
+    "B": "Minas",
+    "C01": "Alimentos, bebidas y tabaco",
+    "C02": "Textiles, confecciones y cuero",
+    "C03": "Madera, papel e impresión",
+    "C04": "Refinación, químicos y minerales",
+    "C05": "Metalurgia, maquinaria y equipo",
+    "C06": "Muebles y otras manufactureras",
+    "D": "Electricidad, gas y vapor",
+    "E": "Agua, saneamiento y desechos",
+    "F01": "Edificaciones",
+    "F02": "Obras civiles",
+    "F03": "Actividades especializadas de construcción",
+    "G": "Comercio y reparación",
+    "H": "Transporte y almacenamiento",
+    "I": "Alojamiento y comida",
+    "J": "Información y comunicaciones",
+    "K": "Financieras y seguros",
+    "L": "Inmobiliarias",
+    "M+N": "Profesionales y administrativas",
+    "O": "Administración pública",
+    "P": "Educación",
+    "Q": "Salud y servicios sociales",
+    "R+S": "Artes, entretenimiento y otros servicios",
+    "T": "Hogares como empleadores",
+}
+
+AGG61_SHORT = {
+    "104-108": "Artes, entretenimiento, recreación y otros servicios",
+    "075": "Transporte aéreo",
+    "085-088": "Actividades financieras y de seguros",
+    "102,103": "Salud humana y servicios sociales",
+    "098,099": "Administración pública y defensa",
+    "101": "Educación de no mercado",
+    "076": "Almacenamiento y apoyo al transporte",
+    "016": "Pesca y acuicultura",
+    "070": "Comercio al por mayor y al por menor",
+    "052": "Aparatos eléctricos, electrónicos y ópticos",
+    "019": "Minerales metalíferos",
+    "039": "Cuero, calzado y artículos de viaje",
+    "017": "Carbón de piedra y lignito",
+    "022": "Apoyo a otras actividades mineras",
+    "073": "Transporte acuático",
+    "067": "Edificaciones residenciales y no residenciales",
+    "040": "Madera y productos de madera",
+    "018,021": "Petróleo, gas natural y apoyo conexo",
+    "053,057": "Maquinaria y equipo; instalación y mantenimiento",
+    "020": "Otras minas y canteras",
+}
+
 SUBRAMA_TO_SECTOR = {}
 for code in range(1, 4):
     SUBRAMA_TO_SECTOR[code] = "A"
@@ -163,20 +214,34 @@ def indicator_with_unit(row: pd.Series) -> str:
     return indicator
 
 
-def load_pib_quarterly() -> tuple[pd.DataFrame, pd.DataFrame]:
-    raw = pd.read_excel(PIB_XLSX, sheet_name="Cuadro 1", header=None)
+def quarter_columns(raw: pd.DataFrame, first_data_col: int) -> list[tuple[int, int, str]]:
     year_row = raw.iloc[11]
     quarter_row = raw.iloc[12]
-
     columns = []
     current_year = None
-    for col in range(3, raw.shape[1]):
+    for col in range(first_data_col, raw.shape[1]):
         year = parse_year(year_row.iloc[col])
         if year is not None:
             current_year = year
         quarter = quarter_row.iloc[col]
         if current_year is not None and quarter in ["I", "II", "III", "IV"]:
             columns.append((col, current_year, str(quarter)))
+    return columns
+
+
+def annualize_quarterly(data: pd.DataFrame, group_cols: list[str]) -> pd.DataFrame:
+    counts = data.groupby(group_cols + ["anio"])["trimestre"].nunique().reset_index(name="n_trim")
+    complete = counts[counts["n_trim"] == 4][group_cols + ["anio"]]
+    return (
+        data.merge(complete, on=group_cols + ["anio"], how="inner")
+        .groupby(group_cols + ["anio"], as_index=False)["pib_miles_millones_2015"]
+        .sum()
+    )
+
+
+def load_pib_quarterly() -> tuple[pd.DataFrame, pd.DataFrame]:
+    raw = pd.read_excel(PIB_XLSX, sheet_name="Cuadro 1", header=None)
+    columns = quarter_columns(raw, 3)
 
     sector_rows = raw.iloc[14:26, [1, 2] + [col for col, _, _ in columns]].copy()
     sector_rows.columns = ["sector_code", "sector_name"] + [
@@ -205,17 +270,8 @@ def load_pib_quarterly() -> tuple[pd.DataFrame, pd.DataFrame]:
     total_long["anio"] = total_long["anio"].astype(int)
     total_long = total_long.dropna(subset=["pib_miles_millones_2015"])
 
-    def annualize(data: pd.DataFrame, group_cols: list[str]) -> pd.DataFrame:
-        counts = data.groupby(group_cols + ["anio"])["trimestre"].nunique().reset_index(name="n_trim")
-        complete = counts[counts["n_trim"] == 4][group_cols + ["anio"]]
-        return (
-            data.merge(complete, on=group_cols + ["anio"], how="inner")
-            .groupby(group_cols + ["anio"], as_index=False)["pib_miles_millones_2015"]
-            .sum()
-        )
-
-    annual_sector = annualize(sector_long, ["sector_code", "sector_name"])
-    annual_total = annualize(total_long, ["concepto"])
+    annual_sector = annualize_quarterly(sector_long, ["sector_code", "sector_name"])
+    annual_total = annualize_quarterly(total_long, ["concepto"])
     return annual_total, annual_sector
 
 
@@ -526,7 +582,7 @@ def write_latex_tables(
         r"\small",
         r"\begin{tabular}{lrrrrrr}",
         r"\toprule",
-        r"& \multicolumn{3}{c}{PIB por trabajador} & \multicolumn{3}{c}{PIB por hora} \\",
+        r"& \multicolumn{3}{c}{Valor agregado por trabajador} & \multicolumn{3}{c}{Valor agregado por hora} \\",
         r"& \multicolumn{3}{c}{\footnotesize Millones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Miles de pesos de 2015} \\",
         r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
         r"Actividad económica & 2010 & 2025 & Crec. & 2010 & 2025 & Crec. \\",
@@ -546,7 +602,7 @@ def write_latex_tables(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015 por ocupado; PIB por hora en miles de pesos constantes de 2015 por hora trabajada. La comparación entre ambas columnas debe hacerse por tasas de crecimiento, no por niveles, porque los denominadores y las escalas son distintos. Actividades económicas según 12 agrupaciones CIIU Rev. 4 A.C. del DANE; ocupados y horas se agregan desde GEIH usando la actividad económica reportada en la encuesta. Se excluyen organizaciones extraterritoriales del cruce por actividad económica por no hacer parte de las 12 agrupaciones. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: valor agregado por trabajador en millones de pesos constantes de 2015 por ocupado; valor agregado por hora en miles de pesos constantes de 2015 por hora trabajada. La comparación entre ambas columnas debe hacerse por tasas de crecimiento, no por niveles, porque los denominadores y las escalas son distintos. Actividades económicas según 12 agrupaciones CIIU Rev. 4 A.C. del DANE; ocupados y horas se agregan desde GEIH usando la actividad económica reportada en la encuesta. Se excluyen organizaciones extraterritoriales del cruce por actividad económica por no hacer parte de las 12 agrupaciones. Fuente: cálculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -593,8 +649,8 @@ def write_sector_correlation_table(sector: pd.DataFrame) -> None:
     labels = {
         "crec_ocupados": "Ocupados",
         "crec_horas": "Horas totales",
-        "crec_productividad_hora": "Prod. por hora",
-        "crec_productividad_trabajador": "Prod. por trabajador",
+        "crec_productividad_hora": "VA por hora",
+        "crec_productividad_trabajador": "VA por trabajador",
     }
     corr = growth[corr_vars].corr()
     corr.index = [labels[col] for col in corr.index]
@@ -627,7 +683,7 @@ def write_sector_correlation_table(sector: pd.DataFrame) -> None:
         r"\small",
         r"\begin{tabular}{lrrrr}",
         r"\toprule",
-        r"Variable & Ocupados & Horas totales & Prod. por hora & Prod. por trabajador \\",
+        r"Variable & Ocupados & Horas totales & VA por hora & VA por trabajador \\",
         r"\midrule",
     ]
     for row_label, row in corr.iterrows():
@@ -635,8 +691,8 @@ def write_sector_correlation_table(sector: pd.DataFrame) -> None:
             f"{escape_latex(row_label)} & "
             f"{fmt_corr_es(row['Ocupados'])} & "
             f"{fmt_corr_es(row['Horas totales'])} & "
-            f"{fmt_corr_es(row['Prod. por hora'])} & "
-            f"{fmt_corr_es(row['Prod. por trabajador'])} \\\\"
+            f"{fmt_corr_es(row['VA por hora'])} & "
+            f"{fmt_corr_es(row['VA por trabajador'])} \\\\"
         )
     lines.extend(
         [
@@ -670,7 +726,7 @@ def build_metric_rows(start: pd.Series, end: pd.Series) -> pd.DataFrame:
     end_hours = end["horas_anuales"] / end["ocupados"] / 52
     rows = [
         {
-            "indicador": "PIB real",
+            "indicador": "Valor agregado real",
             "unidad": "Billones de pesos de 2015",
             "valor_2010": start["pib_pesos_2015"] / 1e12,
             "valor_2025": end["pib_pesos_2015"] / 1e12,
@@ -688,7 +744,7 @@ def build_metric_rows(start: pd.Series, end: pd.Series) -> pd.DataFrame:
             ),
         },
         {
-            "indicador": "PIB por trabajador",
+            "indicador": "Valor agregado por trabajador",
             "unidad": "Millones de pesos de 2015 por ocupado",
             "valor_2010": start["pib_por_trabajador_millones_2015"],
             "valor_2025": end["pib_por_trabajador_millones_2015"],
@@ -707,7 +763,7 @@ def build_metric_rows(start: pd.Series, end: pd.Series) -> pd.DataFrame:
             "crecimiento_anualizado": cagr(start_hours, end_hours, start_year, end_year),
         },
         {
-            "indicador": "PIB por hora trabajada",
+            "indicador": "Valor agregado por hora trabajada",
             "unidad": "Miles de pesos de 2015 por hora",
             "valor_2010": start["pib_por_hora_pesos_2015"] / 1000,
             "valor_2025": end["pib_por_hora_pesos_2015"] / 1000,
@@ -815,12 +871,12 @@ def sector_level_paragraph(
     metrics: pd.DataFrame, aggregate_levels: dict[str, float]
 ) -> str:
     levels = metric_level_lookup(metrics)
-    pib_share = levels["PIB real"] / aggregate_levels["PIB real"]
+    pib_share = levels["Valor agregado real"] / aggregate_levels["Valor agregado real"]
     occupied_share = levels["Ocupados"] / aggregate_levels["Ocupados"]
     worker_relation = relative_level_to_aggregate(
-        levels["PIB por trabajador"],
-        aggregate_levels["PIB por trabajador"],
-        f"{fmt_num_es(aggregate_levels['PIB por trabajador'], 1)} millones",
+        levels["Valor agregado por trabajador"],
+        aggregate_levels["Valor agregado por trabajador"],
+        f"{fmt_num_es(aggregate_levels['Valor agregado por trabajador'], 1)} millones",
     )
     hours_relation = relative_level_to_aggregate(
         levels["Horas semanales por trabajador"],
@@ -828,23 +884,23 @@ def sector_level_paragraph(
         fmt_num_es(aggregate_levels["Horas semanales por trabajador"], 1),
     )
     hourly_relation = relative_level_to_aggregate(
-        levels["PIB por hora trabajada"],
-        aggregate_levels["PIB por hora trabajada"],
-        f"{fmt_num_es(aggregate_levels['PIB por hora trabajada'], 1)} mil",
+        levels["Valor agregado por hora trabajada"],
+        aggregate_levels["Valor agregado por hora trabajada"],
+        f"{fmt_num_es(aggregate_levels['Valor agregado por hora trabajada'], 1)} mil",
     )
     return (
         r"\textbf{En niveles de 2025, el tamaño relativo y la productividad de la actividad económica también importan.} "
-        f"La actividad representó {fmt_pct_es(pib_share, 1)} del PIB real agregado, "
-        f"con {fmt_num_es(levels['PIB real'], 1)} billones de pesos de 2015, "
+        f"La actividad representó {fmt_pct_es(pib_share, 1)} del valor agregado real agregado, "
+        f"con {fmt_num_es(levels['Valor agregado real'], 1)} billones de pesos de 2015, "
         f"y concentró {fmt_pct_es(occupied_share, 1)} de los ocupados, "
         f"con {fmt_num_es(levels['Ocupados'], 1)} millones de personas. "
-        f"El PIB por trabajador fue {fmt_num_es(levels['PIB por trabajador'], 1)} "
+        f"El valor agregado por trabajador fue {fmt_num_es(levels['Valor agregado por trabajador'], 1)} "
         f"millones de pesos de 2015 por ocupado, {worker_relation}. "
         f"Las horas semanales por trabajador fueron "
         f"{fmt_num_es(levels['Horas semanales por trabajador'], 1)}, "
         f"{hours_relation}. "
-        f"El PIB por hora trabajada fue "
-        f"{fmt_num_es(levels['PIB por hora trabajada'], 1)} "
+        f"El valor agregado por hora trabajada fue "
+        f"{fmt_num_es(levels['Valor agregado por hora trabajada'], 1)} "
         f"mil pesos de 2015 por hora, {hourly_relation}."
     )
 
@@ -856,10 +912,10 @@ def sector_comparison_paragraph(
     return (
         r"\textbf{Frente al agregado nacional, la comparación variable por variable muestra diferencias relevantes.} "
         + comparison_fragment(
-            "El PIB real de la actividad",
+            "El valor agregado real de la actividad",
             "registró",
-            growth["PIB real"],
-            aggregate_growth["PIB real"],
+            growth["Valor agregado real"],
+            aggregate_growth["Valor agregado real"],
         )
         + ". "
         + comparison_fragment(
@@ -870,10 +926,10 @@ def sector_comparison_paragraph(
         )
         + ". "
         + comparison_fragment(
-            "El PIB por trabajador",
+            "El valor agregado por trabajador",
             "registró",
-            growth["PIB por trabajador"],
-            aggregate_growth["PIB por trabajador"],
+            growth["Valor agregado por trabajador"],
+            aggregate_growth["Valor agregado por trabajador"],
         )
         + ". "
         + hours_comparison_fragment(
@@ -882,10 +938,10 @@ def sector_comparison_paragraph(
         )
         + ". "
         + comparison_fragment(
-            "El PIB por hora trabajada",
+            "El valor agregado por hora trabajada",
             "registró",
-            growth["PIB por hora trabajada"],
-            aggregate_growth["PIB por hora trabajada"],
+            growth["Valor agregado por hora trabajada"],
+            aggregate_growth["Valor agregado por hora trabajada"],
         )
         + "."
     )
@@ -894,7 +950,7 @@ def sector_comparison_paragraph(
 def write_sector_detail_sections(sector: pd.DataFrame, total: pd.DataFrame) -> None:
     detail_rows = []
     lines = [
-        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones de actividad económica CIIU. En cada caso, el cuadro resume el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
+        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones de actividad económica CIIU. En cada caso, el cuadro resume el valor agregado real de la actividad, el número de ocupados, el valor agregado por trabajador, las horas semanales promedio por trabajador y el valor agregado por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del valor agregado, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
         "",
     ]
     total_start = total[total["anio"] == 2010].iloc[0]
@@ -923,7 +979,7 @@ def write_sector_detail_sections(sector: pd.DataFrame, total: pd.DataFrame) -> N
                 *metric_table_lines(
                     metrics,
                     f"tab:sector_{code.lower().replace('+', '_')}_productividad",
-                    f"{SECTOR_SHORT[code]}: PIB, ocupados, horas y productividad laboral, 2010--2025",
+                    f"{SECTOR_SHORT[code]}: valor agregado, ocupados, horas y productividad laboral, 2010--2025",
                 ),
                 "",
                 sector_comparison_paragraph(metrics, aggregate_growth),
@@ -947,11 +1003,203 @@ def write_sector_detail_sections(sector: pd.DataFrame, total: pd.DataFrame) -> N
         )
 
     lines.append(
-        r"{\footnotesize Nota general: PIB real en pesos constantes de 2015. Ocupados expandidos con el factor \texttt{fex}. Las horas semanales promedio se calculan como horas anuales totales divididas por ocupados y por 52 semanas. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE, PIB trimestral por el enfoque de producción, y GEIH.}"
+        r"{\footnotesize Nota general: valor agregado real en pesos constantes de 2015. Ocupados expandidos con el factor \texttt{fex}. Las horas semanales promedio se calculan como horas anuales totales divididas por ocupados y por 52 semanas. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE, valor agregado trimestral por actividad económica, y GEIH.}"
     )
     (SECTION_DIR / "pib_geih_productividad_sector_detalle.tex").write_text(
         "\n".join(lines), encoding="utf-8"
     )
+
+
+def clean_group_code(value) -> str | None:
+    if pd.isna(value):
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    return text.replace(" ", "")
+
+
+def shorten_label(text: str, max_chars: int = 70) -> str:
+    text = " ".join(str(text).split())
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 3].rstrip() + "..."
+
+
+def load_va_disaggregation(sheet_name: str, code_col: int, concept_col: int) -> pd.DataFrame:
+    raw = pd.read_excel(PIB_XLSX, sheet_name=sheet_name, header=None)
+    columns = quarter_columns(raw, concept_col + 1)
+    concept_text = raw.iloc[:, concept_col].astype(str).str.strip()
+    stop_rows = concept_text[
+        (raw.index >= 14) & concept_text.eq("Producto Interno Bruto")
+    ].index
+    stop = int(stop_rows[0]) if len(stop_rows) else raw.shape[0]
+    rows = raw.iloc[14:stop, [code_col, concept_col] + [col for col, _, _ in columns]].copy()
+    rows.columns = ["group_code", "group_name"] + [
+        f"{year}_{quarter}" for _, year, quarter in columns
+    ]
+    rows["group_code"] = rows["group_code"].apply(clean_group_code)
+    rows = rows.dropna(subset=["group_code", "group_name"])
+
+    long = rows.melt(
+        id_vars=["group_code", "group_name"],
+        var_name="period",
+        value_name="pib_miles_millones_2015",
+    )
+    long[["anio", "trimestre"]] = long["period"].str.split("_", expand=True)
+    long["anio"] = long["anio"].astype(int)
+    long = long.dropna(subset=["pib_miles_millones_2015"])
+    return annualize_quarterly(long, ["group_code", "group_name"])
+
+
+def summarize_va_disaggregation(
+    annual: pd.DataFrame, short_labels: dict[str, str] | None = None
+) -> pd.DataFrame:
+    start_year, end_year = 2010, 2025
+    rows = []
+    for code, part in annual.groupby("group_code", sort=False):
+        if start_year not in set(part["anio"]) or end_year not in set(part["anio"]):
+            continue
+        start = part[part["anio"] == start_year].iloc[0]
+        end = part[part["anio"] == end_year].iloc[0]
+        name = str(end["group_name"])
+        rows.append(
+            {
+                "codigo": code,
+                "actividad": name,
+                "actividad_corta": short_labels.get(code, name) if short_labels else shorten_label(name),
+                "va_2010_billones": start["pib_miles_millones_2015"] / 1000,
+                "va_2025_billones": end["pib_miles_millones_2015"] / 1000,
+                "crecimiento_anualizado": cagr(
+                    start["pib_miles_millones_2015"],
+                    end["pib_miles_millones_2015"],
+                    start_year,
+                    end_year,
+                ),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def growth_items(summary: pd.DataFrame, ascending: bool, n: int = 3) -> str:
+    data = summary.sort_values("crecimiento_anualizado", ascending=ascending).head(n)
+    return "; ".join(
+        f"{row['actividad_corta']} ({fmt_pct_es(row['crecimiento_anualizado'])})"
+        for _, row in data.iterrows()
+    )
+
+
+def write_va_25_section(summary: pd.DataFrame) -> None:
+    summary.to_csv(
+        TABLE_DIR / "valor_agregado_25_agrupaciones.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    summary.to_csv(
+        OUTPUT_TABLE_DIR / "valor_agregado_25_agrupaciones.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    table = summary.sort_values("crecimiento_anualizado", ascending=False)
+    lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        r"\caption{Valor agregado por actividad económica, 25 agrupaciones CIIU, 2010--2025}",
+        r"\label{tab:valor_agregado_25_agrupaciones}",
+        r"\small",
+        r"\begin{tabular}{p{0.50\textwidth}rrr}",
+        r"\toprule",
+        r"Actividad económica & 2010 & 2025 & Crec. \\",
+        r"\midrule",
+    ]
+    for _, row in table.iterrows():
+        lines.append(
+            f"{escape_latex(row['actividad_corta'])} & "
+            f"{fmt_num_es(row['va_2010_billones'], 1)} & "
+            f"{fmt_num_es(row['va_2025_billones'], 1)} & "
+            f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: valores en billones de pesos constantes de 2015. El cuadro usa las 25 agrupaciones de actividad económica del DANE por el enfoque de producción y presenta crecimiento del valor agregado, no productividad laboral. Fuente: cálculos propios con DANE, anexo de producción a precios constantes.}",
+            r"\end{table}",
+            "",
+            r"\textbf{La desagregación a 25 agrupaciones muestra que buena parte de la heterogeneidad está dentro de las grandes actividades económicas.} Las mayores tasas de crecimiento del valor agregado se observan en "
+            + growth_items(summary, ascending=False, n=3)
+            + ". En el otro extremo, las menores tasas se registran en "
+            + growth_items(summary, ascending=True, n=3)
+            + ". Esta lectura ayuda a identificar dónde se originan los cambios agregados: no basta con saber que una gran actividad crece o cae, porque dentro de ella pueden coexistir subactividades con trayectorias muy distintas.",
+        ]
+    )
+    (SECTION_DIR / "valor_agregado_25_agrupaciones.tex").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
+    )
+
+
+def write_va_61_section(summary: pd.DataFrame) -> None:
+    summary.to_csv(
+        TABLE_DIR / "valor_agregado_61_agrupaciones.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    summary.to_csv(
+        OUTPUT_TABLE_DIR / "valor_agregado_61_agrupaciones.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    top = summary.sort_values("crecimiento_anualizado", ascending=False).head(10).copy()
+    bottom = summary.sort_values("crecimiento_anualizado", ascending=True).head(10).copy()
+    top["grupo"] = "Mayores"
+    bottom["grupo"] = "Menores"
+    table = pd.concat([top, bottom], ignore_index=True)
+
+    lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        r"\caption{Mayores y menores crecimientos del valor agregado, 61 agrupaciones CIIU, 2010--2025}",
+        r"\label{tab:valor_agregado_61_agrupaciones}",
+        r"\small",
+        r"\begin{tabular}{llp{0.46\textwidth}rr}",
+        r"\toprule",
+        r"Grupo & Código & Actividad económica & 2025 & Crec. \\",
+        r"\midrule",
+    ]
+    for _, row in table.iterrows():
+        lines.append(
+            f"{escape_latex(row['grupo'])} & "
+            f"{escape_latex(row['codigo'])} & "
+            f"{escape_latex(row['actividad_corta'])} & "
+            f"{fmt_num_es(row['va_2025_billones'], 1)} & "
+            f"{fmt_pct_es(row['crecimiento_anualizado'])} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: valores de 2025 en billones de pesos constantes de 2015. La tabla muestra los diez mayores y los diez menores crecimientos anualizados entre las 61 agrupaciones de actividad económica del DANE. La tabla completa se deja como archivo de resultados del proyecto. Fuente: cálculos propios con DANE, anexo de producción a precios constantes.}",
+            r"\end{table}",
+            "",
+            r"\textbf{La apertura a 61 agrupaciones confirma que el crecimiento del valor agregado es aún más desigual cuando se mira con mayor detalle.} Entre las agrupaciones de mayor crecimiento aparecen "
+            + growth_items(summary, ascending=False, n=4)
+            + ". En contraste, las mayores contracciones se observan en "
+            + growth_items(summary, ascending=True, n=4)
+            + ". Esta evidencia no reemplaza la medición de productividad laboral de las doce agrupaciones, pero sí permite ubicar con mayor precisión las actividades que explican el dinamismo o el rezago del valor agregado.",
+        ]
+    )
+    (SECTION_DIR / "valor_agregado_61_agrupaciones.tex").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
+    )
+
+
+def write_va_disaggregation_sections() -> None:
+    va25 = load_va_disaggregation("Cuadro 2", code_col=2, concept_col=3)
+    va61 = load_va_disaggregation("Cuadro 3", code_col=2, concept_col=3)
+    write_va_25_section(summarize_va_disaggregation(va25, AGG25_SHORT))
+    write_va_61_section(summarize_va_disaggregation(va61, AGG61_SHORT))
 
 
 def draw_index_chart(total: pd.DataFrame) -> None:
@@ -1027,7 +1275,7 @@ def draw_sector_cagr_chart(sector_summary: pd.DataFrame) -> None:
     label_font = ImageFont.truetype("arial.ttf", 18) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
 
     draw.text((80, 35), "Crecimiento anualizado de la productividad laboral por actividad económica, 2010--2025", fill="#222222", font=title_font)
-    draw.text((80, 73), "PIB por trabajador y PIB por hora trabajada", fill="#555555", font=label_font)
+    draw.text((80, 73), "Valor agregado por trabajador y valor agregado por hora trabajada", fill="#555555", font=label_font)
 
     left, top, right, bottom = 520, 150, 1480, 900
     max_abs = max(abs(data["crec_pib_trabajador"]).max(), abs(data["crec_pib_hora"]).max())
@@ -1056,9 +1304,9 @@ def draw_sector_cagr_chart(sector_summary: pd.DataFrame) -> None:
             draw.ellipse((x - 5, y + offset - 5, x + 5, y + offset + 5), fill=color)
 
     draw.rectangle((1080, 78, 1105, 98), fill="#1f77b4")
-    draw.text((1115, 75), "PIB por trabajador", fill="#333333", font=label_font)
+    draw.text((1115, 75), "VA por trabajador", fill="#333333", font=label_font)
     draw.rectangle((1320, 78, 1345, 98), fill="#d95f02")
-    draw.text((1355, 75), "PIB por hora", fill="#333333", font=label_font)
+    draw.text((1355, 75), "VA por hora", fill="#333333", font=label_font)
 
     for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
         img.save(directory / "fig_pib_geih_productividad_sector.png")
@@ -1099,10 +1347,10 @@ def draw_sector_correlation_scatter(sector: pd.DataFrame) -> None:
     draw.text((70, 78), "Tasas anualizadas por agrupación CIIU; cada punto representa una actividad económica", fill="#555555", font=label_font)
 
     panels = [
-        (90, 150, 850, 600, "ocupados", "prod_trabajador", "Ocupados", "PIB por trabajador"),
-        (1010, 150, 1770, 600, "ocupados", "prod_hora", "Ocupados", "PIB por hora"),
-        (90, 720, 850, 1170, "horas", "prod_trabajador", "Horas totales", "PIB por trabajador"),
-        (1010, 720, 1770, 1170, "horas", "prod_hora", "Horas totales", "PIB por hora"),
+        (90, 150, 850, 600, "ocupados", "prod_trabajador", "Ocupados", "VA por trabajador"),
+        (1010, 150, 1770, 600, "ocupados", "prod_hora", "Ocupados", "VA por hora"),
+        (90, 720, 850, 1170, "horas", "prod_trabajador", "Horas totales", "VA por trabajador"),
+        (1010, 720, 1770, 1170, "horas", "prod_hora", "Horas totales", "VA por hora"),
     ]
 
     x_min = math.floor(min(data["ocupados"].min(), data["horas"].min()) * 100) / 100 - 0.01
@@ -1187,13 +1435,14 @@ def main() -> None:
     write_latex_tables(total, total_summary, sector_summary)
     write_sector_correlation_table(sector)
     write_sector_detail_sections(sector, total)
+    write_va_disaggregation_sections()
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
     draw_sector_correlation_scatter(sector)
 
     print("Resumen total")
     print(total_summary.to_string(index=False))
-    print("\nActividades económicas ordenadas por crecimiento de PIB por trabajador")
+    print("\nActividades económicas ordenadas por crecimiento de valor agregado por trabajador")
     print(sector_summary.sort_values("crec_pib_trabajador", ascending=False).to_string(index=False))
 
 
