@@ -400,7 +400,7 @@ for pool in AGG61_POOLS:
 
 AGG61_SHORT.update(
     {
-        "001,002,004-008,013": "Cultivos y apoyo agropecuario",
+        "001,002,004-008,013": "Cultivos, apoyo agropecuario y mixtos",
         "003": "Café",
         "009-012": "Ganadería",
         "014,015": "Silvicultura",
@@ -463,6 +463,84 @@ AGG61_SHORT.update(
         "109": "Hogares como empleadores",
     }
 )
+
+
+AGG25_LABOR_POOLS = [{"subramas": [code], "groups": [code]} for code in AGG25_ORDER]
+
+AGG25_BY_SUBRAMA = {}
+for pool in AGG25_POOLS:
+    if len(pool["groups"]) == 1:
+        for subrama in pool["subramas"]:
+            AGG25_BY_SUBRAMA[subrama] = pool["groups"][0]
+
+# Groups whose labor input can be identified from GEIH four-digit activity codes
+# without allocating workers or hours mechanically by PIB shares.
+AGG61_DIRECT_GROUPS = {
+    "001,002,004-008,013",
+    "003",
+    "009-012",
+    "014,015",
+    "016",
+    "017",
+    "018,021",
+    "019",
+    "020",
+    "022",
+    "040",
+    "041",
+    "043,044",
+    "045-047",
+    "048",
+    "049",
+    "052",
+    "053,057",
+    "054",
+    "055",
+    "056",
+    "058-060",
+    "061",
+    "062",
+    "063,064,066",
+    "065",
+    "067",
+    "068",
+    "069",
+    "073",
+    "075",
+    "076",
+    "077",
+}
+
+
+def labor61_fallback_code(subrama: int) -> str:
+    return f"S{subrama}"
+
+
+def build_labor61_pools() -> list[dict[str, list]]:
+    pools = []
+    seen_direct = set()
+    for pool in AGG61_POOLS:
+        for group in pool["groups"]:
+            if group in AGG61_DIRECT_GROUPS and group not in seen_direct:
+                pools.append({"subramas": [group], "groups": [group]})
+                seen_direct.add(group)
+        fallback_groups = [
+            group for group in pool["groups"] if group not in AGG61_DIRECT_GROUPS
+        ]
+        if fallback_groups:
+            pools.append(
+                {
+                    "subramas": [
+                        labor61_fallback_code(int(subrama))
+                        for subrama in pool["subramas"]
+                    ],
+                    "groups": fallback_groups,
+                }
+            )
+    return pools
+
+
+AGG61_LABOR_POOLS = build_labor61_pools()
 
 
 def parse_year(value) -> int | None:
@@ -588,16 +666,203 @@ def load_pib_quarterly() -> tuple[pd.DataFrame, pd.DataFrame]:
     return annual_total, annual_sector
 
 
-def load_geih() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def set_labor_code(
+    data: pd.DataFrame, column: str, mask: pd.Series, code: str
+) -> None:
+    data.loc[mask.fillna(False), column] = code
+
+
+def add_labor_disaggregation_codes(geih: pd.DataFrame) -> pd.DataFrame:
+    geih = geih.copy()
+    sub = geih["subrama_det_cod"]
+    div = geih["rama4d_div"]
+    three = geih["rama3d"]
+    cls = geih["rama4d"]
+    rev = geih["ciiu_revision_rama4d"].fillna("").astype(str)
+    rev3 = rev.str.contains("Rev. 3", regex=False)
+    rev4 = rev.str.contains("Rev. 4", regex=False)
+
+    geih["labor25_code"] = sub.map(AGG25_BY_SUBRAMA)
+
+    construction = sub == 19
+    set_labor_code(geih, "labor25_code", construction & rev4 & (div == 41), "F01")
+    set_labor_code(geih, "labor25_code", construction & rev4 & (div == 42), "F02")
+    set_labor_code(geih, "labor25_code", construction & rev4 & (div == 43), "F03")
+    set_labor_code(
+        geih,
+        "labor25_code",
+        construction & rev3 & (cls.isin([4521, 4522])),
+        "F01",
+    )
+    set_labor_code(geih, "labor25_code", construction & rev3 & (cls == 4530), "F02")
+    set_labor_code(
+        geih,
+        "labor25_code",
+        construction
+        & rev3
+        & (cls.isin([4511, 4512, 4541, 4542, 4543, 4549, 4551, 4552, 4559, 4560])),
+        "F03",
+    )
+
+    geih["labor61_code"] = sub.map(
+        lambda value: labor61_fallback_code(int(value)) if pd.notna(value) else np.nan
+    )
+
+    # Agropecuario
+    set_labor_code(geih, "labor61_code", sub == 1, "001,002,004-008,013")
+    set_labor_code(geih, "labor61_code", (sub == 1) & rev3 & (cls == 111), "003")
+    set_labor_code(geih, "labor61_code", (sub == 1) & rev4 & (cls == 123), "003")
+    set_labor_code(geih, "labor61_code", (sub == 1) & rev3 & (three == 12), "009-012")
+    set_labor_code(geih, "labor61_code", (sub == 1) & rev4 & (three == 14), "009-012")
+    set_labor_code(geih, "labor61_code", sub == 2, "014,015")
+    set_labor_code(geih, "labor61_code", sub == 3, "016")
+
+    # Minas
+    set_labor_code(geih, "labor61_code", (sub == 4) & rev3 & (div == 10), "017")
+    set_labor_code(geih, "labor61_code", (sub == 4) & rev3 & (div == 11), "018,021")
+    set_labor_code(geih, "labor61_code", (sub == 4) & rev4 & (div == 5), "017")
+    set_labor_code(
+        geih,
+        "labor61_code",
+        (sub == 4) & rev4 & ((div == 6) | (three == 91)),
+        "018,021",
+    )
+    set_labor_code(geih, "labor61_code", (sub == 4) & rev4 & (three == 99), "022")
+    set_labor_code(geih, "labor61_code", (sub == 5) & rev3 & (div.isin([12, 13])), "019")
+    set_labor_code(geih, "labor61_code", (sub == 5) & rev4 & (div == 7), "019")
+    set_labor_code(geih, "labor61_code", (sub == 5) & rev3 & (div == 14), "020")
+    set_labor_code(geih, "labor61_code", (sub == 5) & rev4 & (div == 8), "020")
+
+    # Manufactura de alimentos, bebidas y tabaco
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev3 & cls.isin([1511, 1512]), "023-025")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev4 & cls.isin([1011, 1012]), "023-025")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev3 & (cls == 1522), "026")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev4 & cls.isin([1031, 1032, 1033]), "026")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev3 & (cls == 1530), "027")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev4 & (cls == 1040), "027")
+    set_labor_code(
+        geih,
+        "labor61_code",
+        (sub == 6) & rev3 & cls.isin([1541, 1542, 1543]),
+        "028,032,035",
+    )
+    set_labor_code(
+        geih,
+        "labor61_code",
+        (sub == 6) & rev4 & cls.isin([1051, 1052, 1081, 1083, 1090]),
+        "028,032,035",
+    )
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev3 & (three == 156), "029")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev4 & (three == 106), "029")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev3 & cls.isin([1571, 1572]), "030,031")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev4 & cls.isin([1071, 1072]), "030,031")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev3 & (cls == 1581), "033")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev4 & (cls == 1082), "033")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev3 & cls.isin([1521, 1589]), "034")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev4 & cls.isin([1020, 1084, 1089]), "034")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev3 & (three.isin([155, 159, 160])), "036")
+    set_labor_code(geih, "labor61_code", (sub == 6) & rev4 & (div.isin([11, 12])), "036")
+    # The historical GEIH food-manufacturing codes do not map cleanly enough
+    # to the DANE 61-way food groups, so this block remains aggregated.
+    geih.loc[sub == 6, "labor61_code"] = labor61_fallback_code(6)
+
+    # Otras aperturas manufactureras con correspondencia directa por división.
+    set_labor_code(geih, "labor61_code", (sub == 9) & rev3 & (div == 20), "040")
+    set_labor_code(geih, "labor61_code", (sub == 9) & rev4 & (div == 16), "040")
+    set_labor_code(geih, "labor61_code", (sub == 9) & rev3 & (div == 21), "041")
+    set_labor_code(geih, "labor61_code", (sub == 9) & rev4 & (div == 17), "041")
+    set_labor_code(geih, "labor61_code", (sub == 11) & rev3 & (div == 23), "043,044")
+    set_labor_code(geih, "labor61_code", (sub == 11) & rev4 & (div == 19), "043,044")
+    set_labor_code(geih, "labor61_code", (sub == 11) & rev3 & (div == 24), "045-047")
+    set_labor_code(geih, "labor61_code", (sub == 11) & rev4 & (div.isin([20, 21])), "045-047")
+    set_labor_code(geih, "labor61_code", (sub == 12) & rev3 & (div == 25), "048")
+    set_labor_code(geih, "labor61_code", (sub == 12) & rev4 & (div == 22), "048")
+    set_labor_code(geih, "labor61_code", (sub == 12) & rev3 & (div == 26), "049")
+    set_labor_code(geih, "labor61_code", (sub == 12) & rev4 & (div == 23), "049")
+    set_labor_code(geih, "labor61_code", (sub == 14) & rev3 & (div.isin([30, 31, 32, 33])), "052")
+    set_labor_code(geih, "labor61_code", (sub == 14) & rev4 & (div.isin([26, 27])), "052")
+    set_labor_code(geih, "labor61_code", (sub == 14) & rev3 & (div == 29), "053,057")
+    set_labor_code(geih, "labor61_code", (sub == 14) & rev4 & (div == 28), "053,057")
+    set_labor_code(geih, "labor61_code", (sub == 16) & rev4 & (div == 33), "053,057")
+    set_labor_code(geih, "labor61_code", sub == 15, "054")
+    set_labor_code(geih, "labor61_code", (sub == 16) & rev3 & (three == 361), "055")
+    set_labor_code(geih, "labor61_code", (sub == 16) & rev4 & (div == 31), "055")
+    set_labor_code(geih, "labor61_code", (sub == 16) & rev3 & (three == 369), "056")
+    set_labor_code(geih, "labor61_code", (sub == 16) & rev4 & (div == 32), "056")
+    set_labor_code(geih, "labor61_code", (sub == 16) & rev3 & (div == 37), "065")
+
+    # Servicios públicos
+    set_labor_code(geih, "labor61_code", (sub == 17) & rev3 & (three == 401), "058-060")
+    set_labor_code(geih, "labor61_code", (sub == 17) & rev4 & (three == 351), "058-060")
+    set_labor_code(geih, "labor61_code", (sub == 17) & rev3 & (three.isin([402, 403])), "061")
+    set_labor_code(geih, "labor61_code", (sub == 17) & rev4 & (three.isin([352, 353])), "061")
+    set_labor_code(geih, "labor61_code", (sub == 18) & rev3 & (div == 41), "062")
+    set_labor_code(geih, "labor61_code", (sub == 18) & rev4 & (div == 36), "062")
+    set_labor_code(geih, "labor61_code", (sub == 18) & rev3 & (div == 90), "063,064,066")
+    set_labor_code(
+        geih,
+        "labor61_code",
+        (sub == 18) & rev4 & ((div.isin([37, 39])) | (cls.isin([3811, 3812, 3821, 3822]))),
+        "063,064,066",
+    )
+    set_labor_code(geih, "labor61_code", (sub == 18) & rev4 & (cls == 3830), "065")
+
+    # Construcción
+    set_labor_code(geih, "labor61_code", construction & (geih["labor25_code"] == "F01"), "067")
+    set_labor_code(geih, "labor61_code", construction & (geih["labor25_code"] == "F02"), "068")
+    set_labor_code(geih, "labor61_code", construction & (geih["labor25_code"] == "F03"), "069")
+
+    # Transporte acuático/aéreo y actividades de apoyo/correo.
+    set_labor_code(geih, "labor61_code", (sub == 26) & rev3 & (div == 61), "073")
+    set_labor_code(geih, "labor61_code", (sub == 26) & rev4 & (div == 50), "073")
+    set_labor_code(geih, "labor61_code", (sub == 26) & rev3 & (div == 62), "075")
+    set_labor_code(geih, "labor61_code", (sub == 26) & rev4 & (div == 51), "075")
+    set_labor_code(geih, "labor61_code", (sub == 27) & rev3 & (div == 63), "076")
+    set_labor_code(geih, "labor61_code", (sub == 27) & rev4 & (div == 52), "076")
+    set_labor_code(geih, "labor61_code", (sub == 27) & rev3 & (three == 641), "077")
+    set_labor_code(geih, "labor61_code", (sub == 27) & rev4 & (div == 53), "077")
+
+    return geih
+
+
+def aggregate_labor_by_code(geih: pd.DataFrame, code_column: str) -> pd.DataFrame:
+    labor = (
+        geih.dropna(subset=[code_column])
+        .groupby(["anio", code_column], as_index=False)
+        .agg(
+            ocupados=("fex", "sum"),
+            horas_sem_expandidas=("horas_sem_expand", "sum"),
+        )
+        .assign(horas_anuales=lambda x: x["horas_sem_expandidas"] * 52)
+        .rename(columns={code_column: "labor_code"})
+    )
+    labor["labor_code"] = labor["labor_code"].astype(str)
+    return labor
+
+
+def load_geih() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     geih = pd.read_stata(
         GEIH_DTA,
-        columns=["anio", "fex", "horas", "subrama_det_cod", "subrama_det"],
+        columns=[
+            "anio",
+            "fex",
+            "horas",
+            "subrama_det_cod",
+            "subrama_det",
+            "rama4d",
+            "rama3d",
+            "rama4d_div",
+            "ciiu_revision_rama4d",
+        ],
         convert_categoricals=False,
     )
     geih["anio"] = geih["anio"].astype(int)
     geih["fex"] = pd.to_numeric(geih["fex"], errors="coerce")
     geih["horas"] = pd.to_numeric(geih["horas"], errors="coerce")
     geih["subrama_det_cod"] = pd.to_numeric(geih["subrama_det_cod"], errors="coerce")
+    geih["rama4d"] = pd.to_numeric(geih["rama4d"], errors="coerce")
+    geih["rama3d"] = pd.to_numeric(geih["rama3d"], errors="coerce")
+    geih["rama4d_div"] = pd.to_numeric(geih["rama4d_div"], errors="coerce")
 
     geih = geih[
         (geih["anio"].between(2010, 2025))
@@ -606,6 +871,7 @@ def load_geih() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     ].copy()
     geih["horas_validas"] = geih["horas"].where(geih["horas"].between(1, 112))
     geih["horas_sem_expand"] = geih["fex"] * geih["horas_validas"]
+    geih = add_labor_disaggregation_codes(geih)
 
     total = (
         geih.groupby("anio", as_index=False)
@@ -638,12 +904,21 @@ def load_geih() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         .assign(horas_anuales=lambda x: x["horas_sem_expandidas"] * 52)
     )
     subrama["subrama_det_cod"] = subrama["subrama_det_cod"].astype(int)
-    return total, sector, subrama
+    labor25 = aggregate_labor_by_code(geih, "labor25_code")
+    labor61 = aggregate_labor_by_code(geih, "labor61_code")
+    return total, sector, subrama, labor25, labor61
 
 
-def build_productivity() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def build_productivity() -> tuple[
+    pd.DataFrame,
+    pd.DataFrame,
+    pd.DataFrame,
+    pd.DataFrame,
+    pd.DataFrame,
+    pd.DataFrame,
+]:
     pib_total, pib_sector = load_pib_quarterly()
-    geih_total, geih_sector, geih_subrama = load_geih()
+    geih_total, geih_sector, geih_subrama, geih_labor25, geih_labor61 = load_geih()
 
     total = pib_total.merge(geih_total, on="anio", how="inner")
     total = total[total["anio"] != 2020].copy()
@@ -713,7 +988,7 @@ def build_productivity() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.D
             }
         )
     sector_summary = pd.DataFrame(sector_summary_rows)
-    return total, total_summary, sector, sector_summary, geih_subrama
+    return total, total_summary, sector, sector_summary, geih_labor25, geih_labor61
 
 
 def write_latex_tables(
@@ -1318,13 +1593,6 @@ def sector_zoom_lines(
     subset = subset.sort_values("crec_pib_trabajador", ascending=False)
     sector_label = SECTOR_SHORT[sector_code]
 
-    if sector_code == "F" and level == 25:
-        return [
-            r"\textbf{Zoom a 25 agrupaciones.} "
-            "El DANE abre construcción en edificaciones, obras civiles y actividades especializadas de construcción. Sin embargo, la GEIH histórica comparable no permite separar ocupados y horas entre esas tres subactividades. Por esa razón, no se presenta un cuadro de PIB por trabajador o PIB por hora a este nivel. La medición comparable corresponde al total de construcción.",
-            "",
-        ]
-
     if len(subset) == 1:
         row = subset.iloc[0]
         return [
@@ -1564,6 +1832,22 @@ def summarize_va_disaggregation(
     return pd.DataFrame(rows)
 
 
+def labor_code_sector(code: object) -> str | None:
+    if code in AGG25_TO_SECTOR:
+        return AGG25_TO_SECTOR[code]
+    if code in AGG61_TO_SECTOR:
+        return AGG61_TO_SECTOR[code]
+    if isinstance(code, str) and code.startswith("S"):
+        try:
+            return SUBRAMA_TO_SECTOR[int(code[1:])]
+        except (KeyError, ValueError):
+            return None
+    try:
+        return SUBRAMA_TO_SECTOR[int(code)]
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def comparable_components(
     pools: list[dict[str, list]],
     order: list[str],
@@ -1591,7 +1875,7 @@ def comparable_components(
             parent[right_root] = left_root
 
     seen_group: dict[str, int] = {}
-    seen_subrama: dict[int, int] = {}
+    seen_subrama: dict[object, int] = {}
     for idx, pool in enumerate(valid_pools):
         for group in pool["groups"]:
             if group in seen_group:
@@ -1615,11 +1899,11 @@ def comparable_components(
     components = []
     for component in grouped.values():
         groups = sorted(component["groups"], key=lambda code: order_index.get(code, 10_000))
-        subramas = sorted(component["subramas"])
+        subramas = sorted(component["subramas"], key=lambda code: str(code))
         sectors = {
-            SUBRAMA_TO_SECTOR[subrama]
+            labor_code_sector(subrama)
             for subrama in subramas
-            if subrama in SUBRAMA_TO_SECTOR
+            if labor_code_sector(subrama) is not None
         }
         components.append(
             {
@@ -1635,8 +1919,6 @@ def comparable_components(
 
 
 def comparable_label(groups: list[str], short_labels: dict[str, str] | None) -> str:
-    if groups == ["001,002,004-008,013", "003", "009-012"]:
-        return "Cultivos, café y ganadería agrupados"
     if short_labels:
         labels = [short_labels.get(group, group) for group in groups]
     else:
@@ -1658,13 +1940,14 @@ def build_labor_at_comparable_level(
     for component in components:
         groups = component["groups"]
         subramas = component["subramas"]
+        labor_code_col = "labor_code" if "labor_code" in geih_subrama.columns else "subrama_det_cod"
         va = (
             annual[annual["group_code"].isin(groups)]
             .groupby("anio", as_index=False)
             .agg(pib_miles_millones_2015=("pib_miles_millones_2015", "sum"))
         )
         labor = (
-            geih_subrama[geih_subrama["subrama_det_cod"].isin(subramas)]
+            geih_subrama[geih_subrama[labor_code_col].isin(subramas)]
             .groupby("anio", as_index=False)
             .agg(
                 ocupados=("ocupados", "sum"),
@@ -1888,7 +2171,8 @@ def write_productivity_25_section(
     note = (
         "Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
         "A nivel de actividad económica, el numerador corresponde estrictamente al valor agregado bruto de cada actividad. "
-        "Ocupados y horas se agregan desde GEIH usando subramas homologadas. Cuando la apertura del DANE es más fina que la apertura laboral comparable, "
+        "Ocupados y horas se agregan desde GEIH usando la actividad económica reportada por cada ocupado. Cuando el código a cuatro dígitos permite una homologación clara, "
+        "se usa esa apertura; cuando la apertura del DANE es más fina que la apertura laboral comparable, "
         "las subactividades del DANE se agrupan hasta el nivel laboral comparable. Fuente: cálculos propios con DANE y GEIH."
     )
     table_lines_file = "pib_geih_productividad_25_table.tex"
@@ -2009,7 +2293,7 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
         "Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
         "A nivel de actividad económica, el numerador corresponde estrictamente al valor agregado bruto de cada actividad. "
         "La tabla parte de las 61 agrupaciones del DANE, pero solo presenta observaciones para las que también existe un nivel laboral comparable en la GEIH. "
-        "Cuando varias subactividades del DANE comparten la misma información laboral comparable, se reportan agrupadas. Fuente: cálculos propios con DANE y GEIH."
+        "Cuando el código de actividad económica a cuatro dígitos permite una homologación clara, se usa esa apertura; cuando varias subactividades del DANE comparten la misma información laboral comparable, se reportan agrupadas. Fuente: cálculos propios con DANE y GEIH."
     )
     table_lines_file = "pib_geih_productividad_61_table.tex"
     write_productivity_summary_table(
@@ -2211,21 +2495,21 @@ def write_va_61_section(summary: pd.DataFrame) -> None:
 
 
 def write_va_disaggregation_sections(
-    geih_subrama: pd.DataFrame, total: pd.DataFrame
+    geih_labor25: pd.DataFrame, geih_labor61: pd.DataFrame, total: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     va25 = load_va_disaggregation("Cuadro 2", code_col=2, concept_col=3)
     va61 = load_va_disaggregation("Cuadro 3", code_col=2, concept_col=3)
     prod25 = build_productivity_disaggregation(
         va25,
-        geih_subrama,
-        AGG25_POOLS,
+        geih_labor25,
+        AGG25_LABOR_POOLS,
         AGG25_ORDER,
         AGG25_SHORT,
     )
     prod61 = build_productivity_disaggregation(
         va61,
-        geih_subrama,
-        AGG61_POOLS,
+        geih_labor61,
+        AGG61_LABOR_POOLS,
         AGG61_ORDER,
         AGG61_SHORT,
     )
@@ -2450,7 +2734,7 @@ def draw_sector_correlation_scatter(summary: pd.DataFrame) -> None:
 
 
 def main() -> None:
-    total, total_summary, sector, sector_summary, geih_subrama = build_productivity()
+    total, total_summary, sector, sector_summary, geih_labor25, geih_labor61 = build_productivity()
 
     total.to_csv(TABLE_DIR / "pib_geih_productividad_total_series.csv", index=False, encoding="utf-8-sig")
     total.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_total_series.csv", index=False, encoding="utf-8-sig")
@@ -2467,7 +2751,7 @@ def main() -> None:
     sector_summary.to_csv(TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
     sector_summary.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_sector_summary.csv", index=False, encoding="utf-8-sig")
 
-    summary25, summary61 = write_va_disaggregation_sections(geih_subrama, total)
+    summary25, summary61 = write_va_disaggregation_sections(geih_labor25, geih_labor61, total)
     write_latex_tables(total, total_summary, sector_summary)
     write_sector_correlation_table(summary61)
     write_sector_detail_sections(sector, total, summary25, summary61)
