@@ -1813,6 +1813,7 @@ def sector_zoom_lines(
     summary25: pd.DataFrame | None,
     summary61: pd.DataFrame | None,
     sector_code: str,
+    aggregate_growth: dict[str, float],
 ) -> list[str]:
     subset25 = pd.DataFrame()
     subset61 = pd.DataFrame()
@@ -1879,10 +1880,15 @@ def sector_zoom_lines(
     )
     same_worker_growth = subset["crec_pib_trabajador"].round(10).nunique(dropna=True) == 1
     same_hour_growth = subset["crec_pib_hora"].round(10).nunique(dropna=True) == 1
+    worker_aggregate_text = "del crecimiento agregado del PIB por trabajador"
+    hour_aggregate_text = "del crecimiento agregado del PIB por hora trabajada"
     if same_worker_growth and same_hour_growth:
+        worker_growth = float(subset["crec_pib_trabajador"].iloc[0])
+        hour_growth = float(subset["crec_pib_hora"].iloc[0])
         lines.extend(
             [
-                "En esta apertura, las tasas estimadas de productividad son iguales entre las subactividades porque la información laboral comparable no permite separar ocupados y horas con ese nivel de detalle. Por eso, la tabla debe leerse como una apertura descriptiva del PIB dentro de la actividad amplia, no como evidencia de diferencias efectivas de productividad entre esas subactividades.",
+                "En esta apertura, las tasas estimadas de productividad son iguales entre las subactividades porque la información laboral comparable no permite separar ocupados y horas con ese nivel de detalle. Por eso, la tabla debe leerse como una apertura descriptiva del PIB dentro de la actividad amplia, no como evidencia de diferencias efectivas de productividad entre esas subactividades. "
+                f"Frente al agregado nacional, la tasa de PIB por trabajador se ubica {relative_to_named_aggregate(worker_growth, aggregate_growth['PIB por trabajador'], worker_aggregate_text)} y la tasa de PIB por hora trabajada se ubica {relative_to_named_aggregate(hour_growth, aggregate_growth['PIB por hora trabajada'], hour_aggregate_text)}.",
                 "",
             ]
         )
@@ -1897,15 +1903,35 @@ def sector_zoom_lines(
         bottom_hour_names = tied_activity_names(
             subset, "crec_pib_hora", bottom_hour["crec_pib_hora"]
         )
+        top_worker_relation = relative_to_named_aggregate(
+            top_worker["crec_pib_trabajador"],
+            aggregate_growth["PIB por trabajador"],
+            worker_aggregate_text,
+        )
+        bottom_worker_relation = relative_to_named_aggregate(
+            bottom_worker["crec_pib_trabajador"],
+            aggregate_growth["PIB por trabajador"],
+            worker_aggregate_text,
+        )
+        top_hour_relation = relative_to_named_aggregate(
+            top_hour["crec_pib_hora"],
+            aggregate_growth["PIB por hora trabajada"],
+            hour_aggregate_text,
+        )
+        bottom_hour_relation = relative_to_named_aggregate(
+            bottom_hour["crec_pib_hora"],
+            aggregate_growth["PIB por hora trabajada"],
+            hour_aggregate_text,
+        )
         lines.extend(
             [
                 f"\\textbf{{{escape_latex(sector_zoom_headline(sector_code, top_worker, bottom_worker, top_hour, bottom_hour))}}} "
                 f"En esta apertura, el mayor crecimiento del PIB por trabajador se observa en {top_worker_names} "
-                f"({fmt_pct_es(top_worker['crec_pib_trabajador'])}), mientras que el menor se registra en "
-                f"{bottom_worker_names} ({fmt_pct_es(bottom_worker['crec_pib_trabajador'])}). "
+                f"({fmt_pct_es(top_worker['crec_pib_trabajador'])}), {top_worker_relation}; el menor se registra en "
+                f"{bottom_worker_names} ({fmt_pct_es(bottom_worker['crec_pib_trabajador'])}), {bottom_worker_relation}. "
                 f"Por hora trabajada, el mejor desempeño corresponde a {top_hour_names} "
-                f"({fmt_pct_es(top_hour['crec_pib_hora'])}) y el más rezagado a "
-                f"{bottom_hour_names} ({fmt_pct_es(bottom_hour['crec_pib_hora'])}).",
+                f"({fmt_pct_es(top_hour['crec_pib_hora'])}), {top_hour_relation}; el más rezagado corresponde a "
+                f"{bottom_hour_names} ({fmt_pct_es(bottom_hour['crec_pib_hora'])}), {bottom_hour_relation}.",
                 "",
             ]
         )
@@ -1954,7 +1980,7 @@ def write_sector_detail_sections(
                 "",
                 sector_detail_comparison_paragraph(code, metrics, aggregate_growth),
                 "",
-                *sector_zoom_lines(summary25, summary61, code),
+                *sector_zoom_lines(summary25, summary61, code, aggregate_growth),
             ]
         )
 
