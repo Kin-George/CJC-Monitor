@@ -58,19 +58,19 @@ SECTOR_SHORT = {
     "R+S+T": "Artes, entretenimiento y hogares",
 }
 
-SECTOR_DESCRIPTION = {
-    "A": "agricultura, ganadería, caza, silvicultura y pesca",
-    "B": "explotación de minas y canteras",
-    "C": "alimentos, bebidas y tabaco; textiles, confecciones y cuero; madera, papel e impresión; refinación, químicos y minerales; metalurgia, maquinaria y equipo; muebles y otras industrias manufactureras",
-    "D+E": "suministro de electricidad, gas, vapor y aire acondicionado; distribución de agua; evacuación y tratamiento de aguas residuales, gestión de desechos y actividades de saneamiento ambiental",
-    "F": "edificaciones, obras civiles y actividades especializadas de construcción",
-    "G+H+I": "comercio al por mayor y al por menor; reparación de vehículos automotores y motocicletas; transporte y almacenamiento; alojamiento y servicios de comida",
-    "J": "edición, producción audiovisual y programación; telecomunicaciones; desarrollo de sistemas informáticos y actividades de servicios de información",
-    "K": "servicios financieros, seguros y actividades auxiliares de los servicios financieros y de seguros",
-    "L": "operaciones con bienes inmuebles propios o arrendados y servicios inmobiliarios realizados a cambio de una retribución o por contrata",
-    "M+N": "actividades profesionales, científicas y técnicas; actividades de servicios administrativos y de apoyo",
-    "O+P+Q": "administración pública y defensa; planes de seguridad social de afiliación obligatoria; educación; actividades de atención de la salud humana y de servicios sociales",
-    "R+S+T": "actividades artísticas, de entretenimiento y recreación y otras actividades de servicios; actividades de los hogares individuales en calidad de empleadores; actividades no diferenciadas de los hogares individuales como productores de bienes y servicios para uso propio",
+SECTOR_INTRO_LEAD = {
+    "A": "La actividad agropecuaria incluye cultivos agrícolas, producción pecuaria, actividades de apoyo al campo, silvicultura y aprovechamiento forestal, caza, pesca y acuicultura.",
+    "B": "La actividad de minas y canteras incluye la extracción de carbón, petróleo y gas, minerales metálicos y otros minerales, junto con los servicios de apoyo a la extracción.",
+    "C": "La actividad manufacturera agrupa la transformación de materias primas e insumos en bienes industriales, desde alimentos, bebidas, textiles y confecciones hasta químicos, refinación, minerales no metálicos, metalurgia, maquinaria, equipo de transporte, muebles y otras manufacturas.",
+    "D+E": "La actividad de servicios públicos agrupa servicios esenciales como electricidad, gas, vapor y aire acondicionado, suministro de agua, alcantarillado, tratamiento de aguas residuales, gestión de desechos, reciclaje y saneamiento ambiental.",
+    "F": "La actividad de construcción incluye edificaciones residenciales y no residenciales, obras civiles como vías e infraestructura, y actividades especializadas de obra como preparación de terrenos, instalaciones y terminaciones.",
+    "G+H+I": "La agrupación de comercio, transporte y alojamiento combina tres conjuntos de actividades: comercio mayorista y minorista y reparación de vehículos; transporte de pasajeros y carga, almacenamiento y servicios asociados; y alojamiento y servicios de comida.",
+    "J": "La actividad de información y comunicaciones incluye edición y contenidos audiovisuales, radio y televisión, telecomunicaciones, desarrollo de software, procesamiento de datos, portales web y otros servicios de información.",
+    "K": "La actividad financiera incluye intermediación financiera y banca, seguros, fondos de pensiones y servicios auxiliares como administración de mercados, corretaje y otras actividades de apoyo financiero.",
+    "L": "La actividad inmobiliaria incluye alquiler, compra, venta, administración e intermediación de bienes inmuebles, tanto propios o arrendados como de terceros.",
+    "M+N": "La agrupación de actividades profesionales y administrativas combina servicios profesionales, científicos y técnicos, como jurídicos, contables, consultoría, arquitectura, ingeniería, investigación y publicidad, con servicios administrativos y de apoyo a empresas, como servicios de empleo, seguridad, limpieza, agencias de viaje y servicios de oficina.",
+    "O+P+Q": "La agrupación de administración pública, educación y salud incluye administración pública y defensa, seguridad social obligatoria, educación, atención en salud humana y servicios sociales, prestados por entidades públicas o privadas.",
+    "R+S+T": "La agrupación de artes, entretenimiento y hogares incluye actividades artísticas, culturales, deportivas, recreativas y otros servicios personales y comunitarios, además del trabajo de los hogares como empleadores y la producción de bienes y servicios para uso propio de los hogares.",
 }
 
 SECTOR_CIIU_CODES = {
@@ -86,21 +86,6 @@ SECTOR_CIIU_CODES = {
     "M+N": "M y N; divisiones 69--82",
     "O+P+Q": "O, P y Q; divisiones 84--88",
     "R+S+T": "R, S y T; divisiones 90--98",
-}
-
-SECTOR_INTRO_SUBJECT = {
-    "A": "La actividad agropecuaria",
-    "B": "La actividad de minas y canteras",
-    "C": "La actividad manufacturera",
-    "D+E": "La actividad de servicios públicos",
-    "F": "La actividad de construcción",
-    "G+H+I": "La agrupación de comercio, transporte y alojamiento",
-    "J": "La actividad de información y comunicaciones",
-    "K": "La actividad financiera",
-    "L": "La actividad inmobiliaria",
-    "M+N": "La agrupación de actividades profesionales y administrativas",
-    "O+P+Q": "La agrupación de administración pública, educación y salud",
-    "R+S+T": "La agrupación de artes, entretenimiento y hogares",
 }
 
 SECTOR_BODY_SUBJECT = {
@@ -1651,10 +1636,7 @@ def sector_intro_level_paragraph(
         aggregate_levels["PIB por hora trabajada"],
         f"{fmt_num_es(aggregate_levels['PIB por hora trabajada'], 1)} mil",
     )
-    lead = (
-        f"{SECTOR_INTRO_SUBJECT[sector_code]} reúne "
-        f"{SECTOR_DESCRIPTION[sector_code]}."
-    )
+    lead = SECTOR_INTRO_LEAD[sector_code]
     subject = SECTOR_BODY_SUBJECT[sector_code]
     return (
         f"\\textbf{{{escape_latex(lead)}}} "
