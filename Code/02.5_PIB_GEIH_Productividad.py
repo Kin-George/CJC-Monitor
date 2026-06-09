@@ -55,7 +55,7 @@ SECTOR_SHORT = {
     "L": "Inmobiliarias",
     "M+N": "Profesionales y administrativas",
     "O+P+Q": "Adm. pública, educación y salud",
-    "R+S+T": "Artes, otros servicios y hogares",
+    "R+S+T": "Artes, entretenimiento y hogares",
 }
 
 SECTOR_DESCRIPTION = {
@@ -889,7 +889,7 @@ def write_latex_tables(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB real en pesos constantes de 2015. Ocupados expandidos con el factor \texttt{fex}. Las horas semanales promedio se calculan como horas anuales totales divididas por ocupados y por 52 semanas. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE, PIB trimestral por el enfoque de producción, y GEIH.}",
+            r"\caption*{\footnotesize Fuente: cálculos propios con base en Cuentas Nacionales y GEIH del DANE.}",
             r"\end{table}",
         ]
     )
@@ -926,7 +926,7 @@ def write_latex_tables(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. A nivel de actividad económica, el numerador corresponde estrictamente al valor agregado bruto de cada actividad. La comparación entre ambas columnas debe hacerse por tasas de crecimiento, no por niveles, porque los denominadores y las escalas son distintos. Actividades económicas según 12 agrupaciones CIIU Rev. 4 A.C. del DANE; ocupados y horas se agregan desde GEIH usando la actividad económica reportada en la encuesta. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: El numerador de ambos indicadores de productividad corresponde estrictamente al valor agregado bruto de cada actividad. Las actividades económicas están clasificadas según las 12 agrupaciones CIIU Rev. 4 A.C. del DANE. Los ocupados y las horas se agregan desde GEIH usando la actividad económica reportada en la encuesta. Fuente: cálculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -1432,8 +1432,7 @@ def write_sector_detail_sections(
 ) -> None:
     detail_rows = []
     lines = [
-        "La lectura por doce agrupaciones es la columna vertebral del análisis sectorial. Dentro de cada subsección se incluye, cuando corresponde, un zoom a 25 agrupaciones para mostrar qué ocurre al abrir la actividad amplia en subsectores más específicos. En las actividades donde la apertura a 25 agrupaciones coincide con la de 12, pero la apertura a 61 sí ofrece mayor detalle, el zoom usa esa desagregación más fina.",
-        "A continuación se presenta el mismo ejercicio para cada una de las doce agrupaciones de actividad económica CIIU. En cada caso, el cuadro resume el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del producto, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
+        r"\textbf{A continuación se presenta la descomposición del crecimiento de cada una de las doce agrupaciones de actividad económica CIIU.} En particular, se presenta el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada para los años 2010 y 2025. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del producto, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
         "",
     ]
     total_start = total[total["anio"] == 2010].iloc[0]
@@ -1465,9 +1464,9 @@ def write_sector_detail_sections(
                     f"{SECTOR_SHORT[code]}: PIB, ocupados, horas y productividad laboral, 2010--2025",
                 ),
                 "",
-                sector_comparison_paragraph(metrics, aggregate_growth),
-                "",
                 sector_level_paragraph(metrics, aggregate_levels),
+                "",
+                sector_comparison_paragraph(metrics, aggregate_growth),
                 "",
                 *sector_zoom_lines(summary25, summary61, code),
             ]
