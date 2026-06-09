@@ -524,6 +524,18 @@ AGG61_SHORT.update(
     }
 )
 
+COMPARABLE_LABEL_ALIASES = {
+    "023-025|026|027|028,032,035|029|030,031|033|034|036": "Alimentos, bebidas y tabaco",
+}
+
+COMPARABLE_LABEL_NOTES = {
+    "Alimentos, bebidas y tabaco": (
+        "agrega manufacturas de carnes y pescado, aceites, lácteos, molinería y "
+        "panadería, café, azúcar y panela, cacao y confitería, frutas y hortalizas, "
+        "otros alimentos, bebidas y tabaco"
+    ),
+}
+
 
 AGG25_LABOR_POOLS = [{"subramas": [code], "groups": [code]} for code in AGG25_ORDER]
 
@@ -2070,7 +2082,7 @@ def write_sector_detail_sections(
         )
 
     lines.append(
-        r"{\footnotesize Nota general: para facilitar la lectura, el informe usa PIB por actividad económica; en sentido estricto, el numerador corresponde al valor agregado bruto de cada actividad reportado por el DANE. Valores en pesos constantes de 2015. Ocupados expandidos con el factor \texttt{fex}. Las horas semanales promedio se calculan como horas anuales totales divididas por ocupados y por 52 semanas. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE y GEIH.}"
+        r"%{\footnotesize Nota general: para facilitar la lectura, el informe usa PIB por actividad económica; en sentido estricto, el numerador corresponde al valor agregado bruto de cada actividad reportado por el DANE. Valores en pesos constantes de 2015. Ocupados expandidos con el factor \texttt{fex}. Las horas semanales promedio se calculan como horas anuales totales divididas por ocupados y por 52 semanas. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE y GEIH.}"
     )
     (SECTION_DIR / "pib_geih_productividad_sector_detalle.tex").write_text(
         "\n".join(lines), encoding="utf-8"
@@ -2235,6 +2247,9 @@ def comparable_components(
 
 
 def comparable_label(groups: list[str], short_labels: dict[str, str] | None) -> str:
+    group_key = "|".join(groups)
+    if group_key in COMPARABLE_LABEL_ALIASES:
+        return COMPARABLE_LABEL_ALIASES[group_key]
     if short_labels:
         labels = [short_labels.get(group, group) for group in groups]
     else:
@@ -2609,7 +2624,8 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
         "Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
         "A nivel de actividad económica, el numerador corresponde estrictamente al valor agregado bruto de cada actividad. "
         "La tabla parte de las 61 agrupaciones del DANE, pero solo presenta observaciones para las que también existe un nivel laboral comparable en la GEIH. "
-        "Cuando el código de actividad económica a cuatro dígitos permite una homologación clara, se usa esa apertura; cuando varias subactividades del DANE comparten la misma información laboral comparable, se reportan agrupadas. Fuente: cálculos propios con DANE y GEIH."
+        "Cuando el código de actividad económica a cuatro dígitos permite una homologación clara, se usa esa apertura; cuando varias subactividades del DANE comparten la misma información laboral comparable, se reportan agrupadas. "
+        f"En particular, el renglón Alimentos, bebidas y tabaco {COMPARABLE_LABEL_NOTES['Alimentos, bebidas y tabaco']}. Fuente: cálculos propios con DANE y GEIH."
     )
     table_lines_file = "pib_geih_productividad_61_table.tex"
     write_productivity_summary_table(
@@ -2696,7 +2712,7 @@ def write_pib_ocupados_appendix(summary: pd.DataFrame) -> None:
             r"\bottomrule",
             r"\end{longtable}",
             r"\endgroup",
-            r"{\footnotesize Nota: el PIB se expresa en billones de pesos constantes de 2015 y los ocupados en millones de personas. La variación corresponde al cambio porcentual acumulado entre 2010 y 2025, no a una tasa anualizada. La tabla parte de la apertura de 61 agrupaciones del DANE, pero agrupa subactividades cuando la GEIH no permite separar ocupados al mismo nivel. Fuente: cálculos propios con DANE y GEIH.}",
+            rf"{{\footnotesize Nota: el PIB se expresa en billones de pesos constantes de 2015 y los ocupados en millones de personas. La variación corresponde al cambio porcentual acumulado entre 2010 y 2025, no a una tasa anualizada. La tabla parte de la apertura de 61 agrupaciones del DANE, pero agrupa subactividades cuando la GEIH no permite separar ocupados al mismo nivel. En particular, el renglón Alimentos, bebidas y tabaco {COMPARABLE_LABEL_NOTES['Alimentos, bebidas y tabaco']}. Fuente: cálculos propios con DANE y GEIH.}}",
         ]
     )
     (SECTION_DIR / "pib_ocupados_61_comparable.tex").write_text(
