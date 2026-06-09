@@ -1785,27 +1785,98 @@ def tied_activity_names(data: pd.DataFrame, column: str, value: float) -> str:
     return join_latex_items(names)
 
 
-def sector_zoom_headline(
-    sector_code: str,
-    top_worker: pd.Series,
-    bottom_worker: pd.Series,
-    top_hour: pd.Series,
-    bottom_hour: pd.Series,
+def activity_count_subject(count: int, total: int) -> str:
+    words = {
+        1: "una",
+        2: "dos",
+        3: "tres",
+        4: "cuatro",
+        5: "cinco",
+        6: "seis",
+        7: "siete",
+        8: "ocho",
+        9: "nueve",
+        10: "diez",
+    }
+    if count == 0:
+        return "ninguna subactividad"
+    if count == total:
+        return "todas las subactividades"
+    count_text = words.get(count, str(count))
+    total_text = words.get(total, str(total))
+    if count == 1:
+        return f"una de las {total_text} subactividades"
+    return f"{count_text} de las {total_text} subactividades"
+
+
+def activity_count_verb(count: int, singular: str, plural: str) -> str:
+    return singular if count in {0, 1} else plural
+
+
+def sector_zoom_balance_sentence(
+    sector_code: str, subset: pd.DataFrame, aggregate_growth: dict[str, float]
 ) -> str:
+    total = len(subset)
+    worker_agg = aggregate_growth["PIB por trabajador"]
+    hour_agg = aggregate_growth["PIB por hora trabajada"]
+    above_worker = int((subset["crec_pib_trabajador"] > worker_agg).sum())
+    above_hour = int((subset["crec_pib_hora"] > hour_agg).sum())
+    negative_worker = int((subset["crec_pib_trabajador"] < 0).sum())
+    negative_hour = int((subset["crec_pib_hora"] < 0).sum())
+    both_negative = int(
+        ((subset["crec_pib_trabajador"] < 0) & (subset["crec_pib_hora"] < 0)).sum()
+    )
     context = SECTOR_ZOOM_CONTEXT[sector_code]
-    if top_worker["crec_pib_trabajador"] > 0.03 or top_hour["crec_pib_hora"] > 0.03:
+
+    if above_worker == total and above_hour == total:
         return (
-            f"Algunas de las actividades económicas agrupadas dentro {context} "
-            "presentaron un crecimiento de la productividad muy favorable."
+            f"El balance de la apertura {context} es favorable: todas las subactividades "
+            "superan el crecimiento agregado tanto en PIB por trabajador como en PIB por hora trabajada."
         )
-    if bottom_worker["crec_pib_trabajador"] < 0 or bottom_hour["crec_pib_hora"] < 0:
+    if above_worker == 0 and above_hour == 0:
+        if negative_worker == total and negative_hour == total:
+            return (
+                f"El balance de la apertura {context} es claramente negativo: todas las subactividades "
+                "registran caídas de productividad y ninguna alcanza el crecimiento agregado."
+            )
+        if negative_worker > 0 or negative_hour > 0:
+            if negative_worker == total:
+                return (
+                    f"El balance de la apertura {context} es negativo: ninguna subactividad supera el crecimiento agregado, "
+                    f"todas registran caídas en PIB por trabajador y {activity_count_subject(negative_hour, total)} "
+                    f"{activity_count_verb(negative_hour, 'también cae', 'también caen')} por hora trabajada."
+                )
+            if both_negative > 0:
+                return (
+                    f"El balance de la apertura {context} es negativo: ninguna subactividad supera el crecimiento agregado "
+                    f"y {activity_count_subject(both_negative, total)} {activity_count_verb(both_negative, 'cae', 'caen')} tanto en PIB por trabajador como en PIB por hora trabajada."
+                )
+            negative_any = max(negative_worker, negative_hour)
+            return (
+                f"El balance de la apertura {context} es negativo: ninguna subactividad supera el crecimiento agregado "
+                f"y {activity_count_subject(negative_any, total)} {activity_count_verb(negative_any, 'registra', 'registran')} caídas en al menos una medida de productividad."
+            )
         return (
-            f"Las actividades económicas agrupadas dentro {context} muestran "
-            "desempeños de productividad muy distintos."
+            f"El balance de la apertura {context} es débil: aun las subactividades de mejor desempeño "
+            "crecen por debajo de la productividad agregada."
+        )
+    if above_worker == total and above_hour < total:
+        return (
+            f"El balance de la apertura {context} es favorable en PIB por trabajador, pero menos uniforme por hora trabajada: "
+            f"{activity_count_subject(above_worker, total)} {activity_count_verb(above_worker, 'supera', 'superan')} el crecimiento agregado por trabajador y "
+            f"{activity_count_subject(above_hour, total)} {activity_count_verb(above_hour, 'lo hace', 'lo hacen')} por hora."
+        )
+    if above_worker < total and above_hour == total:
+        return (
+            f"El balance de la apertura {context} es favorable por hora trabajada, pero más heterogéneo por trabajador: "
+            f"{activity_count_subject(above_hour, total)} {activity_count_verb(above_hour, 'supera', 'superan')} el crecimiento agregado por hora y "
+            f"{activity_count_subject(above_worker, total)} {activity_count_verb(above_worker, 'lo hace', 'lo hacen')} por trabajador."
         )
     return (
-        f"Las actividades económicas agrupadas dentro {context} muestran diferencias "
-        "importantes en sus niveles y ritmos de productividad."
+        f"El balance de la apertura {context} es heterogéneo: "
+        f"{activity_count_subject(above_worker, total)} {activity_count_verb(above_worker, 'supera', 'superan')} el crecimiento agregado del PIB por trabajador y "
+        f"{activity_count_subject(above_hour, total)} {activity_count_verb(above_hour, 'supera', 'superan')} el crecimiento agregado del PIB por hora trabajada, "
+        "mientras otras quedan rezagadas."
     )
 
 
@@ -1923,9 +1994,10 @@ def sector_zoom_lines(
             aggregate_growth["PIB por hora trabajada"],
             hour_aggregate_text,
         )
+        balance = sector_zoom_balance_sentence(sector_code, subset, aggregate_growth)
         lines.extend(
             [
-                f"\\textbf{{{escape_latex(sector_zoom_headline(sector_code, top_worker, bottom_worker, top_hour, bottom_hour))}}} "
+                f"\\textbf{{{escape_latex(balance)}}} "
                 f"En esta apertura, el mayor crecimiento del PIB por trabajador se observa en {top_worker_names} "
                 f"({fmt_pct_es(top_worker['crec_pib_trabajador'])}), {top_worker_relation}; el menor se registra en "
                 f"{bottom_worker_names} ({fmt_pct_es(bottom_worker['crec_pib_trabajador'])}), {bottom_worker_relation}. "
