@@ -61,13 +61,13 @@ SECTOR_SHORT = {
 SECTOR_DESCRIPTION = {
     "A": "agricultura, ganadería, caza, silvicultura y pesca",
     "B": "explotación de minas y canteras",
-    "C": "industrias manufactureras",
+    "C": "alimentos, bebidas y tabaco; textiles, confecciones y cuero; madera, papel e impresión; refinación, químicos y minerales; metalurgia, maquinaria y equipo; muebles y otras industrias manufactureras",
     "D+E": "suministro de electricidad, gas, vapor y aire acondicionado; distribución de agua; evacuación y tratamiento de aguas residuales, gestión de desechos y actividades de saneamiento ambiental",
-    "F": "construcción",
+    "F": "edificaciones, obras civiles y actividades especializadas de construcción",
     "G+H+I": "comercio al por mayor y al por menor; reparación de vehículos automotores y motocicletas; transporte y almacenamiento; alojamiento y servicios de comida",
-    "J": "información y comunicaciones",
-    "K": "actividades financieras y de seguros",
-    "L": "actividades inmobiliarias",
+    "J": "edición, producción audiovisual y programación; telecomunicaciones; desarrollo de sistemas informáticos y actividades de servicios de información",
+    "K": "servicios financieros, seguros y actividades auxiliares de los servicios financieros y de seguros",
+    "L": "operaciones con bienes inmuebles propios o arrendados y servicios inmobiliarios realizados a cambio de una retribución o por contrata",
     "M+N": "actividades profesionales, científicas y técnicas; actividades de servicios administrativos y de apoyo",
     "O+P+Q": "administración pública y defensa; planes de seguridad social de afiliación obligatoria; educación; actividades de atención de la salud humana y de servicios sociales",
     "R+S+T": "actividades artísticas, de entretenimiento y recreación y otras actividades de servicios; actividades de los hogares individuales en calidad de empleadores; actividades no diferenciadas de los hogares individuales como productores de bienes y servicios para uso propio",
@@ -86,6 +86,81 @@ SECTOR_CIIU_CODES = {
     "M+N": "M y N; divisiones 69--82",
     "O+P+Q": "O, P y Q; divisiones 84--88",
     "R+S+T": "R, S y T; divisiones 90--98",
+}
+
+SECTOR_INTRO_SUBJECT = {
+    "A": "La actividad agropecuaria",
+    "B": "La actividad de minas y canteras",
+    "C": "La actividad manufacturera",
+    "D+E": "La actividad de servicios públicos",
+    "F": "La actividad de construcción",
+    "G+H+I": "La agrupación de comercio, transporte y alojamiento",
+    "J": "La actividad de información y comunicaciones",
+    "K": "La actividad financiera",
+    "L": "La actividad inmobiliaria",
+    "M+N": "La agrupación de actividades profesionales y administrativas",
+    "O+P+Q": "La agrupación de administración pública, educación y salud",
+    "R+S+T": "La agrupación de artes, entretenimiento y hogares",
+}
+
+SECTOR_BODY_SUBJECT = {
+    "A": "la actividad agropecuaria",
+    "B": "la actividad de minas y canteras",
+    "C": "la actividad manufacturera",
+    "D+E": "la actividad de servicios públicos",
+    "F": "la actividad de construcción",
+    "G+H+I": "la agrupación de comercio, transporte y alojamiento",
+    "J": "la actividad de información y comunicaciones",
+    "K": "la actividad financiera",
+    "L": "la actividad inmobiliaria",
+    "M+N": "la agrupación de actividades profesionales y administrativas",
+    "O+P+Q": "la agrupación de administración pública, educación y salud",
+    "R+S+T": "la agrupación de artes, entretenimiento y hogares",
+}
+
+SECTOR_PRODUCTIVITY_SUBJECT = {
+    "A": "del sector agropecuario",
+    "B": "de minas y canteras",
+    "C": "de la manufactura",
+    "D+E": "de los servicios públicos",
+    "F": "de la construcción",
+    "G+H+I": "de comercio, transporte y alojamiento",
+    "J": "de información y comunicaciones",
+    "K": "de las actividades financieras",
+    "L": "de las actividades inmobiliarias",
+    "M+N": "de las actividades profesionales y administrativas",
+    "O+P+Q": "de administración pública, educación y salud",
+    "R+S+T": "de artes, entretenimiento y hogares",
+}
+
+SECTOR_ZOOM_CAPTION = {
+    "A": "agropecuarias",
+    "B": "mineras",
+    "C": "manufactureras",
+    "D+E": "de servicios públicos",
+    "F": "de construcción",
+    "G+H+I": "de comercio, transporte y alojamiento",
+    "J": "de información y comunicaciones",
+    "K": "financieras",
+    "L": "inmobiliarias",
+    "M+N": "profesionales y administrativas",
+    "O+P+Q": "de administración pública, educación y salud",
+    "R+S+T": "artísticas, de entretenimiento y hogares",
+}
+
+SECTOR_ZOOM_CONTEXT = {
+    "A": "del sector agropecuario",
+    "B": "de la actividad de minas y canteras",
+    "C": "de la manufactura",
+    "D+E": "de los servicios públicos",
+    "F": "de la construcción",
+    "G+H+I": "de la agrupación de comercio, transporte y alojamiento",
+    "J": "de información y comunicaciones",
+    "K": "de las actividades financieras",
+    "L": "de las actividades inmobiliarias",
+    "M+N": "de las actividades profesionales y administrativas",
+    "O+P+Q": "de administración pública, educación y salud",
+    "R+S+T": "de artes, entretenimiento y hogares",
 }
 
 AGG25_SHORT = {
@@ -1435,7 +1510,41 @@ def comparison_fragment(
     )
 
 
-def hours_comparison_fragment(value: float, aggregate_value: float) -> str:
+def growth_rate_phrase(value: float, period: str = "anual") -> str:
+    if value < 0:
+        if period.endswith("o"):
+            period = period[:-1] + "a"
+        return f"una caída {period} del {fmt_pct_es(abs(value))}"
+    return f"un crecimiento {period} del {fmt_pct_es(value)}"
+
+
+def relative_to_named_aggregate(
+    value: float, aggregate_value: float, aggregate_text: str
+) -> str:
+    if abs(value - aggregate_value) <= 0.002:
+        return f"muy cerca {aggregate_text} ({fmt_pct_es(aggregate_value)})"
+    if value > aggregate_value:
+        prefix = "muy por encima" if abs(value - aggregate_value) >= 0.01 else "por encima"
+        return f"{prefix} {aggregate_text} ({fmt_pct_es(aggregate_value)})"
+    prefix = "muy por debajo" if abs(value - aggregate_value) >= 0.01 else "por debajo"
+    return f"{prefix} {aggregate_text} ({fmt_pct_es(aggregate_value)})"
+
+
+def growth_comparison_sentence(
+    subject: str,
+    value: float,
+    aggregate_value: float,
+    aggregate_text: str,
+    period: str = "anual",
+) -> str:
+    verb = "registraron" if subject.startswith(("Los ", "Las ")) else "registró"
+    return (
+        f"{subject} {verb} {growth_rate_phrase(value, period)}, "
+        f"{relative_to_named_aggregate(value, aggregate_value, aggregate_text)}"
+    )
+
+
+def hours_relation_to_aggregate(value: float, aggregate_value: float) -> str:
     if value < 0 and aggregate_value < 0:
         if abs(value - aggregate_value) <= 0.002:
             relation = f"muy cerca de la caída agregada ({fmt_pct_es(aggregate_value)})"
@@ -1451,9 +1560,22 @@ def hours_comparison_fragment(value: float, aggregate_value: float) -> str:
             )
     else:
         relation = relative_to_aggregate(value, aggregate_value)
+    return relation
+
+
+def hours_comparison_fragment(value: float, aggregate_value: float) -> str:
+    relation = hours_relation_to_aggregate(value, aggregate_value)
     return (
         f"Las horas semanales por trabajador registraron una tasa anualizada de "
         f"{fmt_pct_es(value)}, {relation}"
+    )
+
+
+def hours_growth_comparison_sentence(value: float, aggregate_value: float) -> str:
+    relation = hours_relation_to_aggregate(value, aggregate_value)
+    return (
+        f"Las horas semanales por trabajador registraron "
+        f"{growth_rate_phrase(value)}, {relation}"
     )
 
 
@@ -1494,6 +1616,49 @@ def sector_level_paragraph(
     return (
         r"\textbf{En niveles de 2025, el tamaño relativo y la productividad de la actividad económica también importan.} "
         f"La actividad representó {fmt_pct_es(pib_share, 1)} del PIB real agregado, "
+        f"con {fmt_num_es(levels['PIB real'], 1)} billones de pesos de 2015, "
+        f"y concentró {fmt_pct_es(occupied_share, 1)} de los ocupados, "
+        f"con {fmt_num_es(levels['Ocupados'], 1)} millones de personas. "
+        f"El PIB por trabajador fue {fmt_num_es(levels['PIB por trabajador'], 1)} "
+        f"millones de pesos de 2015 por ocupado, {worker_relation}. "
+        f"Las horas semanales por trabajador fueron "
+        f"{fmt_num_es(levels['Horas semanales por trabajador'], 1)}, "
+        f"{hours_relation}. "
+        f"El PIB por hora trabajada fue "
+        f"{fmt_num_es(levels['PIB por hora trabajada'], 1)} "
+        f"mil pesos de 2015 por hora, {hourly_relation}."
+    )
+
+
+def sector_intro_level_paragraph(
+    sector_code: str, metrics: pd.DataFrame, aggregate_levels: dict[str, float]
+) -> str:
+    levels = metric_level_lookup(metrics)
+    pib_share = levels["PIB real"] / aggregate_levels["PIB real"]
+    occupied_share = levels["Ocupados"] / aggregate_levels["Ocupados"]
+    worker_relation = relative_level_to_aggregate(
+        levels["PIB por trabajador"],
+        aggregate_levels["PIB por trabajador"],
+        f"{fmt_num_es(aggregate_levels['PIB por trabajador'], 1)} millones",
+    )
+    hours_relation = relative_level_to_aggregate(
+        levels["Horas semanales por trabajador"],
+        aggregate_levels["Horas semanales por trabajador"],
+        fmt_num_es(aggregate_levels["Horas semanales por trabajador"], 1),
+    )
+    hourly_relation = relative_level_to_aggregate(
+        levels["PIB por hora trabajada"],
+        aggregate_levels["PIB por hora trabajada"],
+        f"{fmt_num_es(aggregate_levels['PIB por hora trabajada'], 1)} mil",
+    )
+    lead = (
+        f"{SECTOR_INTRO_SUBJECT[sector_code]} reúne "
+        f"{SECTOR_DESCRIPTION[sector_code]}."
+    )
+    subject = SECTOR_BODY_SUBJECT[sector_code]
+    return (
+        f"\\textbf{{{escape_latex(lead)}}} "
+        f"En 2025 {subject} representó {fmt_pct_es(pib_share, 1)} del PIB, "
         f"con {fmt_num_es(levels['PIB real'], 1)} billones de pesos de 2015, "
         f"y concentró {fmt_pct_es(occupied_share, 1)} de los ocupados, "
         f"con {fmt_num_es(levels['Ocupados'], 1)} millones de personas. "
@@ -1550,6 +1715,72 @@ def sector_comparison_paragraph(
     )
 
 
+def sector_detail_comparison_paragraph(
+    sector_code: str, metrics: pd.DataFrame, aggregate_growth: dict[str, float]
+) -> str:
+    growth = metric_growth_lookup(metrics)
+    worker_growth = growth["PIB por trabajador"]
+    hour_growth = growth["PIB por hora trabajada"]
+    worker_agg = aggregate_growth["PIB por trabajador"]
+    hour_agg = aggregate_growth["PIB por hora trabajada"]
+    productivity_subject = SECTOR_PRODUCTIVITY_SUBJECT[sector_code]
+    if worker_growth > worker_agg + 0.002 and hour_growth > hour_agg + 0.002:
+        headline = (
+            f"El crecimiento de la productividad {productivity_subject} fue superior "
+            "al crecimiento de la productividad agregada."
+        )
+    elif worker_growth < 0 and hour_growth < 0:
+        headline = f"La productividad {productivity_subject} cayó entre 2010 y 2025."
+    elif worker_growth < worker_agg - 0.002 and hour_growth < hour_agg - 0.002:
+        headline = (
+            f"El crecimiento de la productividad {productivity_subject} fue inferior "
+            "al crecimiento de la productividad agregada."
+        )
+    else:
+        headline = (
+            f"La evolución de la productividad {productivity_subject} fue heterogénea "
+            "frente a la productividad agregada."
+        )
+    subject = SECTOR_BODY_SUBJECT[sector_code]
+    return (
+        f"\\textbf{{{escape_latex(headline)}}} "
+        + growth_comparison_sentence(
+            f"Entre 2010 y 2025 el PIB de {subject}",
+            growth["PIB real"],
+            aggregate_growth["PIB real"],
+            "del agregado",
+            "anualizado",
+        )
+        + ". "
+        + growth_comparison_sentence(
+            "Los ocupados en la actividad",
+            growth["Ocupados"],
+            aggregate_growth["Ocupados"],
+            "del agregado",
+        )
+        + ". "
+        + growth_comparison_sentence(
+            "El PIB por trabajador",
+            growth["PIB por trabajador"],
+            aggregate_growth["PIB por trabajador"],
+            "del crecimiento del PIB por trabajador de toda la economía",
+        )
+        + ". "
+        + hours_growth_comparison_sentence(
+            growth["Horas semanales por trabajador"],
+            aggregate_growth["Horas semanales por trabajador"],
+        )
+        + ". "
+        + growth_comparison_sentence(
+            "El PIB por hora trabajada",
+            growth["PIB por hora trabajada"],
+            aggregate_growth["PIB por hora trabajada"],
+            "del crecimiento del PIB por hora trabajada de toda la economía",
+        )
+        + "."
+    )
+
+
 def join_latex_items(items: list[str]) -> str:
     if not items:
         return ""
@@ -1572,6 +1803,30 @@ def tied_activity_names(data: pd.DataFrame, column: str, value: float) -> str:
     return join_latex_items(names)
 
 
+def sector_zoom_headline(
+    sector_code: str,
+    top_worker: pd.Series,
+    bottom_worker: pd.Series,
+    top_hour: pd.Series,
+    bottom_hour: pd.Series,
+) -> str:
+    context = SECTOR_ZOOM_CONTEXT[sector_code]
+    if top_worker["crec_pib_trabajador"] > 0.03 or top_hour["crec_pib_hora"] > 0.03:
+        return (
+            f"Algunas de las actividades económicas agrupadas dentro {context} "
+            "presentaron un crecimiento de la productividad muy favorable."
+        )
+    if bottom_worker["crec_pib_trabajador"] < 0 or bottom_hour["crec_pib_hora"] < 0:
+        return (
+            f"Las actividades económicas agrupadas dentro {context} muestran "
+            "desempeños de productividad muy distintos."
+        )
+    return (
+        f"Las actividades económicas agrupadas dentro {context} muestran diferencias "
+        "importantes en sus niveles y ritmos de productividad."
+    )
+
+
 def sector_zoom_lines(
     summary25: pd.DataFrame | None,
     summary61: pd.DataFrame | None,
@@ -1591,16 +1846,9 @@ def sector_zoom_lines(
         return []
 
     subset = subset.sort_values("crec_pib_trabajador", ascending=False)
-    sector_label = SECTOR_SHORT[sector_code]
 
     if len(subset) == 1:
-        row = subset.iloc[0]
-        return [
-            f"\\textbf{{Zoom a {level} agrupaciones.}} "
-            f"En esta actividad, la apertura a {level} agrupaciones coincide con la agrupación de 12: "
-            f"{escape_latex(row['actividad_corta'])}. Por eso, el cuadro anterior ya resume la lectura relevante a este nivel.",
-            "",
-        ]
+        return []
 
     top_worker = subset.iloc[0]
     bottom_worker = subset.sort_values("crec_pib_trabajador", ascending=True).iloc[0]
@@ -1609,33 +1857,22 @@ def sector_zoom_lines(
     label_code = latex_id(sector_code)
 
     if use61:
-        intro = (
-            f"\\textbf{{Zoom a {level} agrupaciones.}} "
-            f"En {sector_label.lower()}, la apertura a 25 agrupaciones coincide con la agrupación de 12. "
-            "Por eso, el zoom usa la apertura a 61 agrupaciones, que permite mirar subactividades más específicas."
-        )
         note = (
             r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
             r"Cuando la GEIH no separa ocupados y horas al mismo nivel de las cuentas nacionales, se agrupan las subactividades del DANE hasta el nivel laboral comparable. "
             r"Fuente: cálculos propios con DANE y GEIH.}"
         )
     else:
-        intro = (
-            r"\textbf{Zoom a 25 agrupaciones.} "
-            f"Dentro de {sector_label.lower()}, la apertura a 25 agrupaciones permite ver diferencias que el promedio de la actividad oculta."
-        )
         note = (
             r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. Fuente: cálculos propios con DANE y GEIH.}"
         )
 
     lines = [
-        intro,
-        "",
         r"\begin{table}[H]",
         r"\centering",
-        f"\\caption{{{escape_latex(sector_label)}: apertura de productividad laboral a {level} agrupaciones, 2010--2025}}",
+        f"\\caption{{Productividad laboral de las actividades {escape_latex(SECTOR_ZOOM_CAPTION[sector_code])}, 2010--2025}}",
         f"\\label{{tab:sector_{label_code}_zoom{level}}}",
-        r"\scriptsize",
+        r"\small",
         r"\begin{tabular}{p{0.40\textwidth}rrrr}",
         r"\toprule",
         r"Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\",
@@ -1680,6 +1917,7 @@ def sector_zoom_lines(
         )
         lines.extend(
             [
+                f"\\textbf{{{escape_latex(sector_zoom_headline(sector_code, top_worker, bottom_worker, top_hour, bottom_hour))}}} "
                 f"En esta apertura, el mayor crecimiento del PIB por trabajador se observa en {top_worker_names} "
                 f"({fmt_pct_es(top_worker['crec_pib_trabajador'])}), mientras que el menor se registra en "
                 f"{bottom_worker_names} ({fmt_pct_es(bottom_worker['crec_pib_trabajador'])}). "
@@ -1724,7 +1962,7 @@ def write_sector_detail_sections(
             [
                 f"\\subsection{{{escape_latex(SECTOR_SHORT[code])}}}",
                 "",
-                f"Esta agrupación reúne {SECTOR_DESCRIPTION[code]}. En la CIIU Rev. 4 A.C. corresponde a {SECTOR_CIIU_CODES[code]}.",
+                sector_intro_level_paragraph(code, metrics, aggregate_levels),
                 "",
                 *metric_table_lines(
                     metrics,
@@ -1732,9 +1970,7 @@ def write_sector_detail_sections(
                     f"{SECTOR_SHORT[code]}: PIB, ocupados, horas y productividad laboral, 2010--2025",
                 ),
                 "",
-                sector_level_paragraph(metrics, aggregate_levels),
-                "",
-                sector_comparison_paragraph(metrics, aggregate_growth),
+                sector_detail_comparison_paragraph(code, metrics, aggregate_growth),
                 "",
                 *sector_zoom_lines(summary25, summary61, code),
             ]
