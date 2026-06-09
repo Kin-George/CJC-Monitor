@@ -2987,10 +2987,10 @@ def draw_sector_correlation_scatter(summary: pd.DataFrame) -> None:
     )
 
     font = ImageFont.load_default()
-    title_font = ImageFont.truetype("arial.ttf", 42) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    label_font = ImageFont.truetype("arial.ttf", 32) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    small_font = ImageFont.truetype("arial.ttf", 28) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    note_font = ImageFont.truetype("arial.ttf", 24) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    title_font = ImageFont.truetype("arial.ttf", 58) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    label_font = ImageFont.truetype("arial.ttf", 44) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    small_font = ImageFont.truetype("arial.ttf", 36) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    note_font = ImageFont.truetype("arial.ttf", 30) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
 
     y_min = math.floor(min(data["prod_trabajador"].min(), data["prod_hora"].min()) * 100) / 100 - 0.01
     y_max = math.ceil(max(data["prod_trabajador"].max(), data["prod_hora"].max()) * 100) / 100 + 0.01
@@ -3001,100 +3001,93 @@ def draw_sector_correlation_scatter(summary: pd.DataFrame) -> None:
     def corr_label(value: float) -> str:
         return f"{value:.2f}".replace(".", ",")
 
-    def draw_two_panel_figure(x_col: str, x_lab: str, title: str, filename: str) -> None:
-        img = Image.new("RGB", (1900, 1650), "white")
-        draw = ImageDraw.Draw(img)
+    img = Image.new("RGB", (2600, 1900), "white")
+    draw = ImageDraw.Draw(img)
 
-        draw.text((85, 40), title, fill="#222222", font=title_font)
-        draw.text(
-            (85, 88),
-            f"Tasas anualizadas para {len(data)} observaciones detalladas comparables; cada punto representa una actividad",
-            fill="#555555",
-            font=label_font,
-        )
-        draw.text(
-            (85, 1545),
-            "Nota: r es la correlación de Pearson; la línea roja muestra la tendencia lineal simple entre actividades económicas.",
-            fill="#555555",
-            font=note_font,
-        )
+    draw.text(
+        (90, 45),
+        "Crecimiento del trabajo y la productividad por actividad económica, 2010--2025",
+        fill="#222222",
+        font=title_font,
+    )
+    draw.text(
+        (90, 115),
+        f"Tasas anualizadas para {len(data)} observaciones detalladas comparables; cada punto representa una actividad",
+        fill="#555555",
+        font=label_font,
+    )
+    draw.text(
+        (90, 1810),
+        "Nota: r es la correlación de Pearson; la línea roja muestra la tendencia lineal simple entre actividades económicas.",
+        fill="#555555",
+        font=note_font,
+    )
 
+    panels = [
+        (90, 245, 1245, 900, "ocupados", "prod_trabajador", "Ocupados", "PIB por trabajador"),
+        (1370, 245, 2525, 900, "ocupados", "prod_hora", "Ocupados", "PIB por hora trabajada"),
+        (90, 1045, 1245, 1700, "horas", "prod_trabajador", "Horas totales", "PIB por trabajador"),
+        (1370, 1045, 2525, 1700, "horas", "prod_hora", "Horas totales", "PIB por hora trabajada"),
+    ]
+
+    for left, top, right, bottom, x_col, y_col, x_lab, y_lab in panels:
         x_min = math.floor(data[x_col].min() * 100) / 100 - 0.01
         x_max = math.ceil(data[x_col].max() * 100) / 100 + 0.01
-        panels = [
-            (90, 180, 1835, 775, "prod_trabajador", "PIB por trabajador"),
-            (90, 875, 1835, 1470, "prod_hora", "PIB por hora trabajada"),
-        ]
+        plot_left, plot_top = left + 180, top + 85
+        plot_right, plot_bottom = right - 55, bottom - 115
 
-        for left, top, right, bottom, y_col, y_lab in panels:
-            plot_left, plot_top = left + 165, top + 70
-            plot_right, plot_bottom = right - 60, bottom - 95
+        draw.text((left, top), f"{x_lab} vs. {y_lab}", fill="#222222", font=label_font)
+        draw.rectangle((plot_left, plot_top, plot_right, plot_bottom), outline="#333333", width=2)
 
-            draw.text((left, top), f"{x_lab} vs. {y_lab}", fill="#222222", font=label_font)
-            draw.rectangle((plot_left, plot_top, plot_right, plot_bottom), outline="#333333", width=2)
+        def x_pos(value: float) -> float:
+            return plot_left + (value - x_min) / (x_max - x_min) * (plot_right - plot_left)
 
-            def x_pos(value: float) -> float:
-                return plot_left + (value - x_min) / (x_max - x_min) * (plot_right - plot_left)
+        def y_pos(value: float) -> float:
+            return plot_bottom - (value - y_min) / (y_max - y_min) * (plot_bottom - plot_top)
 
-            def y_pos(value: float) -> float:
-                return plot_bottom - (value - y_min) / (y_max - y_min) * (plot_bottom - plot_top)
+        for tick in np.arange(math.ceil(x_min * 100 / 4) * 4, math.floor(x_max * 100) + 1, 4):
+            value = tick / 100
+            x = x_pos(value)
+            draw.line((x, plot_top, x, plot_bottom), fill="#eeeeee", width=1)
+            draw.text((x - 46, plot_bottom + 18), pct_label(value), fill="#555555", font=small_font)
+        for tick in np.arange(math.ceil(y_min * 100 / 4) * 4, math.floor(y_max * 100) + 1, 4):
+            value = tick / 100
+            y = y_pos(value)
+            draw.line((plot_left, y, plot_right, y), fill="#eeeeee", width=1)
+            draw.text((plot_left - 140, y - 20), pct_label(value), fill="#555555", font=small_font)
 
-            for tick in np.arange(math.ceil(x_min * 100), math.floor(x_max * 100) + 1, 2):
-                value = tick / 100
-                x = x_pos(value)
-                draw.line((x, plot_top, x, plot_bottom), fill="#eeeeee", width=1)
-                draw.text((x - 36, plot_bottom + 16), pct_label(value), fill="#555555", font=small_font)
-            for tick in np.arange(math.ceil(y_min * 100), math.floor(y_max * 100) + 1, 2):
-                value = tick / 100
-                y = y_pos(value)
-                draw.line((plot_left, y, plot_right, y), fill="#eeeeee", width=1)
-                draw.text((plot_left - 110, y - 16), pct_label(value), fill="#555555", font=small_font)
+        if x_min < 0 < x_max:
+            x0 = x_pos(0)
+            draw.line((x0, plot_top, x0, plot_bottom), fill="#999999", width=2)
+        if y_min < 0 < y_max:
+            y0 = y_pos(0)
+            draw.line((plot_left, y0, plot_right, y0), fill="#999999", width=2)
 
-            if x_min < 0 < x_max:
-                x0 = x_pos(0)
-                draw.line((x0, plot_top, x0, plot_bottom), fill="#999999", width=2)
-            if y_min < 0 < y_max:
-                y0 = y_pos(0)
-                draw.line((plot_left, y0, plot_right, y0), fill="#999999", width=2)
+        xs = data[x_col].astype(float).to_numpy()
+        ys = data[y_col].astype(float).to_numpy()
+        slope, intercept = np.polyfit(xs, ys, 1)
+        draw.line(
+            (
+                x_pos(x_min),
+                y_pos(slope * x_min + intercept),
+                x_pos(x_max),
+                y_pos(slope * x_max + intercept),
+            ),
+            fill="#b44b3f",
+            width=5,
+        )
 
-            xs = data[x_col].astype(float).to_numpy()
-            ys = data[y_col].astype(float).to_numpy()
-            slope, intercept = np.polyfit(xs, ys, 1)
-            draw.line(
-                (
-                    x_pos(x_min),
-                    y_pos(slope * x_min + intercept),
-                    x_pos(x_max),
-                    y_pos(slope * x_max + intercept),
-                ),
-                fill="#b44b3f",
-                width=4,
-            )
+        for _, row in data.iterrows():
+            x = x_pos(row[x_col])
+            y = y_pos(row[y_col])
+            draw.ellipse((x - 11, y - 11, x + 11, y + 11), fill="#1f77b4", outline="white", width=2)
 
-            for _, row in data.iterrows():
-                x = x_pos(row[x_col])
-                y = y_pos(row[y_col])
-                draw.ellipse((x - 10, y - 10, x + 10, y + 10), fill="#1f77b4", outline="white", width=2)
+        corr = data[[x_col, y_col]].corr().iloc[0, 1]
+        draw.text((plot_left + 18, plot_top + 18), f"r = {corr_label(corr)}", fill="#b44b3f", font=label_font)
+        draw.text(((plot_left + plot_right) / 2 - 165, bottom - 42), f"Crec. {x_lab.lower()}", fill="#333333", font=small_font)
 
-            corr = data[[x_col, y_col]].corr().iloc[0, 1]
-            draw.text((plot_left + 14, plot_top + 14), f"r = {corr_label(corr)}", fill="#b44b3f", font=label_font)
-            draw.text(((plot_left + plot_right) / 2 - 145, bottom - 32), f"Crec. {x_lab.lower()}", fill="#333333", font=small_font)
-
-        for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
-            img.save(directory / filename)
-
-    draw_two_panel_figure(
-        "ocupados",
-        "Ocupados",
-        "Crecimiento de los ocupados y la productividad por actividad económica, 2010--2025",
-        "fig_pib_geih_productividad_sector_correlaciones_ocupados.png",
-    )
-    draw_two_panel_figure(
-        "horas",
-        "Horas totales",
-        "Crecimiento de las horas trabajadas y la productividad por actividad económica, 2010--2025",
-        "fig_pib_geih_productividad_sector_correlaciones_horas.png",
-    )
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_pib_geih_productividad_sector_correlaciones.png")
 
 
 def draw_initial_productivity_growth_scatter(summary: pd.DataFrame) -> None:
@@ -3113,11 +3106,11 @@ def draw_initial_productivity_growth_scatter(summary: pd.DataFrame) -> None:
     img = Image.new("RGB", (1900, 1650), "white")
     draw = ImageDraw.Draw(img)
     font = ImageFont.load_default()
-    title_font = ImageFont.truetype("arial.ttf", 42) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    label_font = ImageFont.truetype("arial.ttf", 32) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    small_font = ImageFont.truetype("arial.ttf", 28) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    tiny_font = ImageFont.truetype("arial.ttf", 22) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    note_font = ImageFont.truetype("arial.ttf", 24) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    title_font = ImageFont.truetype("arial.ttf", 48) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    label_font = ImageFont.truetype("arial.ttf", 38) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    small_font = ImageFont.truetype("arial.ttf", 34) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    tiny_font = ImageFont.truetype("arial.ttf", 26) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    note_font = ImageFont.truetype("arial.ttf", 28) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
 
     draw.text(
         (80, 40),
@@ -3231,8 +3224,14 @@ def draw_initial_productivity_growth_scatter(summary: pd.DataFrame) -> None:
         draw.text(((plot_left + plot_right) / 2 - 230, bottom - 32), x_label, fill="#333333", font=small_font)
 
     draw.text(
-        (85, 1545),
-        "Nota: r es la correlación de Pearson entre el crecimiento anualizado y el logaritmo del nivel de productividad en 2010; la línea roja muestra la tendencia lineal.",
+        (85, 1530),
+        "Nota: r es la correlación de Pearson entre el crecimiento anualizado y el logaritmo del nivel de productividad en 2010.",
+        fill="#555555",
+        font=note_font,
+    )
+    draw.text(
+        (85, 1570),
+        "La línea roja muestra la tendencia lineal simple entre actividades económicas.",
         fill="#555555",
         font=note_font,
     )
