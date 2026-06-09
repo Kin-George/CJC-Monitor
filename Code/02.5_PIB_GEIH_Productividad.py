@@ -507,6 +507,18 @@ def escape_latex(text: str) -> str:
     return text
 
 
+def latex_id(text: str) -> str:
+    return (
+        str(text)
+        .lower()
+        .replace("+", "_")
+        .replace("|", "_")
+        .replace(",", "_")
+        .replace(";", "_")
+        .replace(" ", "_")
+    )
+
+
 def indicator_with_unit(row: pd.Series) -> str:
     unit = str(row.get("unidad", "")).strip()
     indicator = str(row["indicador"]).strip()
@@ -928,29 +940,25 @@ def fmt_corr_es(value: float) -> str:
     return f"{value:.3f}".replace(".", ",")
 
 
-def write_sector_correlation_table(sector: pd.DataFrame) -> None:
-    endpoints = (
-        sector[sector["anio"].isin([2010, 2025])]
-        .pivot(index=["sector_code", "sector_name_short"], columns="anio")
-        .sort_index()
+def write_sector_correlation_table(summary: pd.DataFrame) -> None:
+    growth = summary[
+        [
+            "codigo",
+            "actividad_corta",
+            "crec_ocupados",
+            "crec_horas",
+            "crec_pib_hora",
+            "crec_pib_trabajador",
+        ]
+    ].copy()
+    growth = growth.rename(
+        columns={
+            "codigo": "sector_code",
+            "actividad_corta": "sector_name_short",
+            "crec_pib_hora": "crec_productividad_hora",
+            "crec_pib_trabajador": "crec_productividad_trabajador",
+        }
     )
-    years = 2025 - 2010
-    growth = pd.DataFrame(index=endpoints.index)
-    growth["crec_ocupados"] = (
-        endpoints[("ocupados", 2025)] / endpoints[("ocupados", 2010)]
-    ) ** (1 / years) - 1
-    growth["crec_horas"] = (
-        endpoints[("horas_anuales", 2025)] / endpoints[("horas_anuales", 2010)]
-    ) ** (1 / years) - 1
-    growth["crec_productividad_hora"] = (
-        endpoints[("pib_por_hora_pesos_2015", 2025)]
-        / endpoints[("pib_por_hora_pesos_2015", 2010)]
-    ) ** (1 / years) - 1
-    growth["crec_productividad_trabajador"] = (
-        endpoints[("pib_por_trabajador_millones_2015", 2025)]
-        / endpoints[("pib_por_trabajador_millones_2015", 2010)]
-    ) ** (1 / years) - 1
-    growth = growth.reset_index()
 
     corr_vars = [
         "crec_ocupados",
@@ -1010,7 +1018,7 @@ def write_sector_correlation_table(sector: pd.DataFrame) -> None:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: correlaciones de Pearson calculadas entre las tasas de crecimiento anualizado 2010--2025 de las 12 agrupaciones de actividad económica CIIU. Las horas corresponden al total anual de horas trabajadas por actividad económica, estimado a partir de GEIH como horas semanales ponderadas por el factor de expansi\'on y multiplicadas por 52. Fuente: c\'alculos propios con DANE y GEIH.}",
+            f"\\caption*{{\\footnotesize Nota: correlaciones de Pearson calculadas entre las tasas de crecimiento anualizado 2010--2025 de {len(growth)} observaciones detalladas comparables construidas a partir de la apertura de 61 agrupaciones CIIU. Las horas corresponden al total anual de horas trabajadas por actividad económica, estimado a partir de GEIH como horas semanales ponderadas por el factor de expansión y multiplicadas por 52. Fuente: cálculos propios con DANE y GEIH.}}",
             r"\end{table}",
         ]
     )
@@ -1313,7 +1321,7 @@ def sector_zoom_lines(
     if sector_code == "F" and level == 25:
         return [
             r"\textbf{Zoom a 25 agrupaciones.} "
-            "El DANE abre construcción en edificaciones, obras civiles y actividades especializadas de construcción. Sin embargo, la GEIH histórica comparable no permite separar ocupados y horas entre esas tres subactividades. Por esa razón, no se presenta un cuadro de PIB por trabajador o PIB por hora a este nivel: cualquier apertura asignaría el empleo y las horas de manera proporcional al PIB y produciría diferencias mecánicas, no estimaciones independientes de productividad laboral.",
+            "El DANE abre construcción en edificaciones, obras civiles y actividades especializadas de construcción. Sin embargo, la GEIH histórica comparable no permite separar ocupados y horas entre esas tres subactividades. Por esa razón, no se presenta un cuadro de PIB por trabajador o PIB por hora a este nivel. La medición comparable corresponde al total de construcción.",
             "",
         ]
 
@@ -1330,7 +1338,7 @@ def sector_zoom_lines(
     bottom_worker = subset.sort_values("crec_pib_trabajador", ascending=True).iloc[0]
     top_hour = subset.sort_values("crec_pib_hora", ascending=False).iloc[0]
     bottom_hour = subset.sort_values("crec_pib_hora", ascending=True).iloc[0]
-    label_code = sector_code.lower().replace("+", "_")
+    label_code = latex_id(sector_code)
 
     if use61:
         intro = (
@@ -1340,7 +1348,7 @@ def sector_zoom_lines(
         )
         note = (
             r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
-            r"Cuando la GEIH no separa ocupados y horas al mismo nivel de las cuentas nacionales, se asignan proporcionalmente al PIB dentro del grupo laboral comparable. "
+            r"Cuando la GEIH no separa ocupados y horas al mismo nivel de las cuentas nacionales, se agrupan las subactividades del DANE hasta el nivel laboral comparable. "
             r"Fuente: cálculos propios con DANE y GEIH.}"
         )
     else:
@@ -1453,7 +1461,7 @@ def write_sector_detail_sections(
                 "",
                 *metric_table_lines(
                     metrics,
-                    f"tab:sector_{code.lower().replace('+', '_')}_productividad",
+                    f"tab:sector_{latex_id(code)}_productividad",
                     f"{SECTOR_SHORT[code]}: PIB, ocupados, horas y productividad laboral, 2010--2025",
                 ),
                 "",
@@ -1557,71 +1565,126 @@ def summarize_va_disaggregation(
     return pd.DataFrame(rows)
 
 
-def allocate_labor_to_groups(
+def comparable_components(
+    pools: list[dict[str, list]],
+    order: list[str],
+    annual_codes: set[str],
+) -> list[dict[str, object]]:
+    order_index = {code: i for i, code in enumerate(order)}
+    valid_pools = []
+    for pool in pools:
+        groups = [code for code in pool["groups"] if code in annual_codes]
+        if groups:
+            valid_pools.append({"groups": groups, "subramas": list(pool["subramas"])})
+
+    parent = list(range(len(valid_pools)))
+
+    def find(idx: int) -> int:
+        while parent[idx] != idx:
+            parent[idx] = parent[parent[idx]]
+            idx = parent[idx]
+        return idx
+
+    def union(left: int, right: int) -> None:
+        left_root = find(left)
+        right_root = find(right)
+        if left_root != right_root:
+            parent[right_root] = left_root
+
+    seen_group: dict[str, int] = {}
+    seen_subrama: dict[int, int] = {}
+    for idx, pool in enumerate(valid_pools):
+        for group in pool["groups"]:
+            if group in seen_group:
+                union(idx, seen_group[group])
+            else:
+                seen_group[group] = idx
+        for subrama in pool["subramas"]:
+            if subrama in seen_subrama:
+                union(idx, seen_subrama[subrama])
+            else:
+                seen_subrama[subrama] = idx
+
+    grouped: dict[int, dict[str, set]] = {}
+    for idx, pool in enumerate(valid_pools):
+        root = find(idx)
+        if root not in grouped:
+            grouped[root] = {"groups": set(), "subramas": set()}
+        grouped[root]["groups"].update(pool["groups"])
+        grouped[root]["subramas"].update(pool["subramas"])
+
+    components = []
+    for component in grouped.values():
+        groups = sorted(component["groups"], key=lambda code: order_index.get(code, 10_000))
+        subramas = sorted(component["subramas"])
+        sectors = {
+            SUBRAMA_TO_SECTOR[subrama]
+            for subrama in subramas
+            if subrama in SUBRAMA_TO_SECTOR
+        }
+        components.append(
+            {
+                "groups": groups,
+                "subramas": subramas,
+                "group_code": "|".join(groups),
+                "group_order": min(order_index.get(code, 10_000) for code in groups),
+                "sector_code": next(iter(sectors)) if len(sectors) == 1 else None,
+            }
+        )
+
+    return sorted(components, key=lambda component: component["group_order"])
+
+
+def comparable_label(groups: list[str], short_labels: dict[str, str] | None) -> str:
+    if short_labels:
+        labels = [short_labels.get(group, group) for group in groups]
+    else:
+        labels = groups
+    return "; ".join(labels)
+
+
+def build_labor_at_comparable_level(
     geih_subrama: pd.DataFrame,
     annual: pd.DataFrame,
     pools: list[dict[str, list]],
+    order: list[str],
+    short_labels: dict[str, str] | None = None,
 ) -> pd.DataFrame:
-    allocations = []
     annual_codes = set(annual["group_code"].astype(str))
-    va = annual[["anio", "group_code", "pib_miles_millones_2015"]].copy()
+    components = comparable_components(pools, order, annual_codes)
+    rows = []
 
-    for pool_id, pool in enumerate(pools, start=1):
-        groups = [code for code in pool["groups"] if code in annual_codes]
-        if not groups:
-            continue
-
+    for component in components:
+        groups = component["groups"]
+        subramas = component["subramas"]
+        va = (
+            annual[annual["group_code"].isin(groups)]
+            .groupby("anio", as_index=False)
+            .agg(pib_miles_millones_2015=("pib_miles_millones_2015", "sum"))
+        )
         labor = (
-            geih_subrama[geih_subrama["subrama_det_cod"].isin(pool["subramas"])]
+            geih_subrama[geih_subrama["subrama_det_cod"].isin(subramas)]
             .groupby("anio", as_index=False)
             .agg(
-                ocupados_pool=("ocupados", "sum"),
-                horas_sem_expandidas_pool=("horas_sem_expandidas", "sum"),
-                horas_anuales_pool=("horas_anuales", "sum"),
+                ocupados=("ocupados", "sum"),
+                horas_sem_expandidas=("horas_sem_expandidas", "sum"),
+                horas_anuales=("horas_anuales", "sum"),
             )
         )
-        if labor.empty:
+        if va.empty or labor.empty:
             continue
+        merged = va.merge(labor, on="anio", how="inner")
+        merged["group_code"] = component["group_code"]
+        merged["group_name"] = comparable_label(groups, short_labels)
+        merged["group_label_short"] = comparable_label(groups, short_labels)
+        merged["group_order"] = component["group_order"]
+        merged["sector_code"] = component["sector_code"]
+        merged["dane_groups"] = "; ".join(groups)
+        rows.append(merged)
 
-        weights = va[va["group_code"].isin(groups)].copy()
-        weights["pib_pool"] = weights.groupby("anio")["pib_miles_millones_2015"].transform("sum")
-        weights = weights[weights["pib_pool"] > 0].copy()
-        weights["allocation_share"] = weights["pib_miles_millones_2015"] / weights["pib_pool"]
-        allocated = weights.merge(labor, on="anio", how="inner")
-        allocated["ocupados"] = allocated["ocupados_pool"] * allocated["allocation_share"]
-        allocated["horas_sem_expandidas"] = (
-            allocated["horas_sem_expandidas_pool"] * allocated["allocation_share"]
-        )
-        allocated["horas_anuales"] = allocated["horas_anuales_pool"] * allocated["allocation_share"]
-        allocated["pool_id"] = pool_id
-        allocations.append(
-            allocated[
-                [
-                    "anio",
-                    "group_code",
-                    "ocupados",
-                    "horas_sem_expandidas",
-                    "horas_anuales",
-                    "pool_id",
-                    "allocation_share",
-                ]
-            ]
-        )
-
-    if not allocations:
-        return pd.DataFrame(
-            columns=["anio", "group_code", "ocupados", "horas_sem_expandidas", "horas_anuales"]
-        )
-
-    allocated_all = pd.concat(allocations, ignore_index=True)
-    return (
-        allocated_all.groupby(["anio", "group_code"], as_index=False)
-        .agg(
-            ocupados=("ocupados", "sum"),
-            horas_sem_expandidas=("horas_sem_expandidas", "sum"),
-            horas_anuales=("horas_anuales", "sum"),
-        )
-    )
+    if not rows:
+        return pd.DataFrame()
+    return pd.concat(rows, ignore_index=True)
 
 
 def build_productivity_disaggregation(
@@ -1631,19 +1694,13 @@ def build_productivity_disaggregation(
     order: list[str],
     short_labels: dict[str, str] | None = None,
 ) -> pd.DataFrame:
-    labor = allocate_labor_to_groups(geih_subrama, annual, pools)
-    data = annual.merge(labor, on=["anio", "group_code"], how="inner")
+    data = build_labor_at_comparable_level(geih_subrama, annual, pools, order, short_labels)
+    if data.empty:
+        return data
     data = data[data["anio"] != 2020].copy()
     data["pib_pesos_2015"] = data["pib_miles_millones_2015"] * 1e9
     data["pib_por_trabajador_millones_2015"] = data["pib_pesos_2015"] / data["ocupados"] / 1e6
     data["pib_por_hora_pesos_2015"] = data["pib_pesos_2015"] / data["horas_anuales"]
-    data["group_label_short"] = data.apply(
-        lambda row: short_labels.get(row["group_code"], shorten_label(row["group_name"], 64))
-        if short_labels
-        else shorten_label(row["group_name"], 64),
-        axis=1,
-    )
-    data["group_order"] = data["group_code"].map({code: i for i, code in enumerate(order)})
     return data.sort_values(["group_order", "anio"])
 
 
@@ -1653,7 +1710,14 @@ def summarize_productivity_disaggregation(
 ) -> pd.DataFrame:
     start_year, end_year = 2010, 2025
     rows = []
-    for code in order:
+    if data.empty:
+        return pd.DataFrame()
+    component_order = (
+        data[["group_code", "group_order"]]
+        .drop_duplicates()
+        .sort_values(["group_order", "group_code"])
+    )
+    for code in component_order["group_code"]:
         part = data[data["group_code"] == code].sort_values("anio")
         if start_year not in set(part["anio"]) or end_year not in set(part["anio"]):
             continue
@@ -1666,6 +1730,9 @@ def summarize_productivity_disaggregation(
                 "codigo": code,
                 "actividad": end["group_name"],
                 "actividad_corta": end["group_label_short"],
+                "sector_code": end.get("sector_code"),
+                "dane_groups": end.get("dane_groups", code),
+                "group_order": end.get("group_order"),
                 "pib_2010_billones": start["pib_pesos_2015"] / 1e12,
                 "pib_2025_billones": end["pib_pesos_2015"] / 1e12,
                 "crec_pib": cagr(
@@ -1677,6 +1744,9 @@ def summarize_productivity_disaggregation(
                 "ocupados_2010_millones": start["ocupados"] / 1e6,
                 "ocupados_2025_millones": end["ocupados"] / 1e6,
                 "crec_ocupados": cagr(start["ocupados"], end["ocupados"], start_year, end_year),
+                "horas_2010_millones": start["horas_anuales"] / 1e6,
+                "horas_2025_millones": end["horas_anuales"] / 1e6,
+                "crec_horas": cagr(start["horas_anuales"], end["horas_anuales"], start_year, end_year),
                 "horas_semanales_2010": start_hours,
                 "horas_semanales_2025": end_hours,
                 "crec_horas_semanales": cagr(start_hours, end_hours, start_year, end_year),
@@ -1818,14 +1888,14 @@ def write_productivity_25_section(
         "Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
         "A nivel de actividad económica, el numerador corresponde estrictamente al valor agregado bruto de cada actividad. "
         "Ocupados y horas se agregan desde GEIH usando subramas homologadas. Cuando la apertura del DANE es más fina que la apertura laboral comparable, "
-        "los ocupados y las horas se asignan proporcionalmente al PIB de cada subactividad dentro del grupo comparable. Fuente: cálculos propios con DANE y GEIH."
+        "las subactividades del DANE se agrupan hasta el nivel laboral comparable. Fuente: cálculos propios con DANE y GEIH."
     )
     table_lines_file = "pib_geih_productividad_25_table.tex"
     write_productivity_summary_table(
         summary,
         table_lines_file,
         "tab:pib_geih_productividad_25",
-        "Productividad laboral por actividad económica, 25 agrupaciones CIIU, 2010--2025",
+        "Productividad laboral por actividad económica comparable, apertura de 25 agrupaciones CIIU, 2010--2025",
         note,
     )
     table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8").rstrip()
@@ -1838,7 +1908,7 @@ def write_productivity_25_section(
 
     detail_rows = []
     lines = [
-        "La apertura a 25 agrupaciones permite mirar dentro de algunas de las grandes actividades económicas usadas en la sección anterior y repetir el mismo ejercicio de productividad laboral con una mayor desagregación. En cada actividad se cruza el PIB reportado por el DANE con ocupados y horas de la GEIH, de modo que el análisis mantiene las dos medidas centrales del informe: PIB por trabajador y PIB por hora trabajada.",
+        "La apertura de 25 agrupaciones permite mirar dentro de algunas de las grandes actividades económicas usadas en la sección anterior y repetir el mismo ejercicio de productividad laboral con una mayor desagregación. Cuando la GEIH no permite separar ocupados y horas al mismo nivel del PIB del DANE, las subactividades se presentan agrupadas en el nivel laboral comparable.",
         "",
         table_text,
         "",
@@ -1856,7 +1926,12 @@ def write_productivity_25_section(
         "",
     ]
 
-    for code in AGG25_ORDER:
+    detail_order = (
+        data[["group_code", "group_order"]]
+        .drop_duplicates()
+        .sort_values(["group_order", "group_code"])
+    )
+    for code in detail_order["group_code"]:
         part = data[data["group_code"] == code].sort_values("anio")
         if 2010 not in set(part["anio"]) or 2025 not in set(part["anio"]):
             continue
@@ -1864,25 +1939,19 @@ def write_productivity_25_section(
         end = part[part["anio"] == 2025].iloc[0]
         metrics = build_metric_rows(start, end)
         metrics["codigo"] = code
-        metrics["actividad"] = AGG25_SHORT.get(code, end["group_label_short"])
+        metrics["actividad"] = end["group_label_short"]
         detail_rows.append(metrics)
-
-        allocation_sentence = ""
-        if code in {"F01", "F02", "F03"}:
-            allocation_sentence = (
-                " Para esta apertura de construcción, los ocupados y las horas se asignan desde la agrupación laboral de construcción según la participación de cada subactividad en el PIB de construcción de cada año."
-            )
 
         lines.extend(
             [
-                f"\\subsection{{{escape_latex(AGG25_SHORT.get(code, end['group_label_short']))}}}",
+                f"\\subsection{{{escape_latex(end['group_label_short'])}}}",
                 "",
-                f"Esta agrupación reúne {AGG25_DESCRIPTION[code]}. En la CIIU Rev. 4 A.C. corresponde a {AGG25_CIIU_CODES[code]}.{allocation_sentence}",
+                f"Esta agrupación corresponde al nivel laboral comparable para {escape_latex(end['group_label_short'])}.",
                 "",
                 *metric_table_lines(
                     metrics,
-                    f"tab:agg25_{code.lower().replace('+', '_')}_productividad",
-                    f"{AGG25_SHORT.get(code, end['group_label_short'])}: PIB, ocupados, horas y productividad laboral, 2010--2025",
+                    f"tab:agg25_{latex_id(code)}_productividad",
+                    f"{end['group_label_short']}: PIB, ocupados, horas y productividad laboral, 2010--2025",
                 ),
                 "",
                 sector_comparison_paragraph(metrics, aggregate_growth),
@@ -1938,25 +2007,98 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
     note = (
         "Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
         "A nivel de actividad económica, el numerador corresponde estrictamente al valor agregado bruto de cada actividad. "
-        "La GEIH histórica no siempre separa ocupados y horas al mismo nivel de las 61 agrupaciones del DANE; en esos casos, la asignación se hace proporcional al PIB dentro del grupo laboral comparable. "
-        "Por esa razón, las diferencias entre subactividades muy finas deben interpretarse como una aproximación descriptiva. Fuente: cálculos propios con DANE y GEIH."
+        "La tabla parte de las 61 agrupaciones del DANE, pero solo presenta observaciones para las que también existe un nivel laboral comparable en la GEIH. "
+        "Cuando varias subactividades del DANE comparten la misma información laboral comparable, se reportan agrupadas. Fuente: cálculos propios con DANE y GEIH."
     )
     table_lines_file = "pib_geih_productividad_61_table.tex"
     write_productivity_summary_table(
         summary,
         table_lines_file,
         "tab:pib_geih_productividad_61",
-        "Productividad laboral por actividad económica, 61 agrupaciones CIIU, 2010--2025",
+        "Productividad laboral por actividad económica comparable, apertura de 61 agrupaciones CIIU, 2010--2025",
         note,
         use_longtable=True,
     )
     table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8").rstrip()
     lines = [
-        "La tabla presenta la apertura completa a 61 agrupaciones de actividad económica. Debe leerse como una referencia de consulta y transparencia: en varias actividades la GEIH histórica no separa ocupados y horas con el mismo detalle de las cuentas nacionales, por lo que la asignación laboral se hace proporcional al PIB dentro del grupo laboral comparable.",
+        "La tabla presenta la apertura máxima comparable que puede construirse a partir de las 61 agrupaciones de actividad económica del DANE. Cuando la GEIH no permite separar ocupados y horas con el mismo detalle, las subactividades del DANE aparecen agrupadas en la observación laboral comparable.",
         "",
         table_text,
     ]
     (SECTION_DIR / "pib_geih_productividad_61_agrupaciones.tex").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
+    )
+
+
+def write_pib_ocupados_appendix(summary: pd.DataFrame) -> None:
+    table = summary.sort_values(["group_order", "actividad_corta"]).copy()
+    table["var_pib"] = table["pib_2025_billones"] / table["pib_2010_billones"] - 1
+    table["var_ocupados"] = (
+        table["ocupados_2025_millones"] / table["ocupados_2010_millones"] - 1
+    )
+    export = table[
+        [
+            "codigo",
+            "actividad_corta",
+            "dane_groups",
+            "pib_2010_billones",
+            "pib_2025_billones",
+            "var_pib",
+            "ocupados_2010_millones",
+            "ocupados_2025_millones",
+            "var_ocupados",
+        ]
+    ].copy()
+    export.to_csv(
+        TABLE_DIR / "pib_ocupados_61_comparable.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    export.to_csv(
+        OUTPUT_TABLE_DIR / "pib_ocupados_61_comparable.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    lines = [
+        r"\begingroup",
+        r"\footnotesize",
+        r"\begin{longtable}{p{0.34\textwidth}rrrrrr}",
+        r"\caption{PIB y ocupados por actividad económica comparable, apertura de 61 agrupaciones CIIU, 2010--2025}\label{tab:pib_ocupados_61_comparable}\\",
+        r"\toprule",
+        r"& \multicolumn{3}{c}{PIB real} & \multicolumn{3}{c}{Ocupados} \\",
+        r"& \multicolumn{3}{c}{\footnotesize Billones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Millones de personas} \\",
+        r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
+        r"Actividad económica & 2010 & 2025 & Var. & 2010 & 2025 & Var. \\",
+        r"\midrule",
+        r"\endfirsthead",
+        r"\toprule",
+        r"& \multicolumn{3}{c}{PIB real} & \multicolumn{3}{c}{Ocupados} \\",
+        r"& \multicolumn{3}{c}{\footnotesize Billones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Millones de personas} \\",
+        r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
+        r"Actividad económica & 2010 & 2025 & Var. & 2010 & 2025 & Var. \\",
+        r"\midrule",
+        r"\endhead",
+    ]
+    for _, row in table.iterrows():
+        lines.append(
+            f"{escape_latex(row['actividad_corta'])} & "
+            f"{fmt_num_es(row['pib_2010_billones'], 1)} & "
+            f"{fmt_num_es(row['pib_2025_billones'], 1)} & "
+            f"{fmt_pct_es(row['var_pib'], 1)} & "
+            f"{fmt_num_es(row['ocupados_2010_millones'], 2)} & "
+            f"{fmt_num_es(row['ocupados_2025_millones'], 2)} & "
+            f"{fmt_pct_es(row['var_ocupados'], 1)} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{longtable}",
+            r"\endgroup",
+            r"{\footnotesize Nota: el PIB se expresa en billones de pesos constantes de 2015 y los ocupados en millones de personas. La variación corresponde al cambio porcentual acumulado entre 2010 y 2025, no a una tasa anualizada. La tabla parte de la apertura de 61 agrupaciones del DANE, pero agrupa subactividades cuando la GEIH no permite separar ocupados al mismo nivel. Fuente: cálculos propios con DANE y GEIH.}",
+        ]
+    )
+    (SECTION_DIR / "pib_ocupados_61_comparable.tex").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"
     )
 
@@ -2088,15 +2230,11 @@ def write_va_disaggregation_sections(
     )
     summary25 = summarize_productivity_disaggregation(prod25, AGG25_ORDER)
     summary61 = summarize_productivity_disaggregation(prod61, AGG61_ORDER)
-    summary25_zoom = summary25.copy()
-    summary25_zoom["sector_code"] = summary25_zoom["codigo"].map(AGG25_TO_SECTOR)
-    summary61_zoom = summary61.copy()
-    summary61_zoom["sector_code"] = summary61_zoom["codigo"].map(AGG61_TO_SECTOR)
     write_productivity_25_section(prod25, summary25, total)
     write_productivity_61_section(prod61, summary61)
     write_va_25_section(summarize_va_disaggregation(va25, AGG25_SHORT))
     write_va_61_section(summarize_va_disaggregation(va61, AGG61_SHORT))
-    return summary25_zoom, summary61_zoom
+    return summary25, summary61
 
 
 def draw_index_chart(total: pd.DataFrame) -> None:
@@ -2209,29 +2347,27 @@ def draw_sector_cagr_chart(sector_summary: pd.DataFrame) -> None:
         img.save(directory / "fig_pib_geih_productividad_sector.png")
 
 
-def draw_sector_correlation_scatter(sector: pd.DataFrame) -> None:
-    endpoints = (
-        sector[sector["anio"].isin([2010, 2025])]
-        .pivot(index=["sector_code", "sector_name_short"], columns="anio")
-        .sort_index()
+def draw_sector_correlation_scatter(summary: pd.DataFrame) -> None:
+    data = summary[
+        [
+            "codigo",
+            "actividad_corta",
+            "crec_ocupados",
+            "crec_horas",
+            "crec_pib_trabajador",
+            "crec_pib_hora",
+        ]
+    ].copy()
+    data = data.rename(
+        columns={
+            "codigo": "sector_code",
+            "actividad_corta": "sector_name_short",
+            "crec_ocupados": "ocupados",
+            "crec_horas": "horas",
+            "crec_pib_trabajador": "prod_trabajador",
+            "crec_pib_hora": "prod_hora",
+        }
     )
-    years = 2025 - 2010
-    data = pd.DataFrame(index=endpoints.index)
-    data["ocupados"] = (
-        endpoints[("ocupados", 2025)] / endpoints[("ocupados", 2010)]
-    ) ** (1 / years) - 1
-    data["horas"] = (
-        endpoints[("horas_anuales", 2025)] / endpoints[("horas_anuales", 2010)]
-    ) ** (1 / years) - 1
-    data["prod_trabajador"] = (
-        endpoints[("pib_por_trabajador_millones_2015", 2025)]
-        / endpoints[("pib_por_trabajador_millones_2015", 2010)]
-    ) ** (1 / years) - 1
-    data["prod_hora"] = (
-        endpoints[("pib_por_hora_pesos_2015", 2025)]
-        / endpoints[("pib_por_hora_pesos_2015", 2010)]
-    ) ** (1 / years) - 1
-    data = data.reset_index()
 
     img = Image.new("RGB", (1800, 1250), "white")
     draw = ImageDraw.Draw(img)
@@ -2241,7 +2377,7 @@ def draw_sector_correlation_scatter(sector: pd.DataFrame) -> None:
     small_font = ImageFont.truetype("arial.ttf", 17) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
 
     draw.text((70, 35), "Crecimiento del trabajo y la productividad por actividad económica, 2010--2025", fill="#222222", font=title_font)
-    draw.text((70, 78), "Tasas anualizadas por agrupación CIIU; cada punto representa una actividad económica", fill="#555555", font=label_font)
+    draw.text((70, 78), f"Tasas anualizadas para {len(data)} observaciones detalladas comparables; cada punto representa una actividad", fill="#555555", font=label_font)
 
     panels = [
         (90, 150, 850, 600, "ocupados", "prod_trabajador", "Ocupados", "PIB por trabajador"),
@@ -2299,7 +2435,8 @@ def draw_sector_correlation_scatter(sector: pd.DataFrame) -> None:
             x = x_pos(row[x_col])
             y = y_pos(row[y_col])
             draw.ellipse((x - 7, y - 7, x + 7, y + 7), fill="#1f77b4", outline="white", width=2)
-            draw.text((x + 9, y - 10), row["sector_code"], fill="#333333", font=small_font)
+            if len(data) <= 15:
+                draw.text((x + 9, y - 10), row["sector_code"], fill="#333333", font=small_font)
 
         corr = data[[x_col, y_col]].corr().iloc[0, 1]
         draw.text((plot_left + 10, plot_top + 10), f"r = {corr:.2f}", fill="#b44b3f", font=label_font)
@@ -2331,11 +2468,12 @@ def main() -> None:
 
     summary25, summary61 = write_va_disaggregation_sections(geih_subrama, total)
     write_latex_tables(total, total_summary, sector_summary)
-    write_sector_correlation_table(sector)
+    write_sector_correlation_table(summary61)
     write_sector_detail_sections(sector, total, summary25, summary61)
+    write_pib_ocupados_appendix(summary61)
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
-    draw_sector_correlation_scatter(sector)
+    draw_sector_correlation_scatter(summary61)
 
     print("Resumen total")
     print(total_summary.to_string(index=False))

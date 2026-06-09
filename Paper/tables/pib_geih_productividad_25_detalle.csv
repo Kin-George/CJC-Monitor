@@ -49,21 +49,11 @@ Ocupados,Millones de personas,0.06615323466992988,0.2211988413751089,0.083799095
 PIB por trabajador,Millones de pesos de 2015 por ocupado,106.26842413792812,37.93817464253032,-0.06636280305506803,E,"Agua, saneamiento y desechos"
 Horas semanales por trabajador,Horas por semana,48.230846642014335,43.2635240397285,-0.00721973883555338,E,"Agua, saneamiento y desechos"
 PIB por hora trabajada,Miles de pesos de 2015 por hora,42.37171195194784,16.863635077834964,-0.059573166926329524,E,"Agua, saneamiento y desechos"
-PIB real,Billones de pesos de 2015,22.035,20.466390757447634,-0.004911103090774915,F01,Edificaciones
-Ocupados,Millones de personas,0.5237061135208693,0.7796170025034526,0.026879720527496653,F01,Edificaciones
-PIB por trabajador,Millones de pesos de 2015 por ocupado,42.07512463786032,26.25185275812016,-0.030958663398222508,F01,Edificaciones
-Horas semanales por trabajador,Horas por semana,48.90890264595737,45.66215773840009,-0.004568833744787892,F01,Edificaciones
-PIB por hora trabajada,Miles de pesos de 2015 por hora,16.543757240348246,11.056054888246948,-0.026510953793733916,F01,Edificaciones
-PIB real,Billones de pesos de 2015,9.751,11.939425353011725,0.01358992383173474,F02,Obras civiles
-Ocupados,Millones de personas,0.23175213582673004,0.4548031509630744,0.04597181311808596,F02,Obras civiles
-PIB por trabajador,Millones de pesos de 2015 por ocupado,42.07512463786031,26.25185275812016,-0.030958663398222397,F02,Obras civiles
-Horas semanales por trabajador,Horas por semana,48.90890264595737,45.66215773840009,-0.004568833744787892,F02,Obras civiles
-PIB por hora trabajada,Miles de pesos de 2015 por hora,16.543757240348246,11.056054888246948,-0.026510953793733916,F02,Obras civiles
-PIB real,Billones de pesos de 2015,8.542,9.082220023194926,0.00409660063909012,F03,Actividades especializadas de construcción
-Ocupados,Millones de personas,0.20301781809372663,0.3459649155766972,0.03617519987356155,F03,Actividades especializadas de construcción
-PIB por trabajador,Millones de pesos de 2015 por ocupado,42.07512463786031,26.25185275812016,-0.030958663398222397,F03,Actividades especializadas de construcción
-Horas semanales por trabajador,Horas por semana,48.90890264595737,45.66215773840009,-0.004568833744787892,F03,Actividades especializadas de construcción
-PIB por hora trabajada,Miles de pesos de 2015 por hora,16.543757240348242,11.056054888246948,-0.026510953793733916,F03,Actividades especializadas de construcción
+PIB real,Billones de pesos de 2015,40.328,41.48803613365428,0.001892393851988805,F01|F02|F03,Edificaciones; Obras civiles; Actividades especializadas de construcción
+Ocupados,Millones de personas,0.958476067441326,1.5803850690432242,0.033900573700408776,F01|F02|F03,Edificaciones; Obras civiles; Actividades especializadas de construcción
+PIB por trabajador,Millones de pesos de 2015 por ocupado,42.07512463786031,26.251852758120158,-0.030958663398222508,F01|F02|F03,Edificaciones; Obras civiles; Actividades especializadas de construcción
+Horas semanales por trabajador,Horas por semana,48.90890264595737,45.66215773840009,-0.004568833744787892,F01|F02|F03,Edificaciones; Obras civiles; Actividades especializadas de construcción
+PIB por hora trabajada,Miles de pesos de 2015 por hora,16.543757240348242,11.056054888246946,-0.026510953793733916,F01|F02|F03,Edificaciones; Obras civiles; Actividades especializadas de construcción
 PIB real,Billones de pesos de 2015,51.171,89.04674245592864,0.037623045515907005,G,Comercio y reparación
 Ocupados,Millones de personas,3.3681929896937657,3.902758903545778,0.009868867129978698,G,Comercio y reparación
 PIB por trabajador,Millones de pesos de 2015 por ocupado,15.192419245742936,22.816357519555435,0.027482952776636038,G,Comercio y reparación
