@@ -600,7 +600,7 @@ write.csv(
   row.names = FALSE
 )
 
-formal_reference_sizes <- c("Solo", size_levels[size_levels != "101+"])
+formal_reference_sizes <- size_levels[size_levels != "101+"]
 formal_101_contrasts <- bind_rows(lapply(formal_reference_sizes, function(reference_size) {
   large_size_term <- "tamano_empresa::101+"
   large_interaction_term <- interaction_term_for_size("101+", formality_coef_names)
@@ -811,7 +811,7 @@ formal_101_table_rows <- formal_101_contrasts %>%
 formal_101_table <- c(
   "\\begin{table}[htbp]",
   "  \\centering",
-  "  \\caption{Formal-worker large-firm wage premium relative to other formal firm-size categories}",
+  "  \\caption{Formal-worker large-firm wage premium relative to smaller non-solo formal firm-size categories}",
   "  \\label{tab:formal-101-contrasts}",
   "  \\small",
   "  \\begin{tabular}{lccc}",
@@ -824,7 +824,7 @@ formal_101_table <- c(
   "  \\vspace{0.3em}",
   "  \\begin{minipage}{0.92\\textwidth}",
   "  \\footnotesize",
-  "  Notes: Each row compares formal workers in firms with 101 or more workers with formal workers in the reference firm-size category. Estimates come from the firm-size-by-formality specification with gender, age, age squared, education, and sector-year fixed effects. Premiums are computed as $100\\times[\\exp(\\hat{\\beta})-1]$ from the relevant linear contrast.",
+  "  Notes: Each row compares formal workers in firms with 101 or more workers with formal workers in the reference firm-size category. The comparison with formal solo workers is reported in Figure~\\ref{fig:firm-size-formality-premium}. Estimates come from the firm-size-by-formality specification with gender, age, age squared, education, and sector-year fixed effects. Premiums are computed as $100\\times[\\exp(\\hat{\\beta})-1]$ from the relevant linear contrast.",
   "  \\end{minipage}",
   "\\end{table}"
 )
