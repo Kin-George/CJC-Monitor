@@ -1,0 +1,141 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+\usepackage{mdframed}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage[margin=10pt, font=small, labelfont=bf]{caption}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{longtable}
+\usepackage{comment}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+\setlength{\textfloatsep}{18pt plus 2pt minus 4pt}
+\setlength{\floatsep}{12pt plus 2pt minus 2pt}
+\setlength{\intextsep}{14pt plus 2pt minus 2pt}
+\setstretch{1.15}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+
+\titleformat{\section}
+  {\large\bfseries}{\thesection.}{0.5em}{}
+  [\vspace{2pt}\hrule\vspace{4pt}]
+\titleformat{\subsection}
+  {\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing{\section}{0pt}{18pt}{8pt}
+\titlespacing{\subsection}{0pt}{14pt}{6pt}
+
+\hypersetup{colorlinks=true, linkcolor=blue!60!black}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize Centro Javeriano de Competitividad}
+\fancyhead[R]{\footnotesize \reportnumber}
+\cfoot{\thepage}
+\setlength{\headheight}{14pt}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\geometry{margin=1in}
+\graphicspath{{Paper/figures/}{figures/}}
+\newcommand{\tablepath}{Paper/tables/}
+\newcommand{\figurelang}{es}
+\newcommand{\reportseries}{Informes sobre la Productividad en Colombia}
+\newcommand{\reportseriesdesc}{Evidencia para entender y fomentar la productividad}
+\newcommand{\reportnumber}{Informe 02}
+\newcommand{\reporttitle}{Dinámicas de la Productividad Laboral por Departamento en Colombia 2014--2024}
+\newcommand{\reportsubtitle}{Bogotá tratada como departamento}
+\newcommand{\reportauthorone}{Oliver Pardo}
+\newcommand{\reportauthoroneaffil}{Profesor asociado del Departamento de Administración, Pontificia Universidad Javeriana; director del Centro Javeriano de Competitividad}
+\newcommand{\reportauthortwo}{Jorge Orozco}
+\newcommand{\reportauthortwoaffil}{Consultor de investigación del Centro Javeriano de Competitividad, Pontificia Universidad Javeriana}
+\renewcommand{\contentsname}{Tabla de contenido}
+\newif\ifpolicyreport
+\policyreporttrue
+
+\title{\reporttitle\\\reportsubtitle}
+\author{\reportauthorone \and \reportauthortwo}
+\date{\today}
+
+\begin{document}
+
+\begin{titlepage}
+\thispagestyle{empty}
+\vspace*{0.6cm}
+
+\begin{center}
+\includegraphics[width=0.58\textwidth]{logo_cjc_palatino_horizontal.png}
+\end{center}
+
+\vspace{1.5cm}
+
+\begin{center}
+{\Large\bfseries \reportseries\par}
+\vspace{0.15cm}
+{\large \reportseriesdesc\par}
+
+\vspace{1.4cm}
+
+{\large\bfseries \reportnumber\par}
+\vspace{0.45cm}
+{\Huge\bfseries \reporttitle\par}
+\vspace{0.35cm}
+{\Large \reportsubtitle\par}
+\vspace{0.65cm}
+{\large\bfseries \reportauthorone\par}
+{\normalsize \reportauthoroneaffil\par}
+\vspace{0.25cm}
+{\large\bfseries \reportauthortwo\par}
+{\normalsize \reportauthortwoaffil\par}
+\end{center}
+
+\vfill
+
+\begin{center}
+{\large \today\par}
+\end{center}
+
+\end{titlepage}
+
+\begin{mdframed}[
+  linewidth=1pt,
+  linecolor=gray!60,
+  backgroundcolor=gray!6,
+  innertopmargin=12pt,
+  innerbottommargin=12pt,
+  innerleftmargin=14pt,
+  innerrightmargin=14pt
+]
+\section*{Resumen ejecutivo}
+\addcontentsline{toc}{section}{Resumen ejecutivo}
+\textbf{Este informe extiende el análisis de productividad laboral a los departamentos de Colombia, tratando a Bogotá como si fuera un departamento.} Para ello combina el PIB departamental real del DANE con ocupados y horas trabajadas de la GEIH. La ventana de análisis es 2014--2024pr, que corresponde al periodo disponible en el anexo departamental de cuentas nacionales.
+
+\textbf{La productividad departamental muestra una heterogeneidad marcada.} Entre 2014 y 2024, los mayores crecimientos anualizados del PIB por hora trabajada se observan en Quindío (8,21\%), Putumayo (6,62\%) y Risaralda (4,14\%). En el extremo contrario, Casanare (-3,33\%), Vaupés (-2,75\%) y Meta (-2,07\%) registran las mayores caídas.
+
+\textbf{El crecimiento de la ocupación no necesariamente se concentró en los departamentos donde más creció la productividad.} Departamentos con aumentos rápidos de ocupados, como Vaupés, Atlántico y Cundinamarca, presentan caídas del PIB por hora trabajada. En cambio, algunos departamentos con fuerte crecimiento de la productividad, como Quindío y Putumayo, redujeron su número de ocupados durante el periodo.
+
+\textbf{La lectura departamental complementa la lectura por actividad económica del Informe 01.} Mientras el primer informe mostraba diferencias entre sectores, este informe muestra que también existen diferencias territoriales importantes en la capacidad de convertir trabajo y horas en producción. Esta evidencia sugiere que una agenda de productividad para Colombia debe combinar políticas sectoriales con una mirada territorial.
+\end{mdframed}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{Paper/sections/CuerpoInformeProductividadDepartamentos}
+
+\appendix
+\section{Detalle departamental}
+\input{Paper/sections/pib_geih_productividad_departamento_detalle}
+
+%\bibliographystyle{apalike}
+%\bibliography{Paper/references}
+
+\end{document}
