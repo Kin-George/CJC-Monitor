@@ -3049,6 +3049,149 @@ def draw_sector_correlation_scatter(summary: pd.DataFrame) -> None:
         img.save(directory / "fig_pib_geih_productividad_sector_correlaciones.png")
 
 
+def draw_initial_productivity_growth_scatter(summary: pd.DataFrame) -> None:
+    data = summary[
+        [
+            "actividad_corta",
+            "pib_trabajador_2010",
+            "pib_hora_2010",
+            "crec_pib_trabajador",
+            "crec_pib_hora",
+        ]
+    ].copy()
+    data = data.dropna().copy()
+    data = data[(data["pib_trabajador_2010"] > 0) & (data["pib_hora_2010"] > 0)]
+
+    img = Image.new("RGB", (2200, 900), "white")
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.load_default()
+    title_font = ImageFont.truetype("arial.ttf", 34) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    label_font = ImageFont.truetype("arial.ttf", 22) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    small_font = ImageFont.truetype("arial.ttf", 18) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    tiny_font = ImageFont.truetype("arial.ttf", 15) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+
+    draw.text(
+        (80, 40),
+        "Nivel inicial de productividad y crecimiento anualizado, 2010--2025",
+        fill="#222222",
+        font=title_font,
+    )
+    draw.text(
+        (80, 84),
+        f"Apertura fina comparable: {len(data)} actividades económicas; eje horizontal en escala logarítmica",
+        fill="#555555",
+        font=label_font,
+    )
+
+    panels = [
+        (
+            90,
+            170,
+            1055,
+            760,
+            "pib_trabajador_2010",
+            "crec_pib_trabajador",
+            "PIB por trabajador",
+            "Millones de pesos de 2015 por trabajador",
+        ),
+        (
+            1180,
+            170,
+            2145,
+            760,
+            "pib_hora_2010",
+            "crec_pib_hora",
+            "PIB por hora trabajada",
+            "Miles de pesos de 2015 por hora",
+        ),
+    ]
+    tick_candidates = [2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000]
+    y_min = math.floor(min(data["crec_pib_trabajador"].min(), data["crec_pib_hora"].min()) * 100) / 100 - 0.01
+    y_max = math.ceil(max(data["crec_pib_trabajador"].max(), data["crec_pib_hora"].max()) * 100) / 100 + 0.01
+
+    def pct_label(value: float) -> str:
+        return f"{value * 100:.0f}%"
+
+    def fmt_corr(value: float) -> str:
+        return f"{value:.2f}".replace(".", ",")
+
+    for left, top, right, bottom, x_col, y_col, title, x_label in panels:
+        plot_left, plot_top = left + 100, top + 55
+        plot_right, plot_bottom = right - 45, bottom - 80
+        values_x = data[x_col].astype(float).to_numpy()
+        values_y = data[y_col].astype(float).to_numpy()
+        log_x = np.log10(values_x)
+        x_min = log_x.min() - 0.08
+        x_max = log_x.max() + 0.08
+
+        draw.text((left, top), title, fill="#222222", font=label_font)
+        draw.rectangle((plot_left, plot_top, plot_right, plot_bottom), outline="#333333", width=2)
+
+        def x_pos(value: float) -> float:
+            return plot_left + (math.log10(value) - x_min) / (x_max - x_min) * (plot_right - plot_left)
+
+        def y_pos(value: float) -> float:
+            return plot_bottom - (value - y_min) / (y_max - y_min) * (plot_bottom - plot_top)
+
+        for tick in tick_candidates:
+            if values_x.min() <= tick <= values_x.max():
+                x = x_pos(tick)
+                draw.line((x, plot_top, x, plot_bottom), fill="#eeeeee", width=1)
+                draw.text((x - 18, plot_bottom + 14), f"{tick}", fill="#555555", font=small_font)
+        for tick in np.arange(math.ceil(y_min * 100), math.floor(y_max * 100) + 1, 2):
+            value = tick / 100
+            y = y_pos(value)
+            draw.line((plot_left, y, plot_right, y), fill="#eeeeee", width=1)
+            draw.text((plot_left - 65, y - 11), pct_label(value), fill="#555555", font=small_font)
+
+        if y_min < 0 < y_max:
+            y0 = y_pos(0)
+            draw.line((plot_left, y0, plot_right, y0), fill="#999999", width=2)
+
+        slope, intercept = np.polyfit(log_x, values_y, 1)
+        x1, x2 = 10 ** x_min, 10 ** x_max
+        draw.line(
+            (x_pos(x1), y_pos(slope * math.log10(x1) + intercept), x_pos(x2), y_pos(slope * math.log10(x2) + intercept)),
+            fill="#b44b3f",
+            width=4,
+        )
+
+        for _, row in data.iterrows():
+            x = x_pos(row[x_col])
+            y = y_pos(row[y_col])
+            draw.ellipse((x - 8, y - 8, x + 8, y + 8), fill="#1f77b4", outline="white", width=2)
+
+        labels = pd.concat(
+            [
+                data.nlargest(2, y_col),
+                data.nsmallest(2, y_col),
+                data.nlargest(1, x_col),
+            ]
+        ).drop_duplicates(subset=["actividad_corta"])
+        for _, row in labels.iterrows():
+            x = x_pos(row[x_col])
+            y = y_pos(row[y_col])
+            text = str(row["actividad_corta"])
+            if len(text) > 22:
+                text = text[:21] + "."
+            text_x = x + 10 if x < plot_right - 210 else x - 190
+            draw.text((max(plot_left + 8, text_x), y - 10), text, fill="#333333", font=tiny_font)
+
+        corr = np.corrcoef(log_x, values_y)[0, 1]
+        draw.text((plot_left + 12, plot_top + 12), f"r = {fmt_corr(corr)}", fill="#b44b3f", font=label_font)
+        draw.text(((plot_left + plot_right) / 2 - 155, bottom - 45), x_label, fill="#333333", font=small_font)
+
+    draw.text(
+        (80, 830),
+        "Nota: la línea roja muestra la tendencia lineal entre el crecimiento anualizado y el logaritmo del nivel de productividad en 2010.",
+        fill="#555555",
+        font=small_font,
+    )
+
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_pib_geih_productividad_nivel_inicial_crecimiento.png")
+
+
 def main() -> None:
     total, total_summary, sector, sector_summary, geih_labor25, geih_labor61 = build_productivity()
 
@@ -3075,6 +3218,7 @@ def main() -> None:
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
     draw_sector_correlation_scatter(summary61)
+    draw_initial_productivity_growth_scatter(summary61)
 
     print("Resumen total")
     print(total_summary.to_string(index=False))
