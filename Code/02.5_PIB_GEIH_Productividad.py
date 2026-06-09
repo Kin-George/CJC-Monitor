@@ -1635,6 +1635,8 @@ def comparable_components(
 
 
 def comparable_label(groups: list[str], short_labels: dict[str, str] | None) -> str:
+    if groups == ["001,002,004-008,013", "003", "009-012"]:
+        return "Cultivos, café y ganadería agrupados"
     if short_labels:
         labels = [short_labels.get(group, group) for group in groups]
     else:
