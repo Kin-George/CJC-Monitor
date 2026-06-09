@@ -59,18 +59,18 @@ SECTOR_SHORT = {
 }
 
 SECTOR_INTRO_LEAD = {
-    "A": "La actividad agropecuaria incluye cultivos agrícolas, producción pecuaria, actividades de apoyo al campo, silvicultura y aprovechamiento forestal, caza, pesca y acuicultura.",
-    "B": "La actividad de minas y canteras incluye la extracción de carbón, petróleo y gas, minerales metálicos y otros minerales, junto con los servicios de apoyo a la extracción.",
-    "C": "La actividad manufacturera agrupa la transformación de materias primas e insumos en bienes industriales, desde alimentos, bebidas, textiles y confecciones hasta químicos, refinación, minerales no metálicos, metalurgia, maquinaria, equipo de transporte, muebles y otras manufacturas.",
-    "D+E": "La actividad de servicios públicos agrupa servicios esenciales como electricidad, gas, vapor y aire acondicionado, suministro de agua, alcantarillado, tratamiento de aguas residuales, gestión de desechos, reciclaje y saneamiento ambiental.",
-    "F": "La actividad de construcción incluye edificaciones residenciales y no residenciales, obras civiles como vías e infraestructura, y actividades especializadas de obra como preparación de terrenos, instalaciones y terminaciones.",
-    "G+H+I": "La agrupación de comercio, transporte y alojamiento combina tres conjuntos de actividades: comercio mayorista y minorista y reparación de vehículos; transporte de pasajeros y carga, almacenamiento y servicios asociados; y alojamiento y servicios de comida.",
-    "J": "La actividad de información y comunicaciones incluye edición y contenidos audiovisuales, radio y televisión, telecomunicaciones, desarrollo de software, procesamiento de datos, portales web y otros servicios de información.",
-    "K": "La actividad financiera incluye intermediación financiera y banca, seguros, fondos de pensiones y servicios auxiliares como administración de mercados, corretaje y otras actividades de apoyo financiero.",
-    "L": "La actividad inmobiliaria incluye alquiler, compra, venta, administración e intermediación de bienes inmuebles, tanto propios o arrendados como de terceros.",
-    "M+N": "La agrupación de actividades profesionales y administrativas combina servicios profesionales, científicos y técnicos, como jurídicos, contables, consultoría, arquitectura, ingeniería, investigación y publicidad, con servicios administrativos y de apoyo a empresas, como servicios de empleo, seguridad, limpieza, agencias de viaje y servicios de oficina.",
-    "O+P+Q": "La agrupación de administración pública, educación y salud incluye administración pública y defensa, seguridad social obligatoria, educación, atención en salud humana y servicios sociales, prestados por entidades públicas o privadas.",
-    "R+S+T": "La agrupación de artes, entretenimiento y hogares incluye actividades artísticas, culturales, deportivas, recreativas y otros servicios personales y comunitarios, además del trabajo de los hogares como empleadores y la producción de bienes y servicios para uso propio de los hogares.",
+    "A": "La actividad agropecuaria comprende cultivos, apoyo agropecuario y actividades mixtas; café; ganadería; silvicultura; y pesca y acuicultura.",
+    "B": "La actividad de minas y canteras comprende petróleo, gas y apoyo conexo; otras minas y canteras; carbón; y minerales metalíferos.",
+    "C": "La actividad manufacturera agrupa alimentos, bebidas y tabaco; textiles, confecciones y cuero; madera, papel e impresión; refinación, químicos y minerales; metalurgia, maquinaria y equipo; y muebles y otras manufactureras.",
+    "D+E": "La actividad de servicios públicos combina electricidad, gas y vapor con agua, saneamiento y desechos.",
+    "F": "La actividad de construcción comprende edificaciones, obras civiles y actividades especializadas de construcción.",
+    "G+H+I": "La agrupación de comercio, transporte y alojamiento combina comercio y reparación; transporte y almacenamiento; y alojamiento y servicios de comida.",
+    "J": "La actividad de información y comunicaciones reúne edición y contenidos audiovisuales, radio y televisión, telecomunicaciones, desarrollo de software, procesamiento de datos, portales web y otros servicios de información.",
+    "K": "La actividad financiera reúne intermediación financiera y banca, seguros, fondos de pensiones y servicios auxiliares como administración de mercados, corretaje y otras actividades de apoyo financiero.",
+    "L": "La actividad inmobiliaria reúne alquiler, compra, venta, administración e intermediación de bienes inmuebles, tanto propios o arrendados como de terceros.",
+    "M+N": "La agrupación de actividades profesionales y administrativas combina actividades profesionales, científicas y técnicas con servicios administrativos y de apoyo.",
+    "O+P+Q": "La agrupación de administración pública, educación y salud combina administración pública y defensa, educación, salud humana y servicios sociales.",
+    "R+S+T": "La agrupación de artes, entretenimiento y hogares combina artes, entretenimiento y otros servicios con los hogares como empleadores.",
 }
 
 SECTOR_CIIU_CODES = {
