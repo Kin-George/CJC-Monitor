@@ -2728,7 +2728,7 @@ def write_pib_ocupados_appendix(summary: pd.DataFrame) -> None:
             r"\bottomrule",
             r"\end{longtable}",
             r"\endgroup",
-            rf"{{\footnotesize Nota: el PIB se expresa en billones de pesos constantes de 2015 y los ocupados en millones de personas. Los crecimientos anuales corresponden a tasas anualizadas entre 2010 y 2025. La tabla parte de la apertura de 61 agrupaciones del DANE, pero agrupa subactividades cuando la GEIH no permite separar ocupados al mismo nivel. En particular, el renglón Alimentos, bebidas y tabaco {COMPARABLE_LABEL_NOTES['Alimentos, bebidas y tabaco']}. Fuente: cálculos propios con DANE y GEIH.}}",
+            rf"{{\footnotesize Nota: El renglón Alimentos, bebidas y tabaco {COMPARABLE_LABEL_NOTES['Alimentos, bebidas y tabaco']}. Fuente: cálculos propios con DANE y GEIH.}}",
         ]
     )
     (SECTION_DIR / "pib_ocupados_61_comparable.tex").write_text(
