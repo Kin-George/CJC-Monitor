@@ -2635,7 +2635,7 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
     )
     table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8").rstrip()
     lines = [
-        "La tabla presenta la apertura máxima comparable que puede construirse a partir de las 61 agrupaciones de actividad económica del DANE. Cuando la GEIH no permite separar ocupados y horas con el mismo detalle, las subactividades del DANE aparecen agrupadas en la observación laboral comparable.",
+        r"El Cuadro \ref{tab:pib_geih_productividad_61} presenta una desagregación de las actividades económicas mayor a la del Cuadro \ref{tab:pib_geih_productividad_sector}. Cuando la GEIH no permite separar ocupados y horas con el mismo detalle, las subactividades del DANE aparecen agrupadas en la observación laboral comparable.",
         "",
         table_text,
     ]
