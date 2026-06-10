@@ -55,7 +55,7 @@ SECTOR_SHORT = {
     "L": "Inmobiliarias",
     "M+N": "Profesionales y administrativas",
     "O+P+Q": "Adm. pública, educación y salud",
-    "R+S+T": "Artes, entretenimiento y hogares",
+    "R+S+T": "Arte, entretenimiento y recreación",
 }
 
 SECTOR_INTRO_LEAD = {
@@ -70,7 +70,7 @@ SECTOR_INTRO_LEAD = {
     "L": "La actividad inmobiliaria reúne alquiler, compra, venta, administración e intermediación de bienes inmuebles, tanto propios o arrendados como de terceros.",
     "M+N": "La agrupación de actividades profesionales y administrativas combina actividades profesionales, científicas y técnicas con servicios administrativos y de apoyo.",
     "O+P+Q": "La agrupación de administración pública, educación y salud combina administración pública y defensa, educación, salud humana y servicios sociales.",
-    "R+S+T": "La agrupación de artes, entretenimiento y hogares combina artes, entretenimiento y otros servicios con los hogares como empleadores.",
+    "R+S+T": "La agrupación de arte, entretenimiento y recreación reúne actividades artísticas, de entretenimiento, recreación y otros servicios, junto con los hogares como empleadores.",
 }
 
 SECTOR_CIIU_CODES = {
@@ -100,7 +100,7 @@ SECTOR_BODY_SUBJECT = {
     "L": "la actividad inmobiliaria",
     "M+N": "la agrupación de actividades profesionales y administrativas",
     "O+P+Q": "la agrupación de administración pública, educación y salud",
-    "R+S+T": "la agrupación de artes, entretenimiento y hogares",
+    "R+S+T": "la agrupación de arte, entretenimiento y recreación",
 }
 
 SECTOR_PRODUCTIVITY_SUBJECT = {
@@ -115,7 +115,7 @@ SECTOR_PRODUCTIVITY_SUBJECT = {
     "L": "de las actividades inmobiliarias",
     "M+N": "de las actividades profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S+T": "de artes, entretenimiento y hogares",
+    "R+S+T": "de arte, entretenimiento y recreación",
 }
 
 SECTOR_ZOOM_CAPTION = {
@@ -130,7 +130,7 @@ SECTOR_ZOOM_CAPTION = {
     "L": "inmobiliarias",
     "M+N": "profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S+T": "artísticas, de entretenimiento y hogares",
+    "R+S+T": "de arte, entretenimiento y recreación",
 }
 
 SECTOR_ZOOM_CONTEXT = {
@@ -145,7 +145,7 @@ SECTOR_ZOOM_CONTEXT = {
     "L": "de las actividades inmobiliarias",
     "M+N": "de las actividades profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S+T": "de artes, entretenimiento y hogares",
+    "R+S+T": "de arte, entretenimiento y recreación",
 }
 
 AGG25_SHORT = {
@@ -172,12 +172,12 @@ AGG25_SHORT = {
     "O": "Administración pública",
     "P": "Educación",
     "Q": "Salud y servicios sociales",
-    "R+S": "Artes, entretenimiento y otros servicios",
+    "R+S": "Arte, entretenimiento, recreación y otros servicios",
     "T": "Hogares como empleadores",
 }
 
 AGG61_SHORT = {
-    "104-108": "Artes, entretenimiento, recreación y otros servicios",
+    "104-108": "Arte, entretenimiento, recreación y otros servicios",
     "075": "Transporte aéreo",
     "085-088": "Actividades financieras y de seguros",
     "102,103": "Salud humana y servicios sociales",
@@ -276,7 +276,7 @@ AGG25_DESCRIPTION = {
     "O": "administración pública y defensa, y planes de seguridad social de afiliación obligatoria",
     "P": "educación",
     "Q": "actividades de atención de la salud humana y de servicios sociales",
-    "R+S": "actividades artísticas, entretenimiento, recreación y otros servicios",
+    "R+S": "actividades de arte, entretenimiento, recreación y otros servicios",
     "T": "actividades de los hogares como empleadores y producción no diferenciada de los hogares para uso propio",
 }
 
@@ -519,7 +519,7 @@ AGG61_SHORT.update(
         "100": "Educación de mercado",
         "101": "Educación de no mercado",
         "102,103": "Salud y servicios sociales",
-        "104-108": "Artes, entretenimiento y otros servicios",
+        "104-108": "Arte, entretenimiento, recreación y otros servicios",
         "109": "Hogares como empleadores",
     }
 )
