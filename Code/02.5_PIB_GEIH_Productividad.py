@@ -55,7 +55,7 @@ SECTOR_SHORT = {
     "L": "Inmobiliarias",
     "M+N": "Profesionales y administrativas",
     "O+P+Q": "Adm. pública, educación y salud",
-    "R+S+T": "Arte, entretenimiento y recreación",
+    "R+S+T": "Arte, recreación y hogares como empleadores",
 }
 
 SECTOR_INTRO_LEAD = {
@@ -70,7 +70,7 @@ SECTOR_INTRO_LEAD = {
     "L": "La actividad inmobiliaria reúne alquiler, compra, venta, administración e intermediación de bienes inmuebles, tanto propios o arrendados como de terceros.",
     "M+N": "La agrupación de actividades profesionales y administrativas combina actividades profesionales, científicas y técnicas con servicios administrativos y de apoyo.",
     "O+P+Q": "La agrupación de administración pública, educación y salud combina administración pública y defensa, educación, salud humana y servicios sociales.",
-    "R+S+T": "La agrupación de arte, entretenimiento y recreación reúne actividades artísticas, de entretenimiento, recreación y otros servicios, junto con los hogares como empleadores.",
+    "R+S+T": "La agrupación de arte, recreación y hogares como empleadores reúne actividades artísticas, de entretenimiento, recreación y otros servicios, junto con los hogares como empleadores y la producción no diferenciada de los hogares para uso propio.",
 }
 
 SECTOR_CIIU_CODES = {
@@ -100,7 +100,7 @@ SECTOR_BODY_SUBJECT = {
     "L": "la actividad inmobiliaria",
     "M+N": "la agrupación de actividades profesionales y administrativas",
     "O+P+Q": "la agrupación de administración pública, educación y salud",
-    "R+S+T": "la agrupación de arte, entretenimiento y recreación",
+    "R+S+T": "la agrupación de arte, recreación y hogares como empleadores",
 }
 
 SECTOR_PRODUCTIVITY_SUBJECT = {
@@ -115,7 +115,7 @@ SECTOR_PRODUCTIVITY_SUBJECT = {
     "L": "de las actividades inmobiliarias",
     "M+N": "de las actividades profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S+T": "de arte, entretenimiento y recreación",
+    "R+S+T": "de la agrupación de arte, recreación y hogares como empleadores",
 }
 
 SECTOR_ZOOM_CAPTION = {
@@ -130,7 +130,7 @@ SECTOR_ZOOM_CAPTION = {
     "L": "inmobiliarias",
     "M+N": "profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S+T": "de arte, entretenimiento y recreación",
+    "R+S+T": "de arte, recreación y hogares como empleadores",
 }
 
 SECTOR_ZOOM_CONTEXT = {
@@ -145,7 +145,7 @@ SECTOR_ZOOM_CONTEXT = {
     "L": "de las actividades inmobiliarias",
     "M+N": "de las actividades profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S+T": "de arte, entretenimiento y recreación",
+    "R+S+T": "de la agrupación de arte, recreación y hogares como empleadores",
 }
 
 AGG25_SHORT = {
