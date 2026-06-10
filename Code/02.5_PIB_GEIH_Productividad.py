@@ -2621,11 +2621,8 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
     )
 
     note = (
-        "Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
-        "A nivel de actividad económica, el numerador corresponde estrictamente al valor agregado bruto de cada actividad. "
-        "La tabla parte de las 61 agrupaciones del DANE, pero solo presenta observaciones para las que también existe un nivel laboral comparable en la GEIH. "
-        "Cuando el código de actividad económica a cuatro dígitos permite una homologación clara, se usa esa apertura; cuando varias subactividades del DANE comparten la misma información laboral comparable, se reportan agrupadas. "
-        f"En particular, el renglón Alimentos, bebidas y tabaco {COMPARABLE_LABEL_NOTES['Alimentos, bebidas y tabaco']}. Fuente: cálculos propios con DANE y GEIH."
+        "Nota:  A nivel de actividad económica, el numerador de los indicadores de productividad corresponde estrictamente al valor agregado bruto de cada actividad. "
+        f"El renglón Alimentos, bebidas y tabaco {COMPARABLE_LABEL_NOTES['Alimentos, bebidas y tabaco']}. Fuente: cálculos propios con DANE y GEIH."
     )
     table_lines_file = "pib_geih_productividad_61_table.tex"
     write_productivity_summary_table(
