@@ -172,12 +172,12 @@ AGG25_SHORT = {
     "O": "Administración pública",
     "P": "Educación",
     "Q": "Salud y servicios sociales",
-    "R+S": "Arte, entretenimiento, recreación y otros servicios",
+    "R+S": "Arte, entretenimiento y recreación",
     "T": "Hogares como empleadores",
 }
 
 AGG61_SHORT = {
-    "104-108": "Arte, entretenimiento, recreación y otros servicios",
+    "104-108": "Arte, entretenimiento y recreación",
     "075": "Transporte aéreo",
     "085-088": "Actividades financieras y de seguros",
     "102,103": "Salud humana y servicios sociales",
@@ -276,7 +276,7 @@ AGG25_DESCRIPTION = {
     "O": "administración pública y defensa, y planes de seguridad social de afiliación obligatoria",
     "P": "educación",
     "Q": "actividades de atención de la salud humana y de servicios sociales",
-    "R+S": "actividades de arte, entretenimiento, recreación y otros servicios",
+    "R+S": "actividades de arte, entretenimiento y recreación",
     "T": "actividades de los hogares como empleadores y producción no diferenciada de los hogares para uso propio",
 }
 
@@ -519,7 +519,7 @@ AGG61_SHORT.update(
         "100": "Educación de mercado",
         "101": "Educación de no mercado",
         "102,103": "Salud y servicios sociales",
-        "104-108": "Arte, entretenimiento, recreación y otros servicios",
+        "104-108": "Arte, entretenimiento y recreación",
         "109": "Hogares como empleadores",
     }
 )
