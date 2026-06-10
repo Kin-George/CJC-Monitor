@@ -2648,10 +2648,26 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
 
 
 def write_pib_ocupados_appendix(summary: pd.DataFrame) -> None:
+    start_year = 2010
+    end_year = 2025
     table = summary.sort_values(["group_order", "actividad_corta"]).copy()
-    table["var_pib"] = table["pib_2025_billones"] / table["pib_2010_billones"] - 1
-    table["var_ocupados"] = (
-        table["ocupados_2025_millones"] / table["ocupados_2010_millones"] - 1
+    table["crec_pib_anual"] = table.apply(
+        lambda row: cagr(
+            row["pib_2010_billones"],
+            row["pib_2025_billones"],
+            start_year,
+            end_year,
+        ),
+        axis=1,
+    )
+    table["crec_ocupados_anual"] = table.apply(
+        lambda row: cagr(
+            row["ocupados_2010_millones"],
+            row["ocupados_2025_millones"],
+            start_year,
+            end_year,
+        ),
+        axis=1,
     )
     export = table[
         [
@@ -2660,10 +2676,10 @@ def write_pib_ocupados_appendix(summary: pd.DataFrame) -> None:
             "dane_groups",
             "pib_2010_billones",
             "pib_2025_billones",
-            "var_pib",
+            "crec_pib_anual",
             "ocupados_2010_millones",
             "ocupados_2025_millones",
-            "var_ocupados",
+            "crec_ocupados_anual",
         ]
     ].copy()
     export.to_csv(
@@ -2686,14 +2702,14 @@ def write_pib_ocupados_appendix(summary: pd.DataFrame) -> None:
         r"& \multicolumn{3}{c}{PIB real} & \multicolumn{3}{c}{Ocupados} \\",
         r"& \multicolumn{3}{c}{\footnotesize Billones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Millones de personas} \\",
         r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
-        r"Actividad económica & 2010 & 2025 & Var. & 2010 & 2025 & Var. \\",
+        r"Actividad económica & 2010 & 2025 & Crec. anual & 2010 & 2025 & Crec. anual \\",
         r"\midrule",
         r"\endfirsthead",
         r"\toprule",
         r"& \multicolumn{3}{c}{PIB real} & \multicolumn{3}{c}{Ocupados} \\",
         r"& \multicolumn{3}{c}{\footnotesize Billones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Millones de personas} \\",
         r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
-        r"Actividad económica & 2010 & 2025 & Var. & 2010 & 2025 & Var. \\",
+        r"Actividad económica & 2010 & 2025 & Crec. anual & 2010 & 2025 & Crec. anual \\",
         r"\midrule",
         r"\endhead",
     ]
@@ -2702,17 +2718,17 @@ def write_pib_ocupados_appendix(summary: pd.DataFrame) -> None:
             f"{escape_latex(row['actividad_corta'])} & "
             f"{fmt_num_es(row['pib_2010_billones'], 1)} & "
             f"{fmt_num_es(row['pib_2025_billones'], 1)} & "
-            f"{fmt_pct_es(row['var_pib'], 1)} & "
+            f"{fmt_pct_es(row['crec_pib_anual'])} & "
             f"{fmt_num_es(row['ocupados_2010_millones'], 2)} & "
             f"{fmt_num_es(row['ocupados_2025_millones'], 2)} & "
-            f"{fmt_pct_es(row['var_ocupados'], 1)} \\\\"
+            f"{fmt_pct_es(row['crec_ocupados_anual'])} \\\\"
         )
     lines.extend(
         [
             r"\bottomrule",
             r"\end{longtable}",
             r"\endgroup",
-            rf"{{\footnotesize Nota: el PIB se expresa en billones de pesos constantes de 2015 y los ocupados en millones de personas. La variación corresponde al cambio porcentual acumulado entre 2010 y 2025, no a una tasa anualizada. La tabla parte de la apertura de 61 agrupaciones del DANE, pero agrupa subactividades cuando la GEIH no permite separar ocupados al mismo nivel. En particular, el renglón Alimentos, bebidas y tabaco {COMPARABLE_LABEL_NOTES['Alimentos, bebidas y tabaco']}. Fuente: cálculos propios con DANE y GEIH.}}",
+            rf"{{\footnotesize Nota: el PIB se expresa en billones de pesos constantes de 2015 y los ocupados en millones de personas. Los crecimientos anuales corresponden a tasas anualizadas entre 2010 y 2025. La tabla parte de la apertura de 61 agrupaciones del DANE, pero agrupa subactividades cuando la GEIH no permite separar ocupados al mismo nivel. En particular, el renglón Alimentos, bebidas y tabaco {COMPARABLE_LABEL_NOTES['Alimentos, bebidas y tabaco']}. Fuente: cálculos propios con DANE y GEIH.}}",
         ]
     )
     (SECTION_DIR / "pib_ocupados_61_comparable.tex").write_text(
