@@ -545,6 +545,42 @@ for pool in AGG25_POOLS:
         for subrama in pool["subramas"]:
             AGG25_BY_SUBRAMA[subrama] = pool["groups"][0]
 
+# Reasignaciones claras de clases CIIU Rev. 3 A.C. a ramas Rev. 4 A.C.,
+# verificadas con la tabla correlativa DANE TC-CIIU-3ACvsCIIU-4AC-2020.
+# No se incluyen clases con correspondencias parciales entre varias ramas.
+REV3_CORRELATIVE_SECTOR_OVERRIDES = {
+    3710: "D+E",
+    3720: "D+E",
+    5170: "C",
+    5271: "R+S+T",
+    5272: "R+S+T",
+    6340: "M+N",
+    6426: "G+H+I",
+    8520: "M+N",
+}
+
+REV3_CORRELATIVE_LABOR25_OVERRIDES = {
+    3710: "E",
+    3720: "E",
+    5170: "C05",
+    5271: "R+S",
+    5272: "R+S",
+    6340: "M+N",
+    6426: "G",
+    8520: "M+N",
+}
+
+REV3_CORRELATIVE_LABOR61_OVERRIDES = {
+    3710: "065",
+    3720: "065",
+    5170: "053,057",
+    5271: "S44",
+    5272: "S44",
+    6340: "S38",
+    6426: "S21",
+    8520: "S36",
+}
+
 # Groups whose labor input can be identified from GEIH four-digit activity codes
 # without allocating workers or hours mechanically by PIB shares.
 AGG61_DIRECT_GROUPS = {
@@ -894,6 +930,11 @@ def add_labor_disaggregation_codes(geih: pd.DataFrame) -> pd.DataFrame:
     set_labor_code(geih, "labor61_code", (sub == 27) & rev3 & (three == 641), "077")
     set_labor_code(geih, "labor61_code", (sub == 27) & rev4 & (div == 53), "077")
 
+    for class_code, group_code in REV3_CORRELATIVE_LABOR25_OVERRIDES.items():
+        set_labor_code(geih, "labor25_code", rev3 & (cls == class_code), group_code)
+    for class_code, group_code in REV3_CORRELATIVE_LABOR61_OVERRIDES.items():
+        set_labor_code(geih, "labor61_code", rev3 & (cls == class_code), group_code)
+
     return geih
 
 
@@ -955,6 +996,9 @@ def load_geih() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame,
     )
 
     geih["sector_code"] = geih["subrama_det_cod"].map(SUBRAMA_TO_SECTOR)
+    rev3 = geih["ciiu_revision_rama4d"].fillna("").astype(str).str.contains("Rev. 3", regex=False)
+    for class_code, sector_code in REV3_CORRELATIVE_SECTOR_OVERRIDES.items():
+        set_labor_code(geih, "sector_code", rev3 & (geih["rama4d"] == class_code), sector_code)
     sector = (
         geih.dropna(subset=["sector_code"])
         .groupby(["anio", "sector_code"], as_index=False)
@@ -1250,7 +1294,7 @@ def write_latex_tables(
         r"\centering",
         r"\caption{Productividad laboral por actividad económica CIIU, 2010--2025}",
         r"\label{tab:pib_geih_productividad_sector}",
-        r"\small",
+        r"\footnotesize",
         r"\begin{tabular}{lrrrrrr}",
         r"\toprule",
         r"& \multicolumn{3}{c}{PIB por trabajador} & \multicolumn{3}{c}{PIB por hora} \\",
@@ -2030,7 +2074,9 @@ def write_sector_detail_sections(
 ) -> None:
     detail_rows = []
     lines = [
-        r"\textbf{A continuación se presenta la descomposición del crecimiento de cada una de las doce agrupaciones de actividad económica CIIU.} En particular, se presenta el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales promedio por trabajador y el PIB por hora trabajada para los años 2010 y 2025. La lectura conjunta de estas variables permite distinguir si los cambios de productividad responden principalmente al dinamismo del producto, a variaciones en el empleo, a cambios en las horas trabajadas o a una combinación de estos factores. Las descripciones siguen la agregación usada por el DANE; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación.",
+        r"\textbf{A continuación se presenta la descomposición del crecimiento de cada una de las doce agrupaciones de actividad económica CIIU.} En particular, se presenta el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales por trabajador y el PIB por hora trabajada para los años 2010 y 2025. La lectura conjunta de estas variables permite distinguir si los aumentos en la producción responden principalmente a variaciones en el empleo, a cambios en las horas trabajadas o un aumento de la productividad por hora.",
+        "",
+        r"Las doce agrupaciones corresponden a las reportadas por el DANE en cuentas nacionales; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación. En la medida en que las cuentas nacionales y la GEIH lo permiten, a continuación se discute la evolución de la productividad de las subactividades que componen a cada una de las doce agrupaciones.",
         "",
     ]
     total_start = total[total["anio"] == 2010].iloc[0]
