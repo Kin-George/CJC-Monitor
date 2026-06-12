@@ -3149,8 +3149,7 @@ def draw_sector_index_panels(sector: pd.DataFrame) -> None:
         for year in [2010, 2015, 2020, 2025]:
             x = x_pos(year, plot_left, plot_right)
             draw.line((x, plot_bottom, x, plot_bottom + 7), fill=axis, width=2)
-            if row == rows - 1:
-                draw.text((x - 26, plot_bottom + 16), str(year), fill="#555555", font=axis_font)
+            draw.text((x - 26, plot_bottom + 16), str(year), fill="#555555", font=axis_font)
 
         draw.line((plot_left, plot_top, plot_left, plot_bottom), fill=axis, width=2)
         draw.line((plot_left, plot_bottom, plot_right, plot_bottom), fill=axis, width=2)
