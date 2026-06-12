@@ -65,7 +65,7 @@ SECTOR_INTRO_LEAD = {
     "D+E": "La actividad de servicios públicos combina electricidad, gas y vapor con agua, saneamiento y desechos.",
     "F": "La actividad de construcción comprende edificaciones, obras civiles y actividades especializadas de construcción.",
     "G+H+I": "La agrupación de comercio, transporte y alojamiento combina comercio y reparación; transporte y almacenamiento; y alojamiento y servicios de comida.",
-    "J": "La actividad de información y comunicaciones reúne edición y contenidos audiovisuales, radio y televisión, telecomunicaciones, desarrollo de software, procesamiento de datos, portales web y otros servicios de información.",
+    "J": "La actividad de información y comunicaciones reúne edición de contenidos audiovisuales, radio, televisión, telecomunicaciones, desarrollo de software, procesamiento de datos, y otros servicios de información.",
     "K": "La actividad financiera reúne intermediación financiera y banca, seguros, fondos de pensiones y servicios auxiliares como administración de mercados, corretaje y otras actividades de apoyo financiero.",
     "L": "La actividad inmobiliaria reúne alquiler, compra, venta, administración e intermediación de bienes inmuebles, tanto propios o arrendados como de terceros.",
     "M+N": "La agrupación de actividades profesionales y administrativas combina actividades profesionales, científicas y técnicas con servicios administrativos y de apoyo.",
@@ -116,6 +116,11 @@ SECTOR_PRODUCTIVITY_SUBJECT = {
     "M+N": "de las actividades profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
     "R+S+T": "de la agrupación de arte, recreación y hogares como empleadores",
+}
+
+SECTOR_PRODUCTIVITY_HEADLINE_OVERRIDES = {
+    "G+H+I": "La productividad de comercio, transporte y alojamiento evolucionó de forma parecida a la productividad agregada.",
+    "K": "La evolución de la productividad de las actividades financieras fue parecida a la del resto de la economía.",
 }
 
 SECTOR_ZOOM_CAPTION = {
@@ -1762,7 +1767,9 @@ def sector_detail_comparison_paragraph(
     worker_agg = aggregate_growth["PIB por trabajador"]
     hour_agg = aggregate_growth["PIB por hora trabajada"]
     productivity_subject = SECTOR_PRODUCTIVITY_SUBJECT[sector_code]
-    if worker_growth > worker_agg + 0.002 and hour_growth > hour_agg + 0.002:
+    if sector_code in SECTOR_PRODUCTIVITY_HEADLINE_OVERRIDES:
+        headline = SECTOR_PRODUCTIVITY_HEADLINE_OVERRIDES[sector_code]
+    elif worker_growth > worker_agg + 0.002 and hour_growth > hour_agg + 0.002:
         headline = (
             f"El crecimiento de la productividad {productivity_subject} fue superior "
             "al crecimiento de la productividad agregada."
@@ -1872,6 +1879,13 @@ def activity_count_verb(count: int, singular: str, plural: str) -> str:
 def sector_zoom_balance_sentence(
     sector_code: str, subset: pd.DataFrame, aggregate_growth: dict[str, float]
 ) -> str:
+    if sector_code == "G+H+I":
+        return (
+            "El balance de la apertura de la agrupación de comercio, transporte y alojamiento "
+            "es heterogéneo: solo una de las tres subactividades supera en crecimiento "
+            "de la productividad al resto de la economía."
+        )
+
     total = len(subset)
     worker_agg = aggregate_growth["PIB por trabajador"]
     hour_agg = aggregate_growth["PIB por hora trabajada"]
@@ -2675,13 +2689,23 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
         summary,
         table_lines_file,
         "tab:pib_geih_productividad_61",
-        "Productividad laboral por actividad económica comparable, apertura de 61 agrupaciones CIIU, 2010--2025",
+        "Productividad laboral por subactividades, 2010--2025",
         note,
         use_longtable=True,
     )
     table_text = (SECTION_DIR / table_lines_file).read_text(encoding="utf-8").rstrip()
     lines = [
         r"El Cuadro \ref{tab:pib_geih_productividad_61} presenta una desagregación de las actividades económicas mayor a la del Cuadro \ref{tab:pib_geih_productividad_sector}. Cuando la GEIH no permite separar ocupados y horas con el mismo detalle, las subactividades del DANE aparecen agrupadas en la observación laboral comparable.",
+        "",
+        r"La Figura \ref{fig:pib_geih_productividad_sector_indices} muestra la evolución del PIB por trabajador y del PIB por hora trabajada para las doce grandes ramas de actividad económica. Ambas series se presentan como índices con base 2010 = 100, lo que permite comparar la trayectoria de las dos medidas de productividad dentro de cada actividad.",
+        "",
+        r"\begin{figure}[H]",
+        r"  \centering",
+        r"  \includegraphics[width=\textwidth]{Paper/figures/fig_pib_geih_productividad_sector_indices.png}",
+        r"  \caption{Productividad laboral por grandes ramas de actividad económica, índice 2010 = 100}",
+        r"  \label{fig:pib_geih_productividad_sector_indices}",
+        r"  \caption*{\footnotesize Nota: el PIB por trabajador y el PIB por hora trabajada se indexan a 2010 = 100 dentro de cada actividad económica. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE y GEIH.}",
+        r"\end{figure}",
         "",
         table_text,
     ]
@@ -2740,7 +2764,7 @@ def write_pib_ocupados_appendix(summary: pd.DataFrame) -> None:
         r"\begingroup",
         r"\footnotesize",
         r"\begin{longtable}{p{0.34\textwidth}rrrrrr}",
-        r"\caption{PIB y ocupados por actividad económica comparable, apertura de 61 agrupaciones CIIU, 2010--2025}\label{tab:pib_ocupados_61_comparable}\\",
+        r"\caption{PIB y ocupados por subactividades, 2010--2025}\label{tab:pib_ocupados_61_comparable}\\",
         r"\toprule",
         r"& \multicolumn{3}{c}{PIB real} & \multicolumn{3}{c}{Ocupados} \\",
         r"& \multicolumn{3}{c}{\footnotesize Billones de pesos de 2015} & \multicolumn{3}{c}{\footnotesize Millones de personas} \\",
@@ -3021,6 +3045,138 @@ def draw_sector_cagr_chart(sector_summary: pd.DataFrame) -> None:
 
     for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
         img.save(directory / "fig_pib_geih_productividad_sector.png")
+
+
+def draw_sector_index_panels(sector: pd.DataFrame) -> None:
+    data = sector[sector["anio"].between(2010, 2025)].copy()
+    data = data[data["anio"] != 2020]
+    indexed_parts = []
+    for code in SECTOR_ORDER:
+        part = data[data["sector_code"] == code].sort_values("anio").copy()
+        if part.empty or 2010 not in set(part["anio"]):
+            continue
+        base_worker = part.loc[part["anio"] == 2010, "pib_por_trabajador_millones_2015"].iloc[0]
+        base_hour = part.loc[part["anio"] == 2010, "pib_por_hora_pesos_2015"].iloc[0]
+        part["idx_worker"] = part["pib_por_trabajador_millones_2015"] / base_worker * 100
+        part["idx_hour"] = part["pib_por_hora_pesos_2015"] / base_hour * 100
+        indexed_parts.append(part)
+    indexed = pd.concat(indexed_parts, ignore_index=True)
+
+    y_min = math.floor(min(indexed["idx_worker"].min(), indexed["idx_hour"].min()) / 50) * 50
+    y_max = math.ceil(max(indexed["idx_worker"].max(), indexed["idx_hour"].max()) / 50) * 50
+    y_min = min(y_min, 50)
+    y_max = max(y_max, 150)
+
+    img_w, img_h = 2400, 3000
+    img = Image.new("RGB", (img_w, img_h), "white")
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.load_default()
+    title_font = ImageFont.truetype("arial.ttf", 54) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    subtitle_font = ImageFont.truetype("arial.ttf", 34) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    panel_font = ImageFont.truetype("arial.ttf", 28) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    axis_font = ImageFont.truetype("arial.ttf", 23) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    note_font = ImageFont.truetype("arial.ttf", 27) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+
+    blue = "#1f77b4"
+    orange = "#d95f02"
+    grid = "#e6e6e6"
+    axis = "#333333"
+
+    def text_width(text: str, used_font) -> int:
+        bbox = draw.textbbox((0, 0), text, font=used_font)
+        return bbox[2] - bbox[0]
+
+    def wrap_text(text: str, used_font, max_width: int) -> list[str]:
+        words = text.split()
+        lines: list[str] = []
+        current = ""
+        for word in words:
+            candidate = f"{current} {word}".strip()
+            if text_width(candidate, used_font) <= max_width:
+                current = candidate
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+        return lines
+
+    def x_pos(year: float, left: float, right: float) -> float:
+        return left + (year - 2010) / (2025 - 2010) * (right - left)
+
+    def y_pos(value: float, top: float, bottom: float) -> float:
+        return bottom - (value - y_min) / (y_max - y_min) * (bottom - top)
+
+    draw.text((90, 45), "Productividad laboral por actividad económica", fill="#222222", font=title_font)
+    draw.text((90, 108), "PIB por trabajador y PIB por hora trabajada, índice 2010 = 100", fill="#555555", font=subtitle_font)
+    draw.line((1580, 125, 1660, 125), fill=blue, width=8)
+    draw.text((1680, 106), "PIB por trabajador", fill="#333333", font=subtitle_font)
+    draw.line((1580, 172, 1660, 172), fill=orange, width=8)
+    draw.text((1680, 153), "PIB por hora", fill="#333333", font=subtitle_font)
+
+    margin_left, margin_right = 95, 70
+    top_start, bottom_margin = 230, 170
+    gap_x, gap_y = 70, 85
+    cols, rows = 3, 4
+    panel_w = (img_w - margin_left - margin_right - gap_x * (cols - 1)) / cols
+    panel_h = (img_h - top_start - bottom_margin - gap_y * (rows - 1)) / rows
+
+    for idx, code in enumerate(SECTOR_ORDER):
+        row = idx // cols
+        col = idx % cols
+        panel_left = margin_left + col * (panel_w + gap_x)
+        panel_top = top_start + row * (panel_h + gap_y)
+        panel_right = panel_left + panel_w
+        panel_bottom = panel_top + panel_h
+        plot_left = panel_left + 82
+        plot_top = panel_top + 74
+        plot_right = panel_right - 28
+        plot_bottom = panel_bottom - 80
+
+        for line_no, text in enumerate(wrap_text(SECTOR_SHORT[code], panel_font, int(panel_w - 20))[:2]):
+            text_x = panel_left + (panel_w - text_width(text, panel_font)) / 2
+            draw.text((text_x, panel_top + line_no * 31), text, fill="#222222", font=panel_font)
+
+        for tick in range(y_min, y_max + 1, 50):
+            y = y_pos(tick, plot_top, plot_bottom)
+            line_color = "#bbbbbb" if tick == 100 else grid
+            line_width = 3 if tick == 100 else 1
+            draw.line((plot_left, y, plot_right, y), fill=line_color, width=line_width)
+            if col == 0:
+                draw.text((plot_left - 62, y - 13), str(tick), fill="#555555", font=axis_font)
+
+        for year in [2010, 2015, 2020, 2025]:
+            x = x_pos(year, plot_left, plot_right)
+            draw.line((x, plot_bottom, x, plot_bottom + 7), fill=axis, width=2)
+            if row == rows - 1:
+                draw.text((x - 26, plot_bottom + 16), str(year), fill="#555555", font=axis_font)
+
+        draw.line((plot_left, plot_top, plot_left, plot_bottom), fill=axis, width=2)
+        draw.line((plot_left, plot_bottom, plot_right, plot_bottom), fill=axis, width=2)
+
+        part = indexed[indexed["sector_code"] == code].sort_values("anio")
+        years = part["anio"].tolist()
+
+        def draw_series(values: list[float], color: str) -> None:
+            points = [(x_pos(year, plot_left, plot_right), y_pos(value, plot_top, plot_bottom)) for year, value in zip(years, values)]
+            for p1, p2 in zip(points, points[1:]):
+                draw.line((p1[0], p1[1], p2[0], p2[1]), fill=color, width=5)
+            for x, y in points:
+                draw.ellipse((x - 5, y - 5, x + 5, y + 5), fill=color, outline="white", width=1)
+
+        draw_series(part["idx_worker"].tolist(), blue)
+        draw_series(part["idx_hour"].tolist(), orange)
+
+    draw.text(
+        (90, img_h - 105),
+        "Nota: cada panel indexa ambas medidas a 2010 = 100 dentro de la actividad económica. 2020 no aparece porque no hay GEIH anual comparable en la base del proyecto.",
+        fill="#555555",
+        font=note_font,
+    )
+
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_pib_geih_productividad_sector_indices.png")
 
 
 def draw_sector_correlation_scatter(summary: pd.DataFrame) -> None:
@@ -3324,6 +3480,7 @@ def main() -> None:
     write_pib_ocupados_appendix(summary61)
     draw_index_chart(total)
     draw_sector_cagr_chart(sector_summary)
+    draw_sector_index_panels(sector)
     draw_sector_correlation_scatter(summary61)
     draw_initial_productivity_growth_scatter(summary61)
 
