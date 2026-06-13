@@ -790,7 +790,6 @@ formal_101_table_rows <- formal_101_contrasts %>%
       TRUE ~ as.character(reference_size)
     ),
     premium_label = sprintf("%.1f\\%%", premium),
-    ci_label = paste0("[", sprintf("%.1f", ci_low), ", ", sprintf("%.1f", ci_high), "]"),
     p_label = format_p_value(p.value)
   ) %>%
   transmute(
@@ -799,8 +798,6 @@ formal_101_table_rows <- formal_101_contrasts %>%
       reference_label,
       " & ",
       premium_label,
-      " & ",
-      ci_label,
       " & ",
       p_label,
       " \\\\"
@@ -814,9 +811,9 @@ formal_101_table <- c(
   "  \\caption{Formal-worker large-firm wage premium relative to other formal firm-size categories}",
   "  \\label{tab:formal-101-contrasts}",
   "  \\small",
-  "  \\begin{tabular}{lccc}",
+  "  \\begin{tabular}{lcc}",
   "    \\toprule",
-  "    Reference category & Premium & 95\\% CI & $p$-value \\\\",
+  "    Reference category & Premium & $p$-value \\\\",
   "    \\midrule",
   formal_101_table_rows,
   "    \\bottomrule",
