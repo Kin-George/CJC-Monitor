@@ -31,6 +31,7 @@ geih_geo <- geih %>%
     sector = as.factor(sector),
     tamano_empresa = as.factor(tamano_empresa),
     educacion = as.factor(educacion),
+    posicion_ocupacional_label = as.factor(posicion_ocupacional_label),
     sector_year = interaction(sector, anio, drop = TRUE),
     depto_year = interaction(depto, anio, drop = TRUE),
     sector_depto = interaction(sector, depto, drop = TRUE),
@@ -80,10 +81,22 @@ m_geo_local_sector_year <- feols(
   data = geih_geo
 )
 
+m_geo_local_sector_year_position <- feols(
+  as.formula(paste(
+    geo_formula_rhs,
+    "+ i(posicion_ocupacional_label)",
+    "| sector_depto_year"
+  )),
+  weights = ~ fex,
+  cluster = ~ sector_depto,
+  data = geih_geo %>% filter(!is.na(posicion_ocupacional_label))
+)
+
 model_list <- list(
   "(1)" = m_geo_sector_year,
   "(2)" = m_geo_depto_year,
-  "(3)" = m_geo_local_sector_year
+  "(3)" = m_geo_local_sector_year,
+  "(4)" = m_geo_local_sector_year_position
 )
 
 format_coef <- function(x, p) {
@@ -115,7 +128,9 @@ premium_rows <- bind_rows(
   tidy(m_geo_depto_year, conf.int = TRUE) %>%
     mutate(specification = "Sector-year and department-year FE"),
   tidy(m_geo_local_sector_year, conf.int = TRUE) %>%
-    mutate(specification = "Sector-department-year FE")
+    mutate(specification = "Sector-department-year FE"),
+  tidy(m_geo_local_sector_year_position, conf.int = TRUE) %>%
+    mutate(specification = "Sector-department-year FE and occupational-position controls")
 ) %>%
   filter(str_detect(term, "^tamano_empresa::")) %>%
   mutate(
@@ -164,19 +179,20 @@ r2_vals <- vapply(model_list, function(m) as.numeric(fitstat(m, "r2")), numeric(
 regression_table <- c(
   "\\begin{table}[htbp]",
   "  \\centering",
-  "  \\caption{Firm-size wage premium robustness with department fixed effects}",
+  "  \\caption{Firm-size wage premium robustness checks}",
   "  \\label{tab:firm-size-local-geography-robustness}",
   "  \\small",
-  "  \\begin{tabular}{lccc}",
+  "  \\begin{tabular}{lcccc}",
   "    \\toprule",
-  "    & \\multicolumn{3}{c}{Dependent variable: log real hourly labor income} \\\\",
-  "    \\cmidrule(lr){2-4}",
-  "    & (1) & (2) & (3) \\\\",
+  "    & \\multicolumn{4}{c}{Dependent variable: log real hourly labor income} \\\\",
+  "    \\cmidrule(lr){2-5}",
+  "    & (1) & (2) & (3) & (4) \\\\",
   "    \\midrule",
   table_rows,
   "    \\midrule",
-  "    Worker and formality controls & Yes & Yes & Yes \\\\",
-  "    Fixed effects & $s\\times t$ & $s\\times t$, $d\\times t$ & $s\\times d\\times t$ \\\\",
+  "    Worker and formality controls & Yes & Yes & Yes & Yes \\\\",
+  "    Occupational-position controls & No & No & No & Yes \\\\",
+  "    Fixed effects & $s\\times t$ & $s\\times t$, $d\\times t$ & $s\\times d\\times t$ & $s\\times d\\times t$ \\\\",
   paste0("    Observations & ", paste(format_obs(n_obs), collapse = " & "), " \\\\"),
   paste0("    $R^2$ & ", paste(sprintf('%.3f', r2_vals), collapse = " & "), " \\\\"),
   "    \\bottomrule",
@@ -184,7 +200,7 @@ regression_table <- c(
   "  \\vspace{0.3em}",
   "  \\begin{minipage}{0.95\\textwidth}",
   "  \\footnotesize",
-  "  Notes: The omitted category is solo workers. The sample is restricted to observations with nonmissing department codes. Worker controls include a female-worker indicator, age, age squared, education dummies, and labor formality. The local geography $d$ is the department, treating Bogot\\'a as a department-equivalent Capital District. Column (3) is the most stringent specification and absorbs sector-department-year fixed effects, so identification comes from wage differences across firm-size categories within the same sector, department, and year. Standard errors are clustered by sector-department cells. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
+  "  Notes: The omitted category is solo workers. The sample is restricted to observations with nonmissing department codes. Worker controls include a female-worker indicator, age, age squared, education dummies, and labor formality. The local geography $d$ is the department, treating Bogot\\'a as a department-equivalent Capital District. Column (3) absorbs sector-department-year fixed effects, so identification comes from wage differences across firm-size categories within the same sector, department, and year. Column (4) adds occupational-position controls to this most stringent local-geography specification. Standard errors are clustered by sector-department cells. Significance levels: * $p<0.10$, ** $p<0.05$, *** $p<0.01$.",
   "  \\end{minipage}",
   "\\end{table}"
 )
