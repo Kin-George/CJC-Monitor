@@ -734,7 +734,6 @@ formality_gap_table_rows <- formality_gap_by_size %>%
     coef_label = format_log_coef(estimate, p.value),
     se_label = format_log_se(std.error),
     premium_label = sprintf("%.1f\\%%", premium),
-    ci_label = paste0("[", sprintf("%.1f", ci_low), ", ", sprintf("%.1f", ci_high), "]"),
     p_label = format_p_value(p.value)
   ) %>%
   transmute(
@@ -746,12 +745,10 @@ formality_gap_table_rows <- formality_gap_by_size %>%
       " & ",
       premium_label,
       " & ",
-      ci_label,
-      " & ",
       p_label,
       " \\\\"
     ),
-    se_row = paste0("     & ", se_label, " &  &  &  \\\\")
+    se_row = paste0("     & ", se_label, " &  &  \\\\")
   ) %>%
   tidyr::unite("row", coef_row, se_row, sep = "\n") %>%
   pull(row) %>%
@@ -763,9 +760,9 @@ formality_gap_table <- c(
   "  \\caption{Conditional formal-informal wage gap by firm size}",
   "  \\label{tab:formal-wage-gap-by-size}",
   "  \\small",
-  "  \\begin{tabular}{lcccc}",
+  "  \\begin{tabular}{lccc}",
   "    \\toprule",
-  "    Firm size & Log gap & Premium & 95\\% CI & $p$-value \\\\",
+  "    Firm size & Log gap & Premium & $p$-value \\\\",
   "    \\midrule",
   formality_gap_table_rows,
   "    \\bottomrule",
