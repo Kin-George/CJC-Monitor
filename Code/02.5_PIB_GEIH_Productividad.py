@@ -3001,6 +3001,120 @@ def draw_index_chart(total: pd.DataFrame) -> None:
         img.save(directory / "fig_pib_geih_productividad_total.png")
 
 
+def draw_growth_decomposition_waterfall(total: pd.DataFrame) -> None:
+    data = total[total["anio"].isin([2010, 2025])].set_index("anio")
+    start_year, end_year = 2010, 2025
+    start = data.loc[start_year]
+    end = data.loc[end_year]
+
+    g_pib = 100 * cagr(
+        start["pib_miles_millones_2015"],
+        end["pib_miles_millones_2015"],
+        start_year,
+        end_year,
+    )
+    g_ocupados = 100 * cagr(start["ocupados"], end["ocupados"], start_year, end_year)
+    start_hours = start["horas_anuales"] / start["ocupados"] / 52
+    end_hours = end["horas_anuales"] / end["ocupados"] / 52
+    g_horas = 100 * cagr(start_hours, end_hours, start_year, end_year)
+    g_pib_hora = 100 * cagr(
+        start["pib_por_hora_pesos_2015"],
+        end["pib_por_hora_pesos_2015"],
+        start_year,
+        end_year,
+    )
+
+    components = [
+        ("Ocupados", g_ocupados, "#2a6fbb"),
+        ("Horas por\ntrabajador", g_horas, "#b44b3f"),
+        ("PIB por hora\ntrabajada", g_pib_hora, "#2a9d8f"),
+    ]
+    current = 0.0
+    cumulative = [current]
+    for _, value, _ in components:
+        current += value
+        cumulative.append(current)
+
+    y_min = math.floor((min(0, min(cumulative), g_pib) - 0.35) * 2) / 2
+    y_max = math.ceil((max(max(cumulative), g_pib) + 0.35) * 2) / 2
+    y_min = min(y_min, -0.5)
+
+    img = Image.new("RGB", (1500, 780), "white")
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.load_default()
+    title_font = ImageFont.truetype("arial.ttf", 38) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    subtitle_font = ImageFont.truetype("arial.ttf", 25) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    label_font = ImageFont.truetype("arial.ttf", 27) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    small_font = ImageFont.truetype("arial.ttf", 23) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+
+    left, top, right, bottom = 130, 150, 1390, 660
+    bar_w = 190
+    step = (right - left) / 4
+    centers = [left + step * (i + 0.5) for i in range(4)]
+
+    def text_width(text: str, used_font) -> int:
+        bbox = draw.textbbox((0, 0), text, font=used_font)
+        return bbox[2] - bbox[0]
+
+    def y_pos(value: float) -> float:
+        return bottom - (value - y_min) / (y_max - y_min) * (bottom - top)
+
+    def draw_centered_multiline(text: str, center_x: float, y: float, used_font, fill: str = "#333333") -> None:
+        for line_no, line in enumerate(text.split("\n")):
+            draw.text(
+                (center_x - text_width(line, used_font) / 2, y + line_no * 28),
+                line,
+                fill=fill,
+                font=used_font,
+            )
+
+    def fmt_pp(value: float) -> str:
+        sign = "+" if value > 0 else ""
+        return f"{sign}{fmt_num_es(value, 2)} p.p."
+
+    draw.text((70, 45), "Descomposición del crecimiento anual del PIB", fill="#222222", font=title_font)
+    draw.text((70, 92), "Contribuciones anualizadas, 2010--2025", fill="#555555", font=subtitle_font)
+
+    tick = y_min
+    while tick <= y_max + 1e-9:
+        y = y_pos(tick)
+        color = "#bdbdbd" if abs(tick) < 1e-9 else "#e8e8e8"
+        width = 3 if abs(tick) < 1e-9 else 1
+        draw.line((left, y, right, y), fill=color, width=width)
+        draw.text((62, y - 13), fmt_num_es(tick, 1), fill="#555555", font=small_font)
+        tick += 0.5
+    draw.line((left, top, left, bottom), fill="#333333", width=2)
+    draw.line((left, bottom, right, bottom), fill="#333333", width=2)
+    draw.text((43, top - 38), "p.p.", fill="#555555", font=small_font)
+
+    running = 0.0
+    for idx, (label, value, color) in enumerate(components):
+        center = centers[idx]
+        x0, x1 = center - bar_w / 2, center + bar_w / 2
+        y0, y1 = y_pos(running), y_pos(running + value)
+        rect_top, rect_bottom = min(y0, y1), max(y0, y1)
+        draw.rectangle((x0, rect_top, x1, rect_bottom), fill=color, outline="#333333", width=2)
+        label_y = rect_top - 36 if value >= 0 else rect_bottom + 10
+        draw.text((center - text_width(fmt_pp(value), label_font) / 2, label_y), fmt_pp(value), fill="#222222", font=label_font)
+        running += value
+        if idx < len(components) - 1:
+            next_center = centers[idx + 1]
+            y_connector = y_pos(running)
+            draw.line((x1, y_connector, next_center - bar_w / 2, y_connector), fill="#888888", width=2)
+        draw_centered_multiline(label, center, bottom + 28, small_font)
+
+    center = centers[-1]
+    x0, x1 = center - bar_w / 2, center + bar_w / 2
+    y0, y1 = y_pos(0), y_pos(g_pib)
+    draw.rectangle((x0, min(y0, y1), x1, max(y0, y1)), fill="#555555", outline="#333333", width=2)
+    total_label = f"{fmt_num_es(g_pib, 2)}%"
+    draw.text((center - text_width(total_label, label_font) / 2, min(y0, y1) - 36), total_label, fill="#222222", font=label_font)
+    draw_centered_multiline("PIB real", center, bottom + 28, small_font)
+
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_pib_geih_descomposicion_crecimiento.png")
+
+
 def draw_sector_cagr_chart(sector_summary: pd.DataFrame) -> None:
     data = sector_summary.sort_values("crec_pib_trabajador", ascending=True).reset_index(drop=True)
     img = Image.new("RGB", (1600, 1050), "white")
@@ -3478,6 +3592,7 @@ def main() -> None:
     write_sector_detail_sections(sector, total, summary25, summary61)
     write_pib_ocupados_appendix(summary61)
     draw_index_chart(total)
+    draw_growth_decomposition_waterfall(total)
     draw_sector_cagr_chart(sector_summary)
     draw_sector_index_panels(sector)
     draw_sector_correlation_scatter(summary61)
