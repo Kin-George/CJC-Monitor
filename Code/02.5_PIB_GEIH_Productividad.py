@@ -3115,6 +3115,168 @@ def draw_growth_decomposition_waterfall(total: pd.DataFrame) -> None:
         img.save(directory / "fig_pib_geih_descomposicion_crecimiento.png")
 
 
+def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
+    rows = []
+    for code in SECTOR_ORDER:
+        part = sector[sector["sector_code"] == code].set_index("anio")
+        start_year, end_year = 2010, 2025
+        start = part.loc[start_year]
+        end = part.loc[end_year]
+        start_hours = start["horas_anuales"] / start["ocupados"] / 52
+        end_hours = end["horas_anuales"] / end["ocupados"] / 52
+        components = [
+            ("Ocup.", 100 * cagr(start["ocupados"], end["ocupados"], start_year, end_year), "#2a6fbb"),
+            ("Horas", 100 * cagr(start_hours, end_hours, start_year, end_year), "#b44b3f"),
+            (
+                "PIB/hora",
+                100
+                * cagr(
+                    start["pib_por_hora_pesos_2015"],
+                    end["pib_por_hora_pesos_2015"],
+                    start_year,
+                    end_year,
+                ),
+                "#2a9d8f",
+            ),
+        ]
+        g_pib = 100 * cagr(
+            start["pib_miles_millones_2015"],
+            end["pib_miles_millones_2015"],
+            start_year,
+            end_year,
+        )
+        cumulative = [0.0]
+        running = 0.0
+        for _, value, _ in components:
+            running += value
+            cumulative.append(running)
+        rows.append(
+            {
+                "sector_code": code,
+                "sector": SECTOR_SHORT[code],
+                "components": components,
+                "pib": g_pib,
+                "cumulative": cumulative,
+            }
+        )
+
+    y_min = math.floor((min(min(row["cumulative"]) for row in rows) - 0.7) / 1) * 1
+    y_max = math.ceil((max(max(row["cumulative"] + [row["pib"]]) for row in rows) + 0.7) / 1) * 1
+    y_min = min(y_min, -1)
+
+    img_w, img_h = 2400, 3150
+    img = Image.new("RGB", (img_w, img_h), "white")
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.load_default()
+    title_font = ImageFont.truetype("arial.ttf", 54) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    subtitle_font = ImageFont.truetype("arial.ttf", 34) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    panel_font = ImageFont.truetype("arial.ttf", 31) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    axis_font = ImageFont.truetype("arial.ttf", 24) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    value_font = ImageFont.truetype("arial.ttf", 24) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    small_font = ImageFont.truetype("arial.ttf", 22) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+
+    def text_width(text: str, used_font) -> int:
+        bbox = draw.textbbox((0, 0), text, font=used_font)
+        return bbox[2] - bbox[0]
+
+    def wrap_text(text: str, used_font, max_width: int) -> list[str]:
+        words = text.split()
+        lines: list[str] = []
+        current = ""
+        for word in words:
+            candidate = f"{current} {word}".strip()
+            if text_width(candidate, used_font) <= max_width:
+                current = candidate
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+        return lines
+
+    def fmt_pp(value: float) -> str:
+        sign = "+" if value > 0 else ""
+        return f"{sign}{fmt_num_es(value, 1)}"
+
+    def y_pos(value: float, top: float, bottom: float) -> float:
+        return bottom - (value - y_min) / (y_max - y_min) * (bottom - top)
+
+    draw.text((90, 45), "Descomposición del crecimiento anual del PIB por actividad económica", fill="#222222", font=title_font)
+    draw.text((90, 108), "Contribuciones anualizadas, 2010--2025; puntos porcentuales", fill="#555555", font=subtitle_font)
+
+    margin_left, margin_right = 95, 70
+    top_start, bottom_margin = 220, 120
+    gap_x, gap_y = 70, 90
+    cols, panel_rows = 3, 4
+    panel_w = (img_w - margin_left - margin_right - gap_x * (cols - 1)) / cols
+    panel_h = (img_h - top_start - bottom_margin - gap_y * (panel_rows - 1)) / panel_rows
+
+    tick_start = math.floor(y_min / 2) * 2
+    tick_end = math.ceil(y_max / 2) * 2
+
+    for idx, row_data in enumerate(rows):
+        row = idx // cols
+        col = idx % cols
+        panel_left = margin_left + col * (panel_w + gap_x)
+        panel_top = top_start + row * (panel_h + gap_y)
+        panel_right = panel_left + panel_w
+        panel_bottom = panel_top + panel_h
+        plot_left = panel_left + 74
+        plot_top = panel_top + 78
+        plot_right = panel_right - 28
+        plot_bottom = panel_bottom - 92
+
+        for line_no, text in enumerate(wrap_text(row_data["sector"], panel_font, int(panel_w - 16))[:2]):
+            text_x = panel_left + (panel_w - text_width(text, panel_font)) / 2
+            draw.text((text_x, panel_top + line_no * 34), text, fill="#222222", font=panel_font)
+
+        for tick in range(tick_start, tick_end + 1, 2):
+            y = y_pos(tick, plot_top, plot_bottom)
+            color = "#bdbdbd" if tick == 0 else "#e8e8e8"
+            width = 3 if tick == 0 else 1
+            draw.line((plot_left, y, plot_right, y), fill=color, width=width)
+            if col == 0:
+                draw.text((plot_left - 54, y - 13), fmt_num_es(tick, 0), fill="#555555", font=axis_font)
+
+        draw.line((plot_left, plot_top, plot_left, plot_bottom), fill="#333333", width=2)
+        draw.line((plot_left, plot_bottom, plot_right, plot_bottom), fill="#333333", width=2)
+
+        labels = [item[0] for item in row_data["components"]] + ["PIB"]
+        centers = np.linspace(plot_left + 70, plot_right - 70, 4)
+        bar_w = 78
+        running = 0.0
+        for bar_idx, (_, value, color) in enumerate(row_data["components"]):
+            center = centers[bar_idx]
+            x0, x1 = center - bar_w / 2, center + bar_w / 2
+            y0 = y_pos(running, plot_top, plot_bottom)
+            y1 = y_pos(running + value, plot_top, plot_bottom)
+            rect_top, rect_bottom = min(y0, y1), max(y0, y1)
+            draw.rectangle((x0, rect_top, x1, rect_bottom), fill=color, outline="#333333", width=2)
+            label = fmt_pp(value)
+            label_y = rect_top - 27 if value >= 0 else rect_bottom + 5
+            draw.text((center - text_width(label, value_font) / 2, label_y), label, fill="#222222", font=value_font)
+            running += value
+            if bar_idx < 2:
+                y_connector = y_pos(running, plot_top, plot_bottom)
+                draw.line((x1, y_connector, centers[bar_idx + 1] - bar_w / 2, y_connector), fill="#888888", width=2)
+
+        center = centers[-1]
+        x0, x1 = center - bar_w / 2, center + bar_w / 2
+        y0 = y_pos(0, plot_top, plot_bottom)
+        y1 = y_pos(row_data["pib"], plot_top, plot_bottom)
+        draw.rectangle((x0, min(y0, y1), x1, max(y0, y1)), fill="#555555", outline="#333333", width=2)
+        total_label = fmt_pp(row_data["pib"])
+        label_y = min(y0, y1) - 27 if row_data["pib"] >= 0 else max(y0, y1) + 5
+        draw.text((center - text_width(total_label, value_font) / 2, label_y), total_label, fill="#222222", font=value_font)
+
+        for center, label in zip(centers, labels):
+            draw.text((center - text_width(label, small_font) / 2, plot_bottom + 18), label, fill="#555555", font=small_font)
+
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_pib_geih_descomposicion_sector.png")
+
+
 def draw_sector_cagr_chart(sector_summary: pd.DataFrame) -> None:
     data = sector_summary.sort_values("crec_pib_trabajador", ascending=True).reset_index(drop=True)
     img = Image.new("RGB", (1600, 1050), "white")
@@ -3593,6 +3755,7 @@ def main() -> None:
     write_pib_ocupados_appendix(summary61)
     draw_index_chart(total)
     draw_growth_decomposition_waterfall(total)
+    draw_sector_growth_decomposition_panels(sector)
     draw_sector_cagr_chart(sector_summary)
     draw_sector_index_panels(sector)
     draw_sector_correlation_scatter(summary61)
