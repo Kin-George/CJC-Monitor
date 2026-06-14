@@ -54,8 +54,13 @@ Ocupados,Millones de personas,1.945244784900514,2.8331982257812647,0.02538473263
 PIB por trabajador,Millones de pesos de 2015 por ocupado,43.8823949883334,58.35774709331897,0.019187009864884086,O+P+Q,"Adm. pública, educación y salud"
 Horas semanales por trabajador,Horas por semana,43.25665509220424,43.03112391307683,-0.00034843466284184554,O+P+Q,"Adm. pública, educación y salud"
 PIB por hora trabajada,Miles de pesos de 2015 por hora,19.508956703085236,26.08029410168772,0.01954225372631413,O+P+Q,"Adm. pública, educación y salud"
-PIB real,Billones de pesos de 2015,15.259,47.15084480301404,0.07811286144420504,R+S+T,"Arte, recreación y hogares como empleadores"
-Ocupados,Millones de personas,1.6382079879156657,1.9510045384861565,0.01171754777228795,R+S+T,"Arte, recreación y hogares como empleadores"
-PIB por trabajador,Millones de pesos de 2015 por ocupado,9.314446097540046,24.16747058907398,0.0656263339685208,R+S+T,"Arte, recreación y hogares como empleadores"
-Horas semanales por trabajador,Horas por semana,42.02295831471903,39.91898704234756,-0.0034184118172837508,R+S+T,"Arte, recreación y hogares como empleadores"
-PIB por hora trabajada,Miles de pesos de 2015 por hora,4.262526261781322,11.64255619254192,0.06928157875333496,R+S+T,"Arte, recreación y hogares como empleadores"
+PIB real,Billones de pesos de 2015,10.994,40.570915803534106,0.09094771894553455,R+S,"Arte, entretenimiento y otros servicios"
+Ocupados,Millones de personas,0.9658754278311716,1.235100196529484,0.016526578167798123,R+S,"Arte, entretenimiento y otros servicios"
+PIB por trabajador,Millones de pesos de 2015 por ocupado,11.38242022026227,32.84827896354853,0.07321120999302755,R+S,"Arte, entretenimiento y otros servicios"
+Horas semanales por trabajador,Horas por semana,39.32476881100864,39.576646973929726,0.00042573402766055146,R+S,"Arte, entretenimiento y otros servicios"
+PIB por hora trabajada,Miles de pesos de 2015 por hora,5.566280569772302,15.961374211212252,0.0727545018982434,R+S,"Arte, entretenimiento y otros servicios"
+PIB real,Billones de pesos de 2015,4.276,6.72433785508047,0.030641095210144353,T,Hogares como empleadores
+Ocupados,Millones de personas,0.6723325600844939,0.7159043419566725,0.004195005051401246,T,Hogares como empleadores
+PIB por trabajador,Millones de pesos de 2015 por ocupado,6.359947820261186,9.392788199470699,0.026335612132814434,T,Hogares como empleadores
+Horas semanales por trabajador,Horas por semana,45.89918727637802,40.50960266094704,-0.008292648825559357,T,Hogares como empleadores
+PIB por hora trabajada,Miles de pesos de 2015 por hora,2.6646809259326836,4.4589561593416684,0.03491782219559503,T,Hogares como empleadores

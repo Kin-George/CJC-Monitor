@@ -40,7 +40,8 @@ SECTOR_ORDER = [
     "L",
     "M+N",
     "O+P+Q",
-    "R+S+T",
+    "R+S",
+    "T",
 ]
 
 SECTOR_SHORT = {
@@ -55,7 +56,8 @@ SECTOR_SHORT = {
     "L": "Inmobiliarias",
     "M+N": "Profesionales y administrativas",
     "O+P+Q": "Adm. pública, educación y salud",
-    "R+S+T": "Arte, recreación y hogares como empleadores",
+    "R+S": "Arte, entretenimiento y otros servicios",
+    "T": "Hogares como empleadores",
 }
 
 SECTOR_INTRO_LEAD = {
@@ -70,7 +72,8 @@ SECTOR_INTRO_LEAD = {
     "L": "La actividad inmobiliaria reúne alquiler, compra, venta, administración e intermediación de bienes inmuebles, tanto propios o arrendados como de terceros.",
     "M+N": "La agrupación de actividades profesionales y administrativas combina actividades profesionales, científicas y técnicas con servicios administrativos y de apoyo.",
     "O+P+Q": "La agrupación de administración pública, educación y salud combina administración pública y defensa, educación, salud humana y servicios sociales.",
-    "R+S+T": "La agrupación de arte, recreación y hogares como empleadores reúne actividades artísticas, de entretenimiento, recreación y otros servicios, junto con los hogares como empleadores y la producción no diferenciada de los hogares para uso propio.",
+    "R+S": "La agrupación de arte, entretenimiento y otros servicios reúne actividades artísticas, de entretenimiento y recreación, juegos de azar, actividades deportivas, servicios personales, asociaciones y reparación de computadores y efectos personales.",
+    "T": "La actividad de hogares como empleadores reúne el trabajo doméstico remunerado en hogares y la producción no diferenciada de los hogares para uso propio.",
 }
 
 SECTOR_CIIU_CODES = {
@@ -85,7 +88,8 @@ SECTOR_CIIU_CODES = {
     "L": "L; división 68",
     "M+N": "M y N; divisiones 69--82",
     "O+P+Q": "O, P y Q; divisiones 84--88",
-    "R+S+T": "R, S y T; divisiones 90--98",
+    "R+S": "R y S; divisiones 90--96",
+    "T": "T; divisiones 97--98",
 }
 
 SECTOR_BODY_SUBJECT = {
@@ -100,7 +104,8 @@ SECTOR_BODY_SUBJECT = {
     "L": "la actividad inmobiliaria",
     "M+N": "la agrupación de actividades profesionales y administrativas",
     "O+P+Q": "la agrupación de administración pública, educación y salud",
-    "R+S+T": "la agrupación de arte, recreación y hogares como empleadores",
+    "R+S": "la agrupación de arte, entretenimiento y otros servicios",
+    "T": "la actividad de hogares como empleadores",
 }
 
 SECTOR_PRODUCTIVITY_SUBJECT = {
@@ -115,7 +120,8 @@ SECTOR_PRODUCTIVITY_SUBJECT = {
     "L": "de las actividades inmobiliarias",
     "M+N": "de las actividades profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S+T": "de la agrupación de arte, recreación y hogares como empleadores",
+    "R+S": "de arte, entretenimiento y otros servicios",
+    "T": "de hogares como empleadores",
 }
 
 SECTOR_PRODUCTIVITY_HEADLINE_OVERRIDES = {
@@ -135,7 +141,8 @@ SECTOR_ZOOM_CAPTION = {
     "L": "inmobiliarias",
     "M+N": "profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S+T": "de arte, recreación y hogares como empleadores",
+    "R+S": "de arte, entretenimiento y otros servicios",
+    "T": "de hogares como empleadores",
 }
 
 SECTOR_ZOOM_CONTEXT = {
@@ -150,7 +157,8 @@ SECTOR_ZOOM_CONTEXT = {
     "L": "de las actividades inmobiliarias",
     "M+N": "de las actividades profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S+T": "de la agrupación de arte, recreación y hogares como empleadores",
+    "R+S": "de arte, entretenimiento y otros servicios",
+    "T": "de hogares como empleadores",
 }
 
 AGG25_SHORT = {
@@ -177,7 +185,7 @@ AGG25_SHORT = {
     "O": "Administración pública",
     "P": "Educación",
     "Q": "Salud y servicios sociales",
-    "R+S": "Arte, entretenimiento y recreación",
+    "R+S": "Arte, entretenimiento y otros servicios",
     "T": "Hogares como empleadores",
 }
 
@@ -225,8 +233,9 @@ for code in range(36, 39):
     SUBRAMA_TO_SECTOR[code] = "M+N"
 for code in range(39, 43):
     SUBRAMA_TO_SECTOR[code] = "O+P+Q"
-for code in range(43, 46):
-    SUBRAMA_TO_SECTOR[code] = "R+S+T"
+for code in range(43, 45):
+    SUBRAMA_TO_SECTOR[code] = "R+S"
+SUBRAMA_TO_SECTOR[45] = "T"
 
 
 AGG25_ORDER = [
@@ -557,8 +566,8 @@ REV3_CORRELATIVE_SECTOR_OVERRIDES = {
     3710: "D+E",
     3720: "D+E",
     5170: "C",
-    5271: "R+S+T",
-    5272: "R+S+T",
+    5271: "R+S",
+    5272: "R+S",
     6340: "M+N",
     6426: "G+H+I",
     8520: "M+N",
@@ -1030,6 +1039,17 @@ def load_geih() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame,
     return total, sector, subrama, labor25, labor61
 
 
+def sector_pib_with_rs_t_split(pib_sector: pd.DataFrame) -> pd.DataFrame:
+    va25 = load_va_disaggregation("Cuadro 2", code_col=2, concept_col=3)
+    split = va25[va25["group_code"].isin(["R+S", "T"])].copy()
+    split = split.rename(columns={"group_code": "sector_code", "group_name": "sector_name"})
+    split["sector_name"] = split["sector_code"].map(SECTOR_SHORT)
+    split = split[["sector_code", "sector_name", "anio", "pib_miles_millones_2015"]]
+
+    base = pib_sector[pib_sector["sector_code"] != "R+S+T"].copy()
+    return pd.concat([base, split], ignore_index=True, sort=False)
+
+
 def build_productivity() -> tuple[
     pd.DataFrame,
     pd.DataFrame,
@@ -1039,6 +1059,7 @@ def build_productivity() -> tuple[
     pd.DataFrame,
 ]:
     pib_total, pib_sector = load_pib_quarterly()
+    pib_sector = sector_pib_with_rs_t_split(pib_sector)
     geih_total, geih_sector, geih_subrama, geih_labor25, geih_labor61 = load_geih()
 
     total = pib_total.merge(geih_total, on="anio", how="inner")
@@ -1322,7 +1343,7 @@ def write_latex_tables(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: El numerador de ambos indicadores de productividad corresponde estrictamente al valor agregado bruto de cada actividad. Las actividades económicas están clasificadas según las 12 agrupaciones CIIU Rev. 4 A.C. del DANE. Los ocupados y las horas se agregan desde GEIH usando la actividad económica reportada en la encuesta. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: El numerador de ambos indicadores de productividad corresponde estrictamente al valor agregado bruto de cada actividad. Las actividades económicas parten de las agrupaciones CIIU Rev. 4 A.C. del DANE; la agrupación R+S+T se separa en R+S y T porque las cuentas nacionales y la GEIH permiten construir una medida laboral comparable para ambas. Como las series se expresan en pesos constantes, puede haber pequeñas diferencias de aditividad entre niveles de agregación. Los ocupados y las horas se agregan desde GEIH usando la actividad económica reportada en la encuesta. Fuente: cálculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -2088,9 +2109,9 @@ def write_sector_detail_sections(
 ) -> None:
     detail_rows = []
     lines = [
-        r"\textbf{A continuación se presenta la descomposición del crecimiento de cada una de las doce agrupaciones de actividad económica CIIU.} En particular, se presenta el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales por trabajador y el PIB por hora trabajada para los años 2010 y 2025. La lectura conjunta de estas variables permite distinguir si los aumentos en la producción responden principalmente a variaciones en el empleo, a cambios en las horas trabajadas o un aumento de la productividad por hora.",
+        r"\textbf{A continuación se presenta la descomposición del crecimiento de cada una de las trece ramas comparables de actividad económica CIIU.} En particular, se presenta el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales por trabajador y el PIB por hora trabajada para los años 2010 y 2025. La lectura conjunta de estas variables permite distinguir si los aumentos en la producción responden principalmente a variaciones en el empleo, a cambios en las horas trabajadas o un aumento de la productividad por hora.",
         "",
-        r"Las doce agrupaciones corresponden a las reportadas por el DANE en cuentas nacionales; por eso, en algunos casos reúnen actividades económicas muy distintas dentro de una misma agrupación. En la medida en que las cuentas nacionales y la GEIH lo permiten, a continuación se discute la evolución de la productividad de las subactividades que componen a cada una de las doce agrupaciones.",
+        r"Las trece ramas comparables parten de las agrupaciones reportadas por el DANE en cuentas nacionales. La diferencia frente a las doce agrupaciones usuales es que este informe separa la agrupación R+S+T en dos ramas: arte, entretenimiento y otros servicios, por un lado, y hogares como empleadores, por el otro. Esta separación es posible porque tanto las cuentas nacionales como la GEIH permiten construir numeradores y denominadores laborales comparables para ambas ramas. Como las series se expresan en pesos constantes, pueden presentarse pequeñas diferencias de aditividad entre niveles de agregación.",
         "",
     ]
     total_start = total[total["anio"] == 2010].iloc[0]
@@ -2588,7 +2609,7 @@ def write_productivity_25_section(
         "",
         table_text,
         "",
-        r"\textbf{La desagregación a 25 agrupaciones muestra que la heterogeneidad de la productividad es mayor que la observada en las doce agrupaciones.} Las mayores tasas de crecimiento del PIB por trabajador se observan en "
+        r"\textbf{La desagregación a 25 agrupaciones muestra que la heterogeneidad de la productividad es mayor que la observada en las trece ramas principales.} Las mayores tasas de crecimiento del PIB por trabajador se observan en "
         + productivity_items(summary, "crec_pib_trabajador", ascending=False, n=3)
         + ". En el otro extremo, las menores tasas aparecen en "
         + productivity_items(summary, "crec_pib_trabajador", ascending=True, n=3)
@@ -2697,7 +2718,7 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
     lines = [
         r"El Cuadro \ref{tab:pib_geih_productividad_61} presenta una desagregación de las actividades económicas mayor a la del Cuadro \ref{tab:pib_geih_productividad_sector}. Cuando la GEIH no permite separar ocupados y horas con el mismo detalle, las subactividades del DANE aparecen agrupadas en la observación laboral comparable.",
         "",
-        r"La Figura \ref{fig:pib_geih_productividad_sector_indices} muestra la evolución del PIB por trabajador y del PIB por hora trabajada para las doce grandes ramas de actividad económica. Ambas series se presentan como índices con base 2010 = 100, lo que permite comparar la trayectoria de las dos medidas de productividad dentro de cada actividad.",
+        r"La Figura \ref{fig:pib_geih_productividad_sector_indices} muestra la evolución del PIB por trabajador y del PIB por hora trabajada para las trece grandes ramas comparables de actividad económica. Ambas series se presentan como índices con base 2010 = 100, lo que permite comparar la trayectoria de las dos medidas de productividad dentro de cada actividad.",
         "",
         r"\begin{figure}[H]",
         r"  \centering",
@@ -2901,7 +2922,7 @@ def write_va_61_section(summary: pd.DataFrame) -> None:
             + growth_items(summary, ascending=False, n=4)
             + ". En contraste, las mayores contracciones se observan en "
             + growth_items(summary, ascending=True, n=4)
-            + ". Esta evidencia no reemplaza la medición de productividad laboral de las doce agrupaciones, pero sí permite ubicar con mayor precisión las actividades que explican el dinamismo o el rezago del PIB.",
+            + ". Esta evidencia no reemplaza la medición de productividad laboral de las trece ramas principales, pero sí permite ubicar con mayor precisión las actividades que explican el dinamismo o el rezago del PIB.",
         ]
     )
     (SECTION_DIR / "valor_agregado_61_agrupaciones.tex").write_text(
@@ -3164,7 +3185,10 @@ def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
     y_max = math.ceil((max(max(row["cumulative"] + [row["pib"]]) for row in rows) + 0.7) / 1) * 1
     y_min = min(y_min, -1)
 
-    img_w, img_h = 2400, 3150
+    n_panels = len(rows)
+    cols = 4 if n_panels > 12 else 3
+    panel_rows = math.ceil(n_panels / cols)
+    img_w, img_h = (3200, 3050) if cols == 4 else (2400, 3150)
     img = Image.new("RGB", (img_w, img_h), "white")
     draw = ImageDraw.Draw(img)
     font = ImageFont.load_default()
@@ -3208,7 +3232,6 @@ def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
     margin_left, margin_right = 95, 70
     top_start, bottom_margin = 220, 120
     gap_x, gap_y = 70, 90
-    cols, panel_rows = 3, 4
     panel_w = (img_w - margin_left - margin_right - gap_x * (cols - 1)) / cols
     panel_h = (img_h - top_start - bottom_margin - gap_y * (panel_rows - 1)) / panel_rows
 
@@ -3343,7 +3366,10 @@ def draw_sector_index_panels(sector: pd.DataFrame) -> None:
     y_min = min(y_min, 50)
     y_max = max(y_max, 150)
 
-    img_w, img_h = 2400, 3000
+    n_panels = len(SECTOR_ORDER)
+    cols = 4 if n_panels > 12 else 3
+    rows = math.ceil(n_panels / cols)
+    img_w, img_h = (3200, 3000) if cols == 4 else (2400, 3000)
     img = Image.new("RGB", (img_w, img_h), "white")
     draw = ImageDraw.Draw(img)
     font = ImageFont.load_default()
@@ -3394,7 +3420,6 @@ def draw_sector_index_panels(sector: pd.DataFrame) -> None:
     margin_left, margin_right = 95, 70
     top_start, bottom_margin = 230, 170
     gap_x, gap_y = 70, 85
-    cols, rows = 3, 4
     panel_w = (img_w - margin_left - margin_right - gap_x * (cols - 1)) / cols
     panel_h = (img_h - top_start - bottom_margin - gap_y * (rows - 1)) / rows
 
