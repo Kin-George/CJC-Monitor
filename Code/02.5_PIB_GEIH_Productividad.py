@@ -2007,7 +2007,8 @@ def sector_zoom_lines(
     if use61:
         note = (
             r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. "
-            r"Cuando la GEIH no separa ocupados y horas al mismo nivel de las cuentas nacionales, se agrupan las subactividades del DANE hasta el nivel laboral comparable. "
+            r"%Cuando la GEIH no separa ocupados y horas al mismo nivel de las cuentas nacionales, se agrupan las subactividades del DANE hasta el nivel laboral comparable. "
+            "\n"
             r"Fuente: cálculos propios con DANE y GEIH.}"
         )
     else:
