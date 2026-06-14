@@ -56,9 +56,12 @@ SECTOR_SHORT = {
     "L": "Inmobiliarias",
     "M+N": "Profesionales y administrativas",
     "O+P+Q": "Adm. pública, educación y salud",
-    "R+S": "Arte, entretenimiento y otros servicios",
+    "R+S": "Arte, recreación y otros servicios",
     "T": "Hogares como empleadores",
 }
+
+SECTOR_DISPLAY = dict(SECTOR_SHORT)
+SECTOR_DISPLAY["R+S"] = "Arte, entretenimiento, recreación y otros servicios"
 
 SECTOR_INTRO_LEAD = {
     "A": "La actividad agropecuaria comprende cultivos, apoyo agropecuario y actividades mixtas; café; ganadería; silvicultura; y pesca y acuicultura.",
@@ -72,7 +75,7 @@ SECTOR_INTRO_LEAD = {
     "L": "La actividad inmobiliaria reúne alquiler, compra, venta, administración e intermediación de bienes inmuebles, tanto propios o arrendados como de terceros.",
     "M+N": "La agrupación de actividades profesionales y administrativas combina actividades profesionales, científicas y técnicas con servicios administrativos y de apoyo.",
     "O+P+Q": "La agrupación de administración pública, educación y salud combina administración pública y defensa, educación, salud humana y servicios sociales.",
-    "R+S": "La agrupación de arte, entretenimiento y otros servicios reúne actividades artísticas, de entretenimiento y recreación, juegos de azar, actividades deportivas, servicios personales, asociaciones y reparación de computadores y efectos personales.",
+    "R+S": "La agrupación de arte, entretenimiento, recreación y otros servicios reúne actividades artísticas, de entretenimiento y recreación, juegos de azar, actividades deportivas, servicios personales, asociaciones y reparación de computadores y efectos personales.",
     "T": "La actividad de hogares como empleadores reúne el trabajo doméstico remunerado en hogares y la producción no diferenciada de los hogares para uso propio.",
 }
 
@@ -104,7 +107,7 @@ SECTOR_BODY_SUBJECT = {
     "L": "la actividad inmobiliaria",
     "M+N": "la agrupación de actividades profesionales y administrativas",
     "O+P+Q": "la agrupación de administración pública, educación y salud",
-    "R+S": "la agrupación de arte, entretenimiento y otros servicios",
+    "R+S": "la agrupación de arte, entretenimiento, recreación y otros servicios",
     "T": "la actividad de hogares como empleadores",
 }
 
@@ -120,7 +123,7 @@ SECTOR_PRODUCTIVITY_SUBJECT = {
     "L": "de las actividades inmobiliarias",
     "M+N": "de las actividades profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S": "de arte, entretenimiento y otros servicios",
+    "R+S": "de arte, entretenimiento, recreación y otros servicios",
     "T": "de hogares como empleadores",
 }
 
@@ -141,7 +144,7 @@ SECTOR_ZOOM_CAPTION = {
     "L": "inmobiliarias",
     "M+N": "profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S": "de arte, entretenimiento y otros servicios",
+    "R+S": "de arte, entretenimiento, recreación y otros servicios",
     "T": "de hogares como empleadores",
 }
 
@@ -157,7 +160,7 @@ SECTOR_ZOOM_CONTEXT = {
     "L": "de las actividades inmobiliarias",
     "M+N": "de las actividades profesionales y administrativas",
     "O+P+Q": "de administración pública, educación y salud",
-    "R+S": "de arte, entretenimiento y otros servicios",
+    "R+S": "de arte, entretenimiento, recreación y otros servicios",
     "T": "de hogares como empleadores",
 }
 
@@ -185,12 +188,12 @@ AGG25_SHORT = {
     "O": "Administración pública",
     "P": "Educación",
     "Q": "Salud y servicios sociales",
-    "R+S": "Arte, entretenimiento y otros servicios",
+    "R+S": "Arte, recreación y otros servicios",
     "T": "Hogares como empleadores",
 }
 
 AGG61_SHORT = {
-    "104-108": "Arte, entretenimiento y recreación",
+    "104-108": "Arte, recreación y otros servicios",
     "075": "Transporte aéreo",
     "085-088": "Actividades financieras y de seguros",
     "102,103": "Salud humana y servicios sociales",
@@ -533,7 +536,7 @@ AGG61_SHORT.update(
         "100": "Educación de mercado",
         "101": "Educación de no mercado",
         "102,103": "Salud y servicios sociales",
-        "104-108": "Arte, entretenimiento y recreación",
+        "104-108": "Arte, recreación y otros servicios",
         "109": "Hogares como empleadores",
     }
 )
@@ -2111,7 +2114,7 @@ def write_sector_detail_sections(
     lines = [
         r"\textbf{A continuación se presenta la descomposición del crecimiento de cada una de las trece ramas comparables de actividad económica CIIU.} En particular, se presenta el PIB real de la actividad, el número de ocupados, el PIB por trabajador, las horas semanales por trabajador y el PIB por hora trabajada para los años 2010 y 2025. La lectura conjunta de estas variables permite distinguir si los aumentos en la producción responden principalmente a variaciones en el empleo, a cambios en las horas trabajadas o un aumento de la productividad por hora.",
         "",
-        r"Las trece ramas comparables parten de las agrupaciones reportadas por el DANE en cuentas nacionales. La diferencia frente a las doce agrupaciones usuales es que este informe separa la agrupación R+S+T en dos ramas: arte, entretenimiento y otros servicios, por un lado, y hogares como empleadores, por el otro. Esta separación es posible porque tanto las cuentas nacionales como la GEIH permiten construir numeradores y denominadores laborales comparables para ambas ramas. Como las series se expresan en pesos constantes, pueden presentarse pequeñas diferencias de aditividad entre niveles de agregación.",
+        r"Las trece ramas comparables parten de las agrupaciones reportadas por el DANE en cuentas nacionales. La diferencia frente a las doce agrupaciones usuales es que este informe separa la agrupación R+S+T en dos ramas: arte, entretenimiento, recreación y otros servicios, por un lado, y hogares como empleadores, por el otro. Esta separación es posible porque tanto las cuentas nacionales como la GEIH permiten construir numeradores y denominadores laborales comparables para ambas ramas. Como las series se expresan en pesos constantes, pueden presentarse pequeñas diferencias de aditividad entre niveles de agregación.",
         "",
     ]
     total_start = total[total["anio"] == 2010].iloc[0]
@@ -2128,19 +2131,20 @@ def write_sector_detail_sections(
         end = part[part["anio"] == 2025].iloc[0]
         metrics = build_metric_rows(start, end)
         metrics["sector_code"] = code
-        metrics["sector"] = SECTOR_SHORT[code]
+        sector_display = SECTOR_DISPLAY[code]
+        metrics["sector"] = sector_display
         detail_rows.append(metrics)
 
         lines.extend(
             [
-                f"\\subsection{{{escape_latex(SECTOR_SHORT[code])}}}",
+                f"\\subsection{{{escape_latex(sector_display)}}}",
                 "",
                 sector_intro_level_paragraph(code, metrics, aggregate_levels),
                 "",
                 *metric_table_lines(
                     metrics,
                     f"tab:sector_{latex_id(code)}_productividad",
-                    f"{SECTOR_SHORT[code]}: PIB, ocupados, horas y productividad laboral, 2010--2025",
+                    f"{sector_display}: PIB, ocupados, horas y productividad laboral, 2010--2025",
                 ),
                 "",
                 sector_detail_comparison_paragraph(code, metrics, aggregate_growth),
@@ -2467,10 +2471,17 @@ def summarize_productivity_disaggregation(
     return pd.DataFrame(rows)
 
 
+def narrative_activity_label(row: pd.Series) -> str:
+    code = str(row.get("codigo", row.get("group_code", "")))
+    if code == "R+S":
+        return SECTOR_DISPLAY["R+S"]
+    return str(row["actividad_corta"])
+
+
 def growth_items(summary: pd.DataFrame, ascending: bool, n: int = 3) -> str:
     data = summary.sort_values("crecimiento_anualizado", ascending=ascending).head(n)
     return "; ".join(
-        f"{row['actividad_corta']} ({fmt_pct_es(row['crecimiento_anualizado'])})"
+        f"{narrative_activity_label(row)} ({fmt_pct_es(row['crecimiento_anualizado'])})"
         for _, row in data.iterrows()
     )
 
@@ -2478,7 +2489,8 @@ def growth_items(summary: pd.DataFrame, ascending: bool, n: int = 3) -> str:
 def productivity_items(summary: pd.DataFrame, column: str, ascending: bool, n: int = 3) -> str:
     data = summary.sort_values(column, ascending=ascending).head(n)
     return "; ".join(
-        f"{row['actividad_corta']} ({fmt_pct_es(row[column])})" for _, row in data.iterrows()
+        f"{narrative_activity_label(row)} ({fmt_pct_es(row[column])})"
+        for _, row in data.iterrows()
     )
 
 
@@ -2638,17 +2650,18 @@ def write_productivity_25_section(
         metrics["codigo"] = code
         metrics["actividad"] = end["group_label_short"]
         detail_rows.append(metrics)
+        activity_display = SECTOR_DISPLAY.get(code, end["group_label_short"])
 
         lines.extend(
             [
-                f"\\subsection{{{escape_latex(end['group_label_short'])}}}",
+                f"\\subsection{{{escape_latex(activity_display)}}}",
                 "",
-                f"Esta agrupación corresponde al nivel laboral comparable para {escape_latex(end['group_label_short'])}.",
+                f"Esta agrupación corresponde al nivel laboral comparable para {escape_latex(activity_display)}.",
                 "",
                 *metric_table_lines(
                     metrics,
                     f"tab:agg25_{latex_id(code)}_productividad",
-                    f"{end['group_label_short']}: PIB, ocupados, horas y productividad laboral, 2010--2025",
+                    f"{activity_display}: PIB, ocupados, horas y productividad laboral, 2010--2025",
                 ),
                 "",
                 sector_comparison_paragraph(metrics, aggregate_growth),
