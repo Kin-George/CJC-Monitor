@@ -1,0 +1,63 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[top=1.8cm, bottom=1.8cm, left=1.9cm, right=1.9cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\captionsetup{font=small, labelfont=bf}
+\graphicspath{{Paper/figures/}{figures/}}
+\hypersetup{colorlinks=true, urlcolor=blue!55!black, linkcolor=black}
+
+\begin{document}
+
+\begin{center}
+\includegraphics[width=0.34\textwidth]{logo_cjc_palatino_horizontal.png}
+
+{\large\bfseries Comunicado de prensa}
+
+{\footnotesize Centro Javeriano de Competitividad \textbar{} Pontificia Universidad Javeriana}
+\end{center}
+
+{\Large\bfseries Colombia necesita una agenda de productividad para que el crecimiento se traduzca en mejores ingresos}
+
+{\large El primer informe de la serie \emph{Informes sobre la Productividad en Colombia} muestra que entre 2010 y 2025 el PIB real creció 3,16\% anual, pero el PIB por trabajador aumentó apenas 1,05\% anual.}
+
+\textbf{Bogotá, junio de 2026.} En un momento en el que Colombia discute el rumbo económico del próximo gobierno, el Centro Javeriano de Competitividad presenta el informe \emph{Dinámicas de la Productividad Laboral por Actividad Económica en Colombia 2010--2025}. El documento combina información de cuentas nacionales del DANE con datos de ocupados y horas trabajadas de la Gran Encuesta Integrada de Hogares (GEIH) para medir cuánto produce la economía por trabajador y por hora trabajada.
+
+El principal mensaje es claro: Colombia ha crecido, pero una parte importante de ese crecimiento provino del aumento en el número de ocupados, no de aumentos suficientemente rápidos en la productividad laboral. Entre 2010 y 2025, el PIB real creció 3,16\% anual. De ese crecimiento, cerca de 2 puntos porcentuales se explican por el aumento de la población ocupada. En contraste, el PIB por hora trabajada creció 1,51\% anual y las horas semanales por trabajador cayeron 0,45\% anual. Como resultado, el PIB por trabajador aumentó 1,05\% anual.
+
+\textbf{La productividad debe estar en el centro de la agenda económica.} Crear empleo sigue siendo indispensable, pero el aumento sostenido de los ingresos requiere que cada trabajador y cada hora trabajada generen más valor. Esto exige una agenda que impulse inversión, adopción tecnológica, formación pertinente, infraestructura, competencia, reducción de barreras regulatorias y una mejor asignación de trabajadores y capital entre actividades económicas.
+
+El informe también muestra que la productividad no ha evolucionado de manera uniforme entre actividades económicas. Arte, entretenimiento, recreación y otros servicios, información y comunicaciones, y el sector agropecuario registraron los mayores crecimientos del PIB por trabajador. En contraste, servicios públicos, minería y construcción presentaron caídas en el PIB por trabajador y en el PIB por hora trabajada. Esta heterogeneidad es clave para la política pública: no basta con una agenda general de crecimiento; Colombia necesita diagnósticos sectoriales que permitan identificar dónde están los cuellos de botella y dónde existen oportunidades de expansión productiva.
+
+\textbf{El Centro Javeriano de Competitividad propone convertir esta evidencia en una agenda de trabajo con el sector público y el sector privado.} El propósito de la serie de informes es ofrecer diagnósticos periódicos sobre productividad, competitividad y mercado laboral, y poner esa evidencia al servicio del diseño de políticas públicas, estrategias empresariales, consultorías y convenios que ayuden a elevar la capacidad productiva del país.
+
+\emph{``La discusión económica no debería limitarse a cuántos empleos se crean. La pregunta decisiva es cómo lograr que cada trabajador y cada hora de trabajo produzcan más valor. Sin aumentos de productividad, Colombia tendrá dificultades para sostener mejoras duraderas en salarios, competitividad y bienestar'',} señala el Centro Javeriano de Competitividad.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.86\textwidth]{Paper/figures/fig_pib_geih_descomposicion_crecimiento.png}
+  \caption{Descomposición del crecimiento anual del PIB, 2010--2025}
+  \label{fig:comunicado_descomposicion}
+  \caption*{\footnotesize Nota: las barras intermedias muestran contribuciones aproximadas en puntos porcentuales al crecimiento anualizado del PIB real. Fuente: cálculos propios con base en Cuentas Nacionales y GEIH del DANE.}
+\end{figure}
+
+\setcounter{table}{1}
+\input{Paper/sections/pib_geih_productividad_sector_table}
+
+{\footnotesize \textbf{Informe completo y materiales de replicación:} \url{https://github.com/Kin-George/CJC-Monitor}.}
+
+{\footnotesize \textbf{Contacto:} Centro Javeriano de Competitividad, Pontificia Universidad Javeriana.}
+
+\end{document}
