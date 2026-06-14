@@ -1,9 +1,10 @@
 \documentclass[11pt, a4paper]{article}
 
-\usepackage[top=1.8cm, bottom=1.8cm, left=1.9cm, right=1.9cm]{geometry}
+\usepackage[margin=2.1cm]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish]{babel}
+\usepackage{array}
 \usepackage{booktabs}
 \usepackage{caption}
 \usepackage{float}
@@ -11,55 +12,80 @@
 \usepackage{hyperref}
 \usepackage{xcolor}
 
+\definecolor{cjcblue}{RGB}{31,97,169}
+
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt}
 \setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
 \setlength{\floatsep}{8pt plus 2pt minus 2pt}
-\captionsetup{font=small, labelfont=bf}
+\renewcommand{\arraystretch}{1.08}
+\captionsetup{font=normalsize, labelfont=bf}
 \graphicspath{{Paper/figures/}{figures/}}
-\hypersetup{colorlinks=true, urlcolor=blue!55!black, linkcolor=black}
+\hypersetup{colorlinks=true, urlcolor=cjcblue, linkcolor=black}
 
 \begin{document}
 
 \begin{center}
-\includegraphics[width=0.34\textwidth]{logo_cjc_palatino_horizontal.png}
+\includegraphics[width=0.30\textwidth]{logo_cjc_palatino_horizontal.png}
 
-{\large\bfseries Comunicado de prensa}
+\textbf{Comunicado de prensa}
 
-{\footnotesize Centro Javeriano de Competitividad \textbar{} Pontificia Universidad Javeriana}
+Centro Javeriano de Competitividad \textbar{} Pontificia Universidad Javeriana
 \end{center}
 
-{\Large\bfseries Colombia necesita de una agenda para acelerar el crecimiento de la productividad}
+{\color{cjcblue}\rule{\textwidth}{0.8pt}}
 
-{\large El primer informe de la serie \emph{Informes sobre la Productividad en Colombia} muestra que entre 2010 y 2025 el PIB real creció 3,16\% anual, pero el PIB por trabajador aumentó apenas 1,05\% anual.}
+\textbf{Colombia necesita una agenda para acelerar el crecimiento de la productividad}
 
-\textbf{Bogotá, junio de 2026.} 
+\textbf{El primer informe de la serie Informes sobre la Productividad en Colombia muestra que entre 2010 y 2025 el PIB real creció 3,16\% anual, pero el PIB por trabajador aumentó apenas 1,05\% anual.}
 
-En un momento en el que Colombia discute el rumbo económico del próximo gobierno, el \textbf{Centro Javeriano de Competitividad} presenta el informe \textbf{Dinámicas de la Productividad Laboral por Actividad Económica en Colombia 2010--2025}. %El documento combina información de cuentas nacionales del DANE con datos de ocupados y horas trabajadas de la Gran Encuesta Integrada de Hogares (GEIH) para medir cuánto produce la economía por trabajador y por hora trabajada.
+\textbf{Bogotá, junio de 2026.} En un momento en el que Colombia discute el rumbo económico del próximo gobierno, el \textbf{Centro Javeriano de Competitividad} presenta el informe \textbf{Dinámicas de la Productividad Laboral por Actividad Económica en Colombia 2010--2025}. El documento combina información de cuentas nacionales del DANE con datos de ocupados y horas trabajadas de la Gran Encuesta Integrada de Hogares para medir cuánto produce la economía por trabajador y por hora trabajada.
 
-\textbf{Colombia ha crecido, pero una parte importante de ese crecimiento provino del aumento en el número de ocupados, no de aumentos suficientemente rápidos en la productividad laboral.} Entre 2010 y 2025, el PIB real creció por encima del 3\% anual. De ese crecimiento, cerca de 2 puntos porcentuales se explican por el aumento de la población ocupada. En contraste, el PIB por hora trabajada creció 1,5\% anual y las horas semanales por trabajador cayeron 0,5\% anual. Como resultado, el PIB por trabajador aumentó 1\% anual. La Figura \ref{fig:comunicado_} 
+\textbf{Colombia ha crecido, pero buena parte de ese crecimiento provino del aumento en el número de ocupados, no de aumentos suficientemente rápidos en la productividad laboral.} Entre 2010 y 2025, el PIB real creció por encima del 3\% anual. De ese crecimiento, cerca de 2 puntos porcentuales se explican por el aumento de la población ocupada. En contraste, el PIB por hora trabajada creció 1,5\% anual y las horas semanales por trabajador cayeron 0,5\% anual. Como resultado, el PIB por trabajador aumentó cerca de 1\% anual. La Figura \ref{fig:comunicado_descomposicion} resume de dónde vino ese crecimiento.
 
-\textbf{La productividad debe estar en el centro de la agenda económica.} Crear empleo sigue siendo indispensable, pero el aumento sostenido de los ingresos requiere que cada trabajador y cada hora trabajada generen más valor. Esto exige una agenda que impulse la inversión, la adopción tecnológica, la formación pertinente, la infraestructura, la competencia, la reducción de barreras regulatorias y de esta forma fomentar una mejor asignación de trabajadores y capital entre actividades económicas.
+\textbf{La productividad debe estar en el centro de la agenda económica.} Crear empleo sigue siendo indispensable, pero el aumento sostenido de los ingresos requiere que cada trabajador y cada hora trabajada generen más valor. Esto exige una agenda que impulse la inversión, la adopción tecnológica, la formación pertinente, la infraestructura, la competencia, la reducción de barreras regulatorias y un mejor uso de los trabajadores y del capital entre actividades económicas.
 
-\textbf{El informe también muestra que la productividad no ha evolucionado de manera uniforme entre actividades económicas.} El Cuadro ... muestra... Arte, entretenimiento, recreación y otros servicios, información y comunicaciones, y el sector agropecuario registraron los mayores crecimientos del PIB por trabajador. En contraste, servicios públicos, minería y construcción presentaron caídas en el PIB por trabajador y en el PIB por hora trabajada. \textbf{Colombia necesita diagnósticos sectoriales que permitan identificar dónde están los cuellos de botella y dónde existen oportunidades de expansión productiva.}
+\textbf{El informe también muestra que la productividad avanzó a ritmos muy distintos entre actividades económicas.} Las mayores mejoras del PIB por trabajador se observaron en arte, recreación y otros servicios; información y comunicaciones; y agropecuario. En contraste, servicios públicos, minería y construcción registraron caídas tanto en el PIB por trabajador como en el PIB por hora trabajada. Estos resultados muestran que Colombia necesita mirar con mayor detalle qué actividades están elevando su capacidad de producir más valor y en cuáles se están acumulando rezagos.
 
-\textbf{El Centro Javeriano de Competitividad propone convertir esta evidencia en una agenda de trabajo con el sector público y el sector privado.} El propósito de la serie de informes es ofrecer diagnósticos periódicos sobre productividad, competitividad y mercado laboral, y poner esa evidencia al servicio del diseño de políticas públicas y estrategias empresariales para elevar la capacidad productiva del país.
+\textbf{El Centro Javeriano de Competitividad propone convertir esta evidencia en una agenda de trabajo con el sector público y el sector privado.} El propósito de la serie de informes es ofrecer evidencia periódica sobre productividad, competitividad y mercado laboral, y ponerla al servicio del diseño de políticas públicas y estrategias empresariales para elevar la capacidad productiva del país.
 
-\emph{``La discusión económica no debe limitarse a cuántos empleos se crean. La pregunta es cómo lograr que cada trabajador y cada hora de trabajo produzcan más valor. Sin aumentos de productividad, Colombia tendrá dificultades para sostener mejoras duraderas en salarios, competitividad, bienestar y reducción de la pobreza'',} señala Oliver Pardo, Director del Centro Javeriano de Competitividad.
+``La discusión económica no debe limitarse a cuántos empleos se crean. La pregunta es cómo lograr que cada trabajador y cada hora de trabajo produzcan más valor. Sin aumentos de productividad, Colombia tendrá dificultades para sostener mejoras duraderas en salarios, competitividad, bienestar y reducción de la pobreza'', señala \textbf{Oliver Pardo, Director del Centro Javeriano de Competitividad}.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.86\textwidth]{Paper/figures/fig_pib_geih_descomposicion_crecimiento.png}
-  \caption{Descomposición del crecimiento anual del PIB, 2010--2025}
+  \includegraphics[width=0.82\textwidth]{fig_pib_geih_descomposicion_crecimiento.png}
+  \caption{De dónde vino el crecimiento anual del PIB, 2010--2025}
   \label{fig:comunicado_descomposicion}
-  \caption*{\footnotesize Nota: las barras intermedias muestran contribuciones aproximadas en puntos porcentuales al crecimiento anualizado del PIB real. Fuente: cálculos propios con base en Cuentas Nacionales y GEIH del DANE.}
+  \caption*{Nota: las barras intermedias muestran cuánto aporta cada componente, en puntos porcentuales, al crecimiento anualizado del PIB real. Fuente: cálculos propios con base en Cuentas Nacionales y GEIH del DANE.}
 \end{figure}
 
-\setcounter{table}{1}
-\input{Paper/sections/pib_geih_productividad_sector_table}
+\begin{table}[H]
+\centering
+\caption{Actividades con mayor y menor crecimiento de la productividad laboral, 2010--2025}
+\label{tab:comunicado_ranking_productividad}
+\begin{tabular}{c>{\raggedright\arraybackslash}p{6.2cm}rr}
+\toprule
+Puesto & Actividad económica & PIB por trabajador & PIB por hora \\
+& & Crec. anual & Crec. anual \\
+\midrule
+\multicolumn{4}{l}{\textbf{Mayores crecimientos}} \\
+1 & Arte, recreación y otros servicios & 7,32\% & 7,28\% \\
+2 & Información y comunicaciones & 3,73\% & 4,49\% \\
+3 & Agropecuario & 2,79\% & 3,27\% \\
+\addlinespace
+\multicolumn{4}{l}{\textbf{Menores crecimientos}} \\
+1 & Servicios públicos & -3,75\% & -3,13\% \\
+2 & Minas & -3,60\% & -3,09\% \\
+3 & Construcción & -3,08\% & -2,63\% \\
+\bottomrule
+\end{tabular}
+\caption*{Nota: actividades ordenadas por el crecimiento anual del PIB por trabajador. El PIB por hora se reporta como medida complementaria. Fuente: cálculos propios con DANE y GEIH.}
+\end{table}
 
-{\footnotesize \textbf{Informe completo y materiales de replicación:} \url{https://github.com/Kin-George/CJC-Monitor}.}
+{\color{cjcblue}\rule{\textwidth}{0.6pt}}
 
-{\footnotesize \textbf{Contacto:} Centro Javeriano de Competitividad, Pontificia Universidad Javeriana.}
+\textbf{Informe completo y materiales de replicación:} \url{https://github.com/Kin-George/CJC-Monitor}
+
+\textbf{Contacto:} Centro Javeriano de Competitividad, Pontificia Universidad Javeriana.
 
 \end{document}
