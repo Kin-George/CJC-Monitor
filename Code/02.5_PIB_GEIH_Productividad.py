@@ -2736,7 +2736,7 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
         "",
         r"\begin{figure}[H]",
         r"  \centering",
-        r"  \includegraphics[width=\textwidth]{Paper/figures/fig_pib_geih_productividad_sector_indices.png}",
+        r"  \makebox[\textwidth][c]{\includegraphics[width=1.18\textwidth]{Paper/figures/fig_pib_geih_productividad_sector_indices.png}}",
         r"  \caption{Productividad laboral por grandes ramas de actividad económica, índice 2010 = 100}",
         r"  \label{fig:pib_geih_productividad_sector_indices}",
         r"  \caption*{\footnotesize Nota: el PIB por trabajador y el PIB por hora trabajada se indexan a 2010 = 100 dentro de cada actividad económica. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE y GEIH.}",
