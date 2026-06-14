@@ -3200,18 +3200,18 @@ def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
     y_min = min(y_min, -1)
 
     n_panels = len(rows)
-    cols = 4 if n_panels > 12 else 3
+    cols = 3
     panel_rows = math.ceil(n_panels / cols)
-    img_w, img_h = (3200, 3050) if cols == 4 else (2400, 3150)
+    img_w, img_h = 2400, 3200
     img = Image.new("RGB", (img_w, img_h), "white")
     draw = ImageDraw.Draw(img)
     font = ImageFont.load_default()
-    title_font = ImageFont.truetype("arial.ttf", 54) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    subtitle_font = ImageFont.truetype("arial.ttf", 34) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    panel_font = ImageFont.truetype("arial.ttf", 31) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    axis_font = ImageFont.truetype("arial.ttf", 24) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    value_font = ImageFont.truetype("arial.ttf", 24) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
-    small_font = ImageFont.truetype("arial.ttf", 22) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    title_font = ImageFont.truetype("arial.ttf", 58) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    subtitle_font = ImageFont.truetype("arial.ttf", 36) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    panel_font = ImageFont.truetype("arial.ttf", 34) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    axis_font = ImageFont.truetype("arial.ttf", 29) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    value_font = ImageFont.truetype("arial.ttf", 30) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
+    small_font = ImageFont.truetype("arial.ttf", 27) if Path(r"C:\Windows\Fonts\arial.ttf").exists() else font
 
     def text_width(text: str, used_font) -> int:
         bbox = draw.textbbox((0, 0), text, font=used_font)
@@ -3248,6 +3248,7 @@ def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
     gap_x, gap_y = 70, 90
     panel_w = (img_w - margin_left - margin_right - gap_x * (cols - 1)) / cols
     panel_h = (img_h - top_start - bottom_margin - gap_y * (panel_rows - 1)) / panel_rows
+    last_row_count = n_panels - (panel_rows - 1) * cols
 
     tick_start = math.floor(y_min / 2) * 2
     tick_end = math.ceil(y_max / 2) * 2
@@ -3255,7 +3256,8 @@ def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
     for idx, row_data in enumerate(rows):
         row = idx // cols
         col = idx % cols
-        panel_left = margin_left + col * (panel_w + gap_x)
+        col_offset = (cols - last_row_count) / 2 if row == panel_rows - 1 and last_row_count < cols else 0
+        panel_left = margin_left + (col + col_offset) * (panel_w + gap_x)
         panel_top = top_start + row * (panel_h + gap_y)
         panel_right = panel_left + panel_w
         panel_bottom = panel_top + panel_h
@@ -3266,7 +3268,7 @@ def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
 
         for line_no, text in enumerate(wrap_text(row_data["sector"], panel_font, int(panel_w - 16))[:2]):
             text_x = panel_left + (panel_w - text_width(text, panel_font)) / 2
-            draw.text((text_x, panel_top + line_no * 34), text, fill="#222222", font=panel_font)
+            draw.text((text_x, panel_top + line_no * 37), text, fill="#222222", font=panel_font)
 
         for tick in range(tick_start, tick_end + 1, 2):
             y = y_pos(tick, plot_top, plot_bottom)
@@ -3281,7 +3283,7 @@ def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
 
         labels = [item[0] for item in row_data["components"]] + ["PIB"]
         centers = np.linspace(plot_left + 70, plot_right - 70, 4)
-        bar_w = 78
+        bar_w = 88
         running = 0.0
         for bar_idx, (_, value, color) in enumerate(row_data["components"]):
             center = centers[bar_idx]
@@ -3291,7 +3293,7 @@ def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
             rect_top, rect_bottom = min(y0, y1), max(y0, y1)
             draw.rectangle((x0, rect_top, x1, rect_bottom), fill=color, outline="#333333", width=2)
             label = fmt_pp(value)
-            label_y = rect_top - 27 if value >= 0 else rect_bottom + 5
+            label_y = rect_top - 33 if value >= 0 else rect_bottom + 6
             draw.text((center - text_width(label, value_font) / 2, label_y), label, fill="#222222", font=value_font)
             running += value
             if bar_idx < 2:
@@ -3304,7 +3306,7 @@ def draw_sector_growth_decomposition_panels(sector: pd.DataFrame) -> None:
         y1 = y_pos(row_data["pib"], plot_top, plot_bottom)
         draw.rectangle((x0, min(y0, y1), x1, max(y0, y1)), fill="#555555", outline="#333333", width=2)
         total_label = fmt_pp(row_data["pib"])
-        label_y = min(y0, y1) - 27 if row_data["pib"] >= 0 else max(y0, y1) + 5
+        label_y = min(y0, y1) - 33 if row_data["pib"] >= 0 else max(y0, y1) + 6
         draw.text((center - text_width(total_label, value_font) / 2, label_y), total_label, fill="#222222", font=value_font)
 
         for center, label in zip(centers, labels):
