@@ -2736,7 +2736,7 @@ def write_productivity_61_section(data: pd.DataFrame, summary: pd.DataFrame) -> 
         "",
         r"\begin{figure}[H]",
         r"  \centering",
-        r"  \makebox[\textwidth][c]{\includegraphics[width=1.18\textwidth]{Paper/figures/fig_pib_geih_productividad_sector_indices.png}}",
+        r"  \makebox[\textwidth][c]{\includegraphics[width=1.03\textwidth]{Paper/figures/fig_pib_geih_productividad_sector_indices.png}}",
         r"  \caption{Productividad laboral por grandes ramas de actividad económica, índice 2010 = 100}",
         r"  \label{fig:pib_geih_productividad_sector_indices}",
         r"  \caption*{\footnotesize Nota: el PIB por trabajador y el PIB por hora trabajada se indexan a 2010 = 100 dentro de cada actividad económica. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE y GEIH.}",
@@ -3381,9 +3381,9 @@ def draw_sector_index_panels(sector: pd.DataFrame) -> None:
     y_max = max(y_max, 150)
 
     n_panels = len(SECTOR_ORDER)
-    cols = 4 if n_panels > 12 else 3
+    cols = 3
     rows = math.ceil(n_panels / cols)
-    img_w, img_h = (3200, 3000) if cols == 4 else (2400, 3000)
+    img_w, img_h = 2400, 3200
     img = Image.new("RGB", (img_w, img_h), "white")
     draw = ImageDraw.Draw(img)
     font = ImageFont.load_default()
@@ -3436,11 +3436,13 @@ def draw_sector_index_panels(sector: pd.DataFrame) -> None:
     gap_x, gap_y = 70, 85
     panel_w = (img_w - margin_left - margin_right - gap_x * (cols - 1)) / cols
     panel_h = (img_h - top_start - bottom_margin - gap_y * (rows - 1)) / rows
+    last_row_count = n_panels - (rows - 1) * cols
 
     for idx, code in enumerate(SECTOR_ORDER):
         row = idx // cols
         col = idx % cols
-        panel_left = margin_left + col * (panel_w + gap_x)
+        col_offset = (cols - last_row_count) / 2 if row == rows - 1 and last_row_count < cols else 0
+        panel_left = margin_left + (col + col_offset) * (panel_w + gap_x)
         panel_top = top_start + row * (panel_h + gap_y)
         panel_right = panel_left + panel_w
         panel_bottom = panel_top + panel_h
