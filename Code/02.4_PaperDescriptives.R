@@ -987,7 +987,8 @@ formal_worker_profile_2025 <- geih_model %>%
     formal_size_group = factor(
       formal_size_group,
       levels = c("Formal solo", "Formal 2-100", "Formal 101+")
-    )
+    ),
+    share_formal_workers = workers / sum(workers)
   ) %>%
   arrange(formal_size_group)
 
@@ -1003,8 +1004,8 @@ formal_profile_value <- function(variable, formatter = format_pct) {
 
 formal_profile_rows <- c(
   paste0(
-    "    Weighted workers & ",
-    paste(format_count(formal_worker_profile_2025$workers), collapse = " & "),
+    "    Share of formal workers & ",
+    paste(format_pct(formal_worker_profile_2025$share_formal_workers), collapse = " & "),
     " \\\\"
   ),
   paste0(
@@ -1081,7 +1082,7 @@ write_latex_table(
     "  \\vspace{0.3em}",
     "  \\begin{minipage}{0.95\\textwidth}",
     "  \\footnotesize",
-    "  Notes: Statistics use 2025 formal workers and GEIH expansion weights. The 2--100 column pools all formal workers in firm-size categories from 2--3 through 51--100 workers. Higher education corresponds to workers classified as superior or university educated. Sector rows report the weighted share of each group located in the listed economic activity.",
+    "  Notes: Statistics use 2025 formal workers and GEIH expansion weights. The first row reports each column's share of all formal workers in the table. The 2--100 column pools all formal workers in firm-size categories from 2--3 through 51--100 workers. Higher education corresponds to workers classified as superior or university educated. Sector rows report the weighted share of each group located in the listed economic activity.",
     "  \\end{minipage}",
     "\\end{table}"
   ),

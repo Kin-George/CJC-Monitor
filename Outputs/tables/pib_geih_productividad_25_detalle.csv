@@ -1,0 +1,126 @@
+﻿indicador,unidad,valor_2010,valor_2025,crecimiento_anualizado,codigo,actividad
+PIB real,Billones de pesos de 2015,39.943,63.89479103692442,0.031814559170768586,A,Agropecuario
+Ocupados,Millones de personas,2.9563862670199876,3.1279581670110264,0.0037679330202080585,A,Agropecuario
+PIB por trabajador,Millones de pesos de 2015 por ocupado,13.510751435150661,20.4269966621645,0.02794134503397805,A,Agropecuario
+Horas semanales por trabajador,Horas por semana,44.970425784523464,41.9631070638652,-0.004603653213696712,A,Agropecuario
+PIB por hora trabajada,Miles de pesos de 2015 por hora,5.7776224807967935,9.361243396250927,0.03269551706990703,A,Agropecuario
+PIB real,Billones de pesos de 2015,38.427,34.717519913310866,-0.006744875944656892,B,Minas
+Ocupados,Millones de personas,0.19136927809326013,0.299823920173771,0.030385180856968175,B,Minas
+PIB por trabajador,Millones de pesos de 2015 por ocupado,200.80025583455117,115.79302909917726,-0.03603512306994183,B,Minas
+Horas semanales por trabajador,Horas por semana,49.74448249971961,45.96930817391204,-0.005247887653233252,B,Minas
+PIB por hora trabajada,Miles de pesos de 2015 por hora,77.62757169009532,48.44077732720253,-0.030949655732901094,B,Minas
+PIB real,Billones de pesos de 2015,23.932,33.45819576995425,0.022590063213846934,C01,"Alimentos, bebidas y tabaco"
+Ocupados,Millones de personas,0.5978903662379812,0.6586972624801123,0.006478001179062387,C01,"Alimentos, bebidas y tabaco"
+PIB por trabajador,Millones de pesos de 2015 por ocupado,40.02740527596029,50.79449646409368,0.01600835986073168,C01,"Alimentos, bebidas y tabaco"
+Horas semanales por trabajador,Horas por semana,45.42224781346889,44.75032332118254,-0.0009930635997928983,C01,"Alimentos, bebidas y tabaco"
+PIB por hora trabajada,Miles de pesos de 2015 por hora,16.946712917633583,21.82816049580883,0.017018323738358765,C01,"Alimentos, bebidas y tabaco"
+PIB real,Billones de pesos de 2015,9.642,11.916225372851645,0.014218291361486557,C02,"Textiles, confecciones y cuero"
+Ocupados,Millones de personas,0.6150423450456902,0.6809200403536807,0.006806644959345798,C02,"Textiles, confecciones y cuero"
+PIB por trabajador,Millones de pesos de 2015 por ocupado,15.676969362627734,17.500183085611884,0.007361539019679508,C02,"Textiles, confecciones y cuero"
+Horas semanales por trabajador,Horas por semana,46.065842033300264,43.08189402458657,-0.00445464218543512,C02,"Textiles, confecciones y cuero"
+PIB por hora trabajada,Miles de pesos de 2015 por hora,6.544549426288531,7.811680290182942,0.011869053591946344,C02,"Textiles, confecciones y cuero"
+PIB real,Billones de pesos de 2015,5.406,6.4334044730749405,0.01166716438439619,C03,"Madera, papel e impresión"
+Ocupados,Millones de personas,0.1434257515516847,0.1372301954568444,-0.00293951885751087,C03,"Madera, papel e impresión"
+PIB por trabajador,Millones de pesos de 2015 por ocupado,37.69197610271473,46.88038555696797,0.014649746447848333,C03,"Madera, papel e impresión"
+Horas semanales por trabajador,Horas por semana,46.09142908828001,41.30511287217136,-0.007282732909696388,C03,"Madera, papel e impresión"
+PIB por hora trabajada,Miles de pesos de 2015 por hora,15.726257758132462,21.826495884071047,0.022093379539805724,C03,"Madera, papel e impresión"
+PIB real,Billones de pesos de 2015,30.822000000000003,39.62718999617694,0.016893561062127915,C04,"Refinación, químicos y minerales"
+Ocupados,Millones de personas,0.2583840879827256,0.37181388673071347,0.024559825931260937,C04,"Refinación, químicos y minerales"
+PIB por trabajador,Millones de pesos de 2015 por ocupado,119.28753136710426,106.57802575533432,-0.007482496068167643,C04,"Refinación, químicos y minerales"
+Horas semanales por trabajador,Horas por semana,48.96705416550388,45.769451023250205,-0.004491937445356919,C04,"Refinación, químicos y minerales"
+PIB por hora trabajada,Miles de pesos de 2015 por hora,46.847641274793894,44.78046759465519,-0.0030040526393492195,C04,"Refinación, químicos y minerales"
+PIB real,Billones de pesos de 2015,13.136,15.482182079860861,0.011015782923302186,C05,"Metalurgia, maquinaria y equipo"
+Ocupados,Millones de personas,0.34619827163893685,0.31748116890551353,-0.005756245255520209,C05,"Metalurgia, maquinaria y equipo"
+PIB por trabajador,Millones de pesos de 2015 por ocupado,37.94357475504681,48.765670522236725,0.01686913103430343,C05,"Metalurgia, maquinaria y equipo"
+Horas semanales por trabajador,Horas por semana,49.015859811440166,45.748687394733466,-0.00458816306498655,C05,"Metalurgia, maquinaria y equipo"
+PIB por hora trabajada,Miles de pesos de 2015 por hora,14.886694484433791,20.498978431997998,0.02155619744824344,C05,"Metalurgia, maquinaria y equipo"
+PIB real,Billones de pesos de 2015,4.986999999999999,6.039120710309391,0.012843369760881629,C06,Muebles y otras manufactureras
+Ocupados,Millones de personas,0.23283383491324383,0.34716483606371557,0.026989435002138684,C06,Muebles y otras manufactureras
+PIB por trabajador,Millones de pesos de 2015 por ocupado,21.418708332739545,17.395542644189412,-0.013774304544065363,C06,Muebles y otras manufactureras
+Horas semanales por trabajador,Horas por semana,45.870633844331714,44.148899124476415,-0.0025472259632081107,C06,Muebles y otras manufactureras
+PIB por hora trabajada,Miles de pesos de 2015 por hora,8.979562797538428,7.577304822283702,-0.011255749518265468,C06,Muebles y otras manufactureras
+PIB real,Billones de pesos de 2015,14.887999999999998,21.878697007613656,0.02599601252424044,D,"Electricidad, gas y vapor"
+Ocupados,Millones de personas,0.055666190007535046,0.08343828043470441,0.02734960078241344,D,"Electricidad, gas y vapor"
+PIB por trabajador,Millones de pesos de 2015 por ocupado,267.4513919128422,262.2141407232749,-0.001317553690722173,D,"Electricidad, gas y vapor"
+Horas semanales por trabajador,Horas por semana,48.97939093652175,46.0230718839825,-0.004141850981052353,D,"Electricidad, gas y vapor"
+PIB por hora trabajada,Miles de pesos de 2015 por hora,105.00939068412879,109.56634189924046,0.0028360437609638023,D,"Electricidad, gas y vapor"
+PIB real,Billones de pesos de 2015,7.03,8.391880274814245,0.01187514954418667,E,"Agua, saneamiento y desechos"
+Ocupados,Millones de personas,0.06860091239612467,0.2211988413751089,0.08117716281383736,E,"Agua, saneamiento y desechos"
+PIB por trabajador,Millones de pesos de 2015 por ocupado,102.4767711456434,37.93817464253032,-0.06409866546689491,E,"Agua, saneamiento y desechos"
+Horas semanales por trabajador,Horas por semana,48.11503005056966,43.2635240397285,-0.007060604267194459,E,"Agua, saneamiento y desechos"
+PIB por hora trabajada,Miles de pesos de 2015 por hora,40.958243928040254,16.863635077834964,-0.05744364806636093,E,"Agua, saneamiento y desechos"
+PIB real,Billones de pesos de 2015,22.035,20.466390757447634,-0.004911103090774915,F01,Edificaciones
+Ocupados,Millones de personas,0.6470555075236512,1.0280010358434257,0.03134381300026634,F01,Edificaciones
+PIB por trabajador,Millones de pesos de 2015 por ocupado,34.05426542821688,19.90892036471144,-0.03515308438761333,F01,Edificaciones
+Horas semanales por trabajador,Horas por semana,49.29013196564641,46.0669413698525,-0.0044984058755476175,F01,Edificaciones
+PIB por hora trabajada,Miles de pesos de 2015 por hora,13.28642658595108,8.31103263604309,-0.03079319881855791,F01,Edificaciones
+PIB real,Billones de pesos de 2015,9.751,11.939425353011725,0.01358992383173474,F02,Obras civiles
+Ocupados,Millones de personas,0.1171378138441624,0.21244230855047225,0.040486045034572316,F02,Obras civiles
+PIB por trabajador,Millones de pesos de 2015 por ocupado,83.24382776148202,56.2007889787883,-0.025849574178521406,F02,Obras civiles
+Horas semanales por trabajador,Horas por semana,51.13383036094585,46.79434465078393,-0.005894821332428801,F02,Obras civiles
+PIB por hora trabajada,Miles de pesos de 2015 por hora,31.306922056627844,23.096474830535545,-0.020073080066677185,F02,Obras civiles
+PIB real,Billones de pesos de 2015,8.542,9.082220023194926,0.00409660063909012,F03,Actividades especializadas de construcción
+Ocupados,Millones de personas,0.19428274607351254,0.33994172464932637,0.03800158341338955,F03,Actividades especializadas de construcción
+PIB por trabajador,Millones de pesos de 2015 por ocupado,43.96684817687252,26.716991074172697,-0.0326637100714291,F03,Actividades especializadas de construcción
+Horas semanales por trabajador,Horas por semana,46.297761359960845,43.73052550207968,-0.0037959256465677216,F03,Actividades especializadas de construcción
+PIB por hora trabajada,Miles de pesos de 2015 por hora,18.262574393606,11.748962172053078,-0.028977781930471957,F03,Actividades especializadas de construcción
+PIB real,Billones de pesos de 2015,51.171,89.04674245592864,0.037623045515907005,G,Comercio y reparación
+Ocupados,Millones de personas,3.1446644737500353,3.9027589035457777,0.01450259111062735,G,Comercio y reparación
+PIB por trabajador,Millones de pesos de 2015 por ocupado,16.272324258167426,22.81635751955544,0.022789941206526,G,Comercio y reparación
+Horas semanales por trabajador,Horas por semana,49.35539142590251,46.015337716305346,-0.004660588205034788,G,Comercio y reparación
+PIB por hora trabajada,Miles de pesos de 2015 por hora,6.340326833936029,9.53543161739783,0.027579064072281945,G,Comercio y reparación
+PIB real,Billones de pesos de 2015,32.834999999999994,49.775561576499086,0.028123477551572185,H,Transporte y almacenamiento
+Ocupados,Millones de personas,1.1517181356474306,1.7925080377381233,0.029929885859793615,H,Transporte y almacenamiento
+PIB por trabajador,Millones de pesos de 2015 por ocupado,28.509579717212684,27.768668551862337,-0.0017539138663923426,H,Transporte y almacenamiento
+Horas semanales por trabajador,Horas por semana,57.09216822947256,49.10897625365549,-0.00999142502839645,H,Transporte y almacenamiento
+PIB por hora trabajada,Miles de pesos de 2015 por hora,9.603088574325833,10.874037650638936,0.008320646275453036,H,Transporte y almacenamiento
+PIB real,Billones de pesos de 2015,23.796,40.636968158629095,0.036321454440124024,I,Alojamiento y comida
+Ocupados,Millones de personas,0.8633264591965568,1.7338397050460204,0.04758416755364192,I,Alojamiento y comida
+PIB por trabajador,Millones de pesos de 2015 por ocupado,27.563153829601642,23.437557716761646,-0.010751129563001172,I,Alojamiento y comida
+Horas semanales por trabajador,Horas por semana,46.377463352720376,42.01847468677648,-0.006558680186893762,I,Alojamiento y comida
+PIB por hora trabajada,Miles de pesos de 2015 por hora,11.429272156131638,10.726764051854634,-0.004220127844990484,I,Alojamiento y comida
+PIB real,Billones de pesos de 2015,18.256,31.286882674260237,0.03656636156932591,J,Información y comunicaciones
+Ocupados,Millones de personas,0.4020371967131855,0.3980526886598733,-0.0006637951495040983,J,Información y comunicaciones
+PIB por trabajador,Millones de pesos de 2015 por ocupado,45.408733692429664,78.59985264662826,0.03725488633167218,J,Información y comunicaciones
+Horas semanales por trabajador,Horas por semana,49.58710919119004,44.40198873581926,-0.007336068373510751,J,Información y comunicaciones
+PIB por hora trabajada,Miles de pesos de 2015 por hora,17.61032036236782,34.04207043096726,0.044920494524385735,J,Información y comunicaciones
+PIB real,Billones de pesos de 2015,22.312,53.11234172668485,0.05952318170777726,K,Financieras y seguros
+Ocupados,Millones de personas,0.22083495304202078,0.42655397783145677,0.044865554348358705,K,Financieras y seguros
+PIB por trabajador,Millones de pesos de 2015 por ocupado,101.03473065585972,124.51493711698781,0.014028242483847597,K,Financieras y seguros
+Horas semanales por trabajador,Horas por semana,45.21008873048085,44.19043094184513,-0.001519643691555883,K,Financieras y seguros
+PIB por hora trabajada,Miles de pesos de 2015 por hora,42.97659314757772,54.18634691822161,0.015571549382189742,K,Financieras y seguros
+PIB real,Billones de pesos de 2015,59.932,90.07380494244305,0.02753348280988499,L,Inmobiliarias
+Ocupados,Millones de personas,0.2140472855106472,0.316513852209824,0.02642101005844233,L,Inmobiliarias
+PIB por trabajador,Millones de pesos de 2015 por ocupado,279.99420715390875,284.58092533255433,0.0010838366913195063,L,Inmobiliarias
+Horas semanales por trabajador,Horas por semana,51.11191531262232,45.780134163007844,-0.007317588534577646,L,Inmobiliarias
+PIB por hora trabajada,Miles de pesos de 2015 por hora,105.34733341130118,119.54333910561772,0.008463356587022464,L,Inmobiliarias
+PIB real,Billones de pesos de 2015,45.354,70.05786743184963,0.029412461240473364,M+N,Profesionales y administrativas
+Ocupados,Millones de personas,0.8354017370207548,1.6508839489426006,0.04645705776670517,M+N,Profesionales y administrativas
+PIB por trabajador,Millones de pesos de 2015 por ocupado,54.29004751862662,42.436579189422766,-0.016287908232572534,M+N,Profesionales y administrativas
+Horas semanales por trabajador,Horas por semana,42.105345484571835,39.57989793721439,-0.004115065965101139,M+N,Profesionales y administrativas
+PIB por hora trabajada,Miles de pesos de 2015 por hora,24.795886682387138,20.618751029363793,-0.012223141300222617,M+N,Profesionales y administrativas
+PIB real,Billones de pesos de 2015,31.284,62.72372487733989,0.04746769464251033,O,Administración pública
+Ocupados,Millones de personas,0.49884721863817183,0.8122684920920301,0.03303603269687505,O,Administración pública
+PIB por trabajador,Millones de pesos de 2015 por ocupado,62.71258780474665,77.22043325328602,0.013970143817694014,O,Administración pública
+Horas semanales por trabajador,Horas por semana,50.93339575868174,46.18327163534786,-0.0065054915318533135,O,Administración pública
+PIB por hora trabajada,Miles de pesos de 2015 por hora,23.678203386466087,32.15468023831735,0.020609711654187457,O,Administración pública
+PIB real,Billones de pesos de 2015,31.079,52.722125802032885,0.03586157922983935,P,Educación
+Ocupados,Millones de personas,0.7473729246987799,1.0075592241345608,0.020114407949813007,P,Educación
+PIB por trabajador,Millones de pesos de 2015 por ocupado,41.58432687741001,52.32657747470712,0.015436671766723142,P,Educación
+Horas semanales por trabajador,Horas por semana,37.444259602649936,39.06177852699296,0.0028233809898394746,P,Educación
+PIB por hora trabajada,Miles de pesos de 2015 por hora,21.357041166858895,25.761252405767635,0.01257777891500056,P,Educación
+PIB real,Billones de pesos de 2015,23.573,49.78863414168853,0.051108844405916454,Q,Salud y servicios sociales
+Ocupados,Millones de personas,0.6990246415635624,1.0133705095546737,0.025065739393616004,Q,Salud y servicios sociales
+PIB por trabajador,Millones de pesos de 2015 por ocupado,33.72270246049188,49.13171803624735,0.025406277872194183,Q,Salud y servicios sociales
+Horas semanales por trabajador,Horas por semana,43.992689641293246,44.451098410792106,0.0006913186646635427,Q,Salud y servicios sociales
+PIB por hora trabajada,Miles de pesos de 2015 por hora,14.741392584619176,21.255734171844473,0.02469788509858417,Q,Salud y servicios sociales
+PIB real,Billones de pesos de 2015,10.994,40.570915803534106,0.09094771894553455,R+S,"Arte, recreación y otros servicios"
+Ocupados,Millones de personas,0.9658754278311716,1.235100196529484,0.016526578167798123,R+S,"Arte, recreación y otros servicios"
+PIB por trabajador,Millones de pesos de 2015 por ocupado,11.38242022026227,32.84827896354853,0.07321120999302755,R+S,"Arte, recreación y otros servicios"
+Horas semanales por trabajador,Horas por semana,39.32476881100864,39.576646973929726,0.00042573402766055146,R+S,"Arte, recreación y otros servicios"
+PIB por hora trabajada,Miles de pesos de 2015 por hora,5.566280569772302,15.961374211212252,0.0727545018982434,R+S,"Arte, recreación y otros servicios"
+PIB real,Billones de pesos de 2015,4.276,6.72433785508047,0.030641095210144353,T,Hogares como empleadores
+Ocupados,Millones de personas,0.6723325600844939,0.7159043419566725,0.004195005051401246,T,Hogares como empleadores
+PIB por trabajador,Millones de pesos de 2015 por ocupado,6.359947820261186,9.392788199470699,0.026335612132814434,T,Hogares como empleadores
+Horas semanales por trabajador,Horas por semana,45.89918727637802,40.50960266094704,-0.008292648825559357,T,Hogares como empleadores
+PIB por hora trabajada,Miles de pesos de 2015 por hora,2.6646809259326836,4.4589561593416684,0.03491782219559503,T,Hogares como empleadores

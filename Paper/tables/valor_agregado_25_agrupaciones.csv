@@ -1,0 +1,26 @@
+﻿codigo,actividad,actividad_corta,va_2010_billones,va_2025_billones,crecimiento_anualizado
+A,"Agricultura, ganadería, caza, silvicultura y pesca",Agropecuario,39.943,63.89479103692441,0.031814559170768586
+B,Explotación de minas y canteras,Minas,38.427,34.717519913310866,-0.006744875944656892
+C01,Elaboración de productos alimenticios; elaboración de bebidas; elaboración de productos de tabaco,"Alimentos, bebidas y tabaco",23.932,33.45819576995425,0.022590063213846934
+C02,"Fabricación de productos textiles; confección de prendas de vestir; curtido y recurtido de cueros; fabricación de calzado; fabricación de artículos de viaje, maletas, bolsos de mano y artículos similares, y fabricación de artículos de talabartería y guarnicionería; adobo y teñido de pieles ","Textiles, confecciones y cuero",9.642,11.916225372851644,0.014218291361486557
+C03,"Transformación de la madera y fabricación de productos de madera y de corcho, excepto muebles; fabricación de artículos de cestería y espartería; fabricación de papel, cartón y productos de papel y de cartón; actividades de impresión; producción de copias a partir de grabaciones originales","Madera, papel e impresión",5.406,6.4334044730749405,0.01166716438439619
+C04,"Coquización, fabricación de productos de la refinación del petróleo y actividad de mezcla de combustibles; fabricación de sustancias y productos químicos; fabricación de productos farmacéuticos, sustancias químicas medicinales y productos botánicos de uso farmacéutico; fabricación de productos de caucho y de plástico; fabricación de otros productos minerales no metálicos","Refinación, químicos y minerales",30.822000000000003,39.62718999617694,0.016893561062127915
+C05,"Fabricación de productos metalúrgicos básicos; fabricación de productos elaborados de metal, excepto maquinaria y equipo; fabricación de aparatos y equipo eléctrico; fabricación de productos informáticos, electrónicos y ópticos; fabricación de maquinaria y equipo n.c.p.; fabricación de vehículos automotores, remolques y semirremolques; fabricación de otros tipos de equipo de transporte; instalación, mantenimiento y reparación especializado de maquinaria y equipo","Metalurgia, maquinaria y equipo",13.136,15.482182079860861,0.011015782923302186
+C06,"Fabricación de muebles, colchones y somieres; otras industrias manufactureras",Muebles y otras manufactureras,4.986999999999999,6.039120710309392,0.012843369760881629
+D,"Suministro de electricidad, gas, vapor y aire acondicionado","Electricidad, gas y vapor",14.887999999999998,21.878697007613656,0.02599601252424044
+E,"Distribución de agua; evacuación y tratamiento de aguas residuales, gestión de desechos y actividades de saneamiento ambiental","Agua, saneamiento y desechos",7.03,8.391880274814245,0.01187514954418667
+F01,Construcción de edificaciones residenciales y no residenciales,Edificaciones,22.035,20.466390757447634,-0.004911103090774915
+F02,"Construcción de carreteras y vías de ferrocarril, de proyectos de servicio público y de otras obras de ingeniería civil",Obras civiles,9.751,11.939425353011725,0.01358992383173474
+F03,Actividades especializadas para la construcción de edificaciones y obras de ingeniería civil (Alquiler de maquinaria y equipo de construcción con operadores),Actividades especializadas de construcción,8.542,9.082220023194926,0.00409660063909012
+G,Comercio al por mayor y al por menor; reparación de vehículos automotores y motocicletas,Comercio y reparación,51.171,89.04674245592865,0.037623045515907005
+H,Transporte y almacenamiento,Transporte y almacenamiento,32.834999999999994,49.775561576499086,0.028123477551572185
+I,Alojamiento y servicios de comida,Alojamiento y comida,23.796,40.636968158629095,0.036321454440124024
+J,Información y comunicaciones,Información y comunicaciones,18.256,31.28688267426024,0.03656636156932591
+K,Actividades financieras y de seguros,Financieras y seguros,22.312,53.112341726684846,0.05952318170777726
+L,Actividades inmobiliarias,Inmobiliarias,59.932,90.07380494244305,0.02753348280988499
+M+N,"Actividades profesionales, científicas y técnicas; Actividades de servicios administrativos y de apoyo",Profesionales y administrativas,45.354,70.05786743184963,0.029412461240473364
+O,Administración pública y defensa; planes de seguridad social de afiliación obligatoria,Administración pública,31.284,62.72372487733989,0.04746769464251033
+P,Educación,Educación,31.079,52.722125802032885,0.03586157922983935
+Q,Actividades de atención de la salud humana y de servicios sociales,Salud y servicios sociales,23.573,49.78863414168853,0.051108844405916454
+R+S,"Actividades artísticas, de entretenimiento y recreación y otras actividades de servicios","Arte, recreación y otros servicios",10.994,40.570915803534106,0.09094771894553455
+T,Actividades de los hogares individuales en calidad de empleadores; actividades no diferenciadas de los hogares individuales como productores de bienes y servicios para uso propio,Hogares como empleadores,4.276,6.72433785508047,0.030641095210144353

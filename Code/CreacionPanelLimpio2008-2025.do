@@ -593,7 +593,7 @@ replace subrama_det_cod = 34 if rama4d_var_u == "RAMA4D_R4" & inlist(rama4d_div,
 
 * Inmobiliarias, profesionales y administrativas
 replace subrama_det_cod = 35 if rama4d_var_u == "RAMA4D_R4" & rama4d_div == 68
-replace subrama_det_cod = 36 if rama4d_var_u == "RAMA4D_R4" & inlist(rama4d_div, 69, 70, 71, 73)
+replace subrama_det_cod = 36 if rama4d_var_u == "RAMA4D_R4" & inlist(rama4d_div, 69, 70, 71, 73, 74, 75)
 replace subrama_det_cod = 37 if rama4d_var_u == "RAMA4D_R4" & rama4d_div == 72
 replace subrama_det_cod = 38 if rama4d_var_u == "RAMA4D_R4" & inrange(rama4d_div, 77, 82)
 
@@ -672,6 +672,7 @@ gen byte miss_educ     = missing(educ_hom_cod)
 gen byte miss_form     = missing(formalidad_cod)
 gen byte miss_sexo     = missing(sexo_hom_cod)
 gen byte miss_sector   = missing(sector_hom_cod)
+gen byte miss_subrama  = missing(subrama_det_cod)
 gen byte miss_edad     = missing(edad)
 gen byte miss_depto    = missing(depto_cod)
 gen byte miss_area     = missing(area_cod)
@@ -687,6 +688,7 @@ collapse ///
     (sum) miss_form = miss_form ///
     (sum) miss_sexo = miss_sexo ///
     (sum) miss_sector = miss_sector ///
+    (sum) miss_subrama = miss_subrama ///
     (sum) miss_edad = miss_edad ///
     (sum) miss_depto = miss_depto ///
     (sum) miss_area = miss_area ///
@@ -713,6 +715,14 @@ drop if missing(sector_hom_cod)
 drop if missing(edad)
 drop if missing(depto_cod)
 drop if missing(posicion_ocupacional_cod)
+
+count if missing(subrama_det_cod)
+if r(N) > 0 {
+    di as error "Quedan observaciones sin subrama_det_cod despues de la homologacion."
+    di as error "Revisar reglas CIIU Rev. 3 / Rev. 4 antes de guardar la base para productividad."
+    tab anio rama4d_div if missing(subrama_det_cod), missing
+    exit 459
+}
 
 *====================================================
 * 9. IPC y salario real
@@ -870,7 +880,7 @@ compress
 * 13. Guardar base individual
 *====================================================
 
-save "Outputs/tables/Paper-GEIH_base_modelo_personas_2008_2025.dta", replace
+save "Outputs/tables/Paper2-GEIH_base_modelo_personas_2008_2025.dta", replace
 
 di "===================================================="
 di "BASE INDIVIDUAL PARA MODELOS CREADA CORRECTAMENTE"
