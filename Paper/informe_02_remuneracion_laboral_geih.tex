@@ -1,0 +1,131 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+\usepackage{mdframed}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage[margin=10pt, font=small, labelfont=bf]{caption}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{comment}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+\setlength{\textfloatsep}{18pt plus 2pt minus 4pt}
+\setlength{\floatsep}{12pt plus 2pt minus 2pt}
+\setlength{\intextsep}{14pt plus 2pt minus 2pt}
+\setstretch{1.15}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+
+\titleformat{\section}
+  {\large\bfseries}{\thesection.}{0.5em}{}
+  [\vspace{2pt}\hrule\vspace{4pt}]
+\titleformat{\subsection}
+  {\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing{\section}{0pt}{18pt}{8pt}
+\titlespacing{\subsection}{0pt}{14pt}{6pt}
+
+\hypersetup{colorlinks=true, linkcolor=blue!60!black}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize Centro Javeriano de Competitividad}
+\fancyhead[R]{\footnotesize \reportnumber}
+\cfoot{\thepage}
+\setlength{\headheight}{14pt}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\geometry{margin=1in}
+\graphicspath{{Paper/figures/}{figures/}}
+\newcommand{\tablepath}{Paper/tables/}
+\newcommand{\figurelang}{es}
+\newcommand{\reportseries}{Informes sobre la Productividad en Colombia}
+\newcommand{\reportseriesdesc}{Evidencia para entender y fomentar la productividad}
+\newcommand{\reportnumber}{Informe 02}
+\newcommand{\reporttitle}{Remuneración Laboral por Trabajador y por Hora en Colombia 2010--2025}
+\newcommand{\reportsubtitle}{}
+\newcommand{\reportauthorone}{Oliver Pardo}
+\newcommand{\reportauthoroneaffil}{Profesor asociado del Departamento de Administración, Pontificia Universidad Javeriana y Director del Centro Javeriano de Competitividad}
+\newcommand{\reportauthortwo}{Jorge Orozco}
+\newcommand{\reportauthortwoaffil}{Consultor de investigación del Centro Javeriano de Competitividad, Pontificia Universidad Javeriana}
+\renewcommand{\contentsname}{Tabla de contenido}
+
+\title{\reporttitle\\\reportsubtitle}
+\author{\reportauthorone \and \reportauthortwo}
+\date{\today}
+
+\begin{document}
+
+\begin{titlepage}
+\thispagestyle{empty}
+\vspace*{0.6cm}
+
+\begin{center}
+\includegraphics[width=0.58\textwidth]{logo_cjc_palatino_horizontal.png}
+\end{center}
+
+\vspace{1.5cm}
+
+\begin{center}
+{\Large\bfseries \reportseries\par}
+\vspace{0.15cm}
+{\large \reportseriesdesc\par}
+
+\vspace{1.4cm}
+
+{\large\bfseries \reportnumber\par}
+\vspace{0.45cm}
+{\Huge\bfseries \reporttitle\par}
+\vspace{0.35cm}
+{\Large \reportsubtitle\par}
+\vspace{0.65cm}
+{\large\bfseries \reportauthorone\par}
+{\normalsize \reportauthoroneaffil\par}
+\vspace{0.25cm}
+{\large\bfseries \reportauthortwo\par}
+{\normalsize \reportauthortwoaffil\par}
+\end{center}
+
+\vfill
+
+\begin{center}
+{\large \today\par}
+\end{center}
+
+\end{titlepage}
+
+\begin{mdframed}[
+  linewidth=1pt,
+  linecolor=gray!60,
+  backgroundcolor=gray!6,
+  innertopmargin=12pt,
+  innerbottommargin=12pt,
+  innerleftmargin=14pt,
+  innerrightmargin=14pt
+]
+\section*{Resumen ejecutivo}
+\addcontentsline{toc}{section}{Resumen ejecutivo}
+\textbf{Este informe analiza la evolución de la remuneración laboral en Colombia entre 2010 y 2025.} El ejercicio se concentra en tres medidas: la remuneración laboral total, la remuneración por trabajador y la remuneración por hora trabajada. La primera muestra el tamaño de la masa de ingresos laborales; la segunda muestra cuánto recibe, en promedio, cada persona ocupada; la tercera muestra cuánto se remunera cada hora trabajada.
+
+\textbf{La remuneración laboral total aumentó a una tasa anual de 3,69\% entre 2010 y 2025.} Ese crecimiento combina un aumento de los ocupados de 2,09\% anual y un aumento de la remuneración por trabajador de 1,56\% anual. En otras palabras, una parte importante del aumento de la remuneración laboral total se explica por la expansión del empleo y no solamente por una mayor remuneración promedio de cada trabajador.
+
+\textbf{La remuneración por hora trabajada creció más rápido que la remuneración por trabajador.} Mientras la remuneración mensual por trabajador pasó de 1,5 a 1,9 millones de pesos constantes de 2025, con un crecimiento anual de 1,56\%, la remuneración por hora pasó de 7,4 a 10,1 miles de pesos constantes de 2025, con un crecimiento anual de 2,03\%. La diferencia se explica por la caída de las horas semanales promedio por trabajador, que pasaron de 46,8 a 43,7.
+
+\textbf{La formalidad sigue marcando una diferencia profunda en los niveles de remuneración.} En 2025, la remuneración mensual por trabajador formal fue de 2,9 millones de pesos constantes de 2025, frente a 1,1 millones en el empleo informal. Por hora trabajada, la remuneración formal fue de 14,5 miles de pesos constantes de 2025, frente a 5,9 miles en la informalidad. La brecha no desapareció durante el periodo.
+\end{mdframed}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{Paper/sections/CuerpoInformeRemuneracionGEIH}
+
+\end{document}
