@@ -43,6 +43,22 @@
 \newcommand{\fuente}[1]{\vspace{0.15cm}{\tiny\color{cjcgray}#1}}
 \newcommand{\idea}[1]{\textbf{\color{cjcblue}#1}}
 \newcommand{\cjcbar}{\textcolor{cjcyellow}{\rule{0.18\textwidth}{1.6pt}}\hspace{0.3em}\textcolor{cjcblue}{\rule{0.72\textwidth}{1.6pt}}}
+\newcommand{\trayectoriaframe}[1]{%
+  \begin{frame}{Trayectoria anual de la productividad}
+    \begin{center}
+      \includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{presentation_panels/fig_presentacion_indices_#1.png}
+    \end{center}
+    \fuente{Fuente: cálculos propios con DANE y GEIH.}
+  \end{frame}
+}
+\newcommand{\descomposicionframe}[1]{%
+  \begin{frame}{Descomposición del crecimiento por actividad}
+    \begin{center}
+      \includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{presentation_panels/fig_presentacion_descomposicion_#1.png}
+    \end{center}
+    \fuente{Fuente: cálculos propios con DANE y GEIH.}
+  \end{frame}
+}
 
 \title{Dinámicas de la Productividad Laboral por Actividad Económica en Colombia, 2010--2025}
 \subtitle{Informes sobre la Productividad en Colombia \\ Informe 01}
@@ -194,27 +210,33 @@
   \fuente{Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. Fuente: cálculos propios con DANE y GEIH.}
 \end{frame}
 
-\begin{frame}{Trayectorias anuales de la productividad}
-  \idea{La trayectoria anual muestra momentos distintos: algunos aumentos se concentraron antes de 2016, otros después de la pandemia.}
+\trayectoriaframe{A}
+\trayectoriaframe{B}
+\trayectoriaframe{C}
+\trayectoriaframe{DE}
+\trayectoriaframe{F}
+\trayectoriaframe{GHI}
+\trayectoriaframe{J}
+\trayectoriaframe{K}
+\trayectoriaframe{L}
+\trayectoriaframe{MN}
+\trayectoriaframe{OPQ}
+\trayectoriaframe{RS}
+\trayectoriaframe{T}
 
-  \vspace{0.1cm}
-  \begin{center}
-    \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{fig_pib_geih_productividad_sector_indices.png}
-  \end{center}
-
-  \fuente{Fuente: cálculos propios con DANE y GEIH.}
-\end{frame}
-
-\begin{frame}{Descomposición por actividad económica}
-  \idea{Las diferencias entre actividades reflejan combinaciones distintas de ocupación, horas trabajadas y productividad por hora.}
-
-  \vspace{0.1cm}
-  \begin{center}
-    \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{fig_pib_geih_descomposicion_sector.png}
-  \end{center}
-
-  \fuente{Fuente: cálculos propios con DANE y GEIH.}
-\end{frame}
+\descomposicionframe{A}
+\descomposicionframe{B}
+\descomposicionframe{C}
+\descomposicionframe{DE}
+\descomposicionframe{F}
+\descomposicionframe{GHI}
+\descomposicionframe{J}
+\descomposicionframe{K}
+\descomposicionframe{L}
+\descomposicionframe{MN}
+\descomposicionframe{OPQ}
+\descomposicionframe{RS}
+\descomposicionframe{T}
 
 \begin{frame}{Ocupación y productividad}
   \idea{Las actividades donde más creció la ocupación no fueron las mismas donde más aumentó la productividad.}
