@@ -3740,6 +3740,94 @@ g_lollipop_depto_crecimiento <- ggplot(
 
 g_lollipop_depto_crecimiento
 
+#--------------------------------------------------------
+# 1. Función robusta para limpiar nombres
+#--------------------------------------------------------
+
+limpiar_depto_key <- function(x) {
+  stringi::stri_trans_general(
+    stringr::str_squish(as.character(x)),
+    "Latin-ASCII"
+  ) |>
+    stringr::str_to_lower() |>
+    stringr::str_replace_all("[^a-z0-9]+", " ") |>
+    stringr::str_squish()
+}
+
+# Ahora para los 23 departamentos
+
+#--------------------------------------------------------
+# 1. Departamentos reportados desde 2010
+#--------------------------------------------------------
+
+deptos_24_info <- tibble::tribble(
+  ~depto, ~depto_label_24,
+  5,  "Antioquia",
+  8,  "Atlántico",
+  11, "Bogotá D.C.",
+  13, "Bolívar",
+  15, "Boyacá",
+  17, "Caldas",
+  18, "Caquetá",
+  19, "Cauca",
+  20, "Cesar",
+  23, "Córdoba",
+  25, "Cundinamarca",
+  27, "Chocó",
+  41, "Huila",
+  44, "La Guajira",
+  47, "Magdalena",
+  50, "Meta",
+  52, "Nariño",
+  54, "Norte de Santander",
+  63, "Quindío",
+  66, "Risaralda",
+  68, "Santander",
+  70, "Sucre",
+  73, "Tolima",
+  76, "Valle del Cauca"
+)
+
+#--------------------------------------------------------
+# 2. Tabla larga: ocupados por año y departamento
+#--------------------------------------------------------
+
+tabla_ocupados_24_long <- geih %>%
+  mutate(
+    depto = as.numeric(depto)
+  ) %>%
+  filter(
+    !is.na(anio),
+    anio >= 2010,
+    anio <= 2025,
+    !is.na(fex),
+    fex > 0,
+    depto %in% deptos_24_info$depto
+  ) %>%
+  group_by(anio, depto) %>%
+  summarise(
+    observaciones = n(),
+    ocupados = sum(fex, na.rm = TRUE),
+    ocupados_millones = ocupados / 1000000,
+    .groups = "drop"
+  ) %>%
+  left_join(
+    deptos_24_info,
+    by = "depto"
+  ) %>%
+  select(
+    anio,
+    depto,
+    departamento = depto_label_24,
+    observaciones,
+    ocupados,
+    ocupados_millones
+  ) %>%
+  arrange(depto, anio)
+
+tabla_ocupados_24_long
+
+
 #========================================================
 # GRÁFICO 18. Composición porcentual por departamento
 # Área apilada 100% incluyendo otros departamentos
