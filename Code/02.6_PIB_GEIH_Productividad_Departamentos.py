@@ -323,6 +323,73 @@ def write_summary_table(summary: pd.DataFrame) -> None:
     )
 
 
+def write_level_ranking_table(summary: pd.DataFrame) -> None:
+    table = summary.copy()
+    table["ranking_pib_trabajador"] = table["pib_trabajador_2024"].rank(ascending=False, method="min").astype(int)
+    table["ranking_pib_hora"] = table["pib_hora_2024"].rank(ascending=False, method="min").astype(int)
+    table = table.sort_values("ranking_pib_hora")
+
+    lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        rf"\caption{{Ranking departamental de niveles de productividad laboral, {END_YEAR}pr}}",
+        r"\label{tab:pib_geih_productividad_departamento_ranking_niveles}",
+        r"\scriptsize",
+        r"\begin{tabular}{lrrrr}",
+        r"\toprule",
+        rf"Departamento & PIB/trab. {END_YEAR}pr & Puesto & PIB/hora {END_YEAR}pr & Puesto \\",
+        r"\midrule",
+    ]
+    for _, row in table.iterrows():
+        lines.append(
+            f"{escape_latex(row['departamento'])} & "
+            f"{fmt_num_es(row['pib_trabajador_2024'], 1)} & "
+            f"{int(row['ranking_pib_trabajador'])} & "
+            f"{fmt_num_es(row['pib_hora_2024'] / 1000, 1)} & "
+            f"{int(row['ranking_pib_hora'])} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. La tabla está ordenada por el nivel de PIB por hora trabajada en 2024pr. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\end{table}",
+        ]
+    )
+
+    table[
+        [
+            "depto",
+            "departamento",
+            "pib_trabajador_2024",
+            "ranking_pib_trabajador",
+            "pib_hora_2024",
+            "ranking_pib_hora",
+        ]
+    ].to_csv(
+        TABLE_DIR / "pib_geih_productividad_departamento_ranking_niveles.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    table[
+        [
+            "depto",
+            "departamento",
+            "pib_trabajador_2024",
+            "ranking_pib_trabajador",
+            "pib_hora_2024",
+            "ranking_pib_hora",
+        ]
+    ].to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_departamento_ranking_niveles.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    (SECTION_DIR / "pib_geih_productividad_departamento_ranking_niveles.tex").write_text(
+        "\n".join(lines), encoding="utf-8"
+    )
+
+
 def metric_rows(start: pd.Series, end: pd.Series) -> list[tuple[str, str, str, str]]:
     return [
         (
@@ -411,12 +478,13 @@ def write_correlation_table(summary: pd.DataFrame) -> None:
         ("Crec. ocupados", "Crec. PIB por hora", "crec_ocupados", "crec_pib_hora"),
         ("Crec. horas totales", "Crec. PIB por trabajador", "crec_horas", "crec_pib_trabajador"),
         ("Crec. horas totales", "Crec. PIB por hora", "crec_horas", "crec_pib_hora"),
+        ("PIB por trabajador inicial", "Crec. PIB por trabajador", "pib_trabajador_2010", "crec_pib_trabajador"),
         ("PIB por hora inicial", "Crec. PIB por hora", "pib_hora_2010", "crec_pib_hora"),
     ]
     lines = [
         r"\begin{table}[H]",
         r"\centering",
-        r"\caption{Correlaciones departamentales entre crecimiento del trabajo y crecimiento de la productividad}",
+        r"\caption{Correlaciones departamentales seleccionadas sobre crecimiento y productividad}",
         r"\label{tab:pib_geih_productividad_departamento_correlaciones}",
         r"\begin{tabular}{llr}",
         r"\toprule",
@@ -747,6 +815,134 @@ def draw_department_correlation_scatter(summary: pd.DataFrame) -> None:
         img.save(directory / "fig_pib_geih_productividad_departamento_correlaciones.png")
 
 
+def draw_department_convergence_scatter(summary: pd.DataFrame) -> None:
+    data = summary.dropna(
+        subset=["pib_trabajador_2010", "pib_hora_2010", "crec_pib_trabajador", "crec_pib_hora"]
+    ).copy()
+    title_font, label_font, small_font, note_font, tiny_font = fonts()
+    img = Image.new("RGB", (2500, 1500), "white")
+    draw = ImageDraw.Draw(img)
+    draw.text(
+        (90, 45),
+        f"Nivel inicial y crecimiento de la productividad laboral, {START_YEAR}--{END_YEAR}pr",
+        fill="#222222",
+        font=title_font,
+    )
+    draw.text(
+        (90, 105),
+        "Cada punto representa un departamento; la línea roja muestra la tendencia lineal simple",
+        fill="#555555",
+        font=label_font,
+    )
+
+    panels = [
+        (
+            90,
+            230,
+            1200,
+            1220,
+            "pib_trabajador_2010",
+            "crec_pib_trabajador",
+            "PIB por trabajador en 2010",
+            "Crec. PIB por trabajador",
+            "millones de pesos de 2015",
+            1.0,
+        ),
+        (
+            1330,
+            230,
+            2440,
+            1220,
+            "pib_hora_2010",
+            "crec_pib_hora",
+            "PIB por hora en 2010",
+            "Crec. PIB por hora",
+            "miles de pesos de 2015",
+            1000.0,
+        ),
+    ]
+
+    label_offsets = {
+        "Bogotá D.C.": (-120, -36),
+        "Meta": (-110, 12),
+        "Quindío": (16, -30),
+        "Caquetá": (16, 12),
+        "Risaralda": (16, -28),
+        "Chocó": (16, -20),
+        "La Guajira": (-130, 12),
+        "Cundinamarca": (16, -34),
+        "Antioquia": (16, 12),
+    }
+
+    for left, top, right, bottom, x_col, y_col, x_title, y_title, x_unit, divisor in panels:
+        plot_left, plot_top = left + 150, top + 90
+        plot_right, plot_bottom = right - 60, bottom - 145
+        x_values = data[x_col] / divisor
+        y_values = data[y_col] * 100
+        x_min = math.floor(x_values.min() / 5) * 5 if divisor == 1000.0 else math.floor(x_values.min() / 10) * 10
+        x_max = math.ceil(x_values.max() / 5) * 5 if divisor == 1000.0 else math.ceil(x_values.max() / 10) * 10
+        if x_max == x_min:
+            x_max += 1
+        y_min = math.floor(min(y_values.min(), 0) - 1)
+        y_max = math.ceil(y_values.max() + 1)
+
+        def x_pos(value: float) -> float:
+            return plot_left + (value - x_min) / (x_max - x_min) * (plot_right - plot_left)
+
+        def y_pos(value: float) -> float:
+            return plot_bottom - (value - y_min) / (y_max - y_min) * (plot_bottom - plot_top)
+
+        draw.text((left, top), y_title, fill="#222222", font=label_font)
+        draw.rectangle((plot_left, plot_top, plot_right, plot_bottom), outline="#333333", width=2)
+
+        x_step = 10 if divisor == 1.0 else 5
+        for tick in range(int(x_min), int(x_max) + 1, x_step):
+            x = x_pos(tick)
+            draw.line((x, plot_top, x, plot_bottom), fill="#eeeeee", width=1)
+            draw.text((x - 30, plot_bottom + 18), f"{tick}", fill="#555555", font=small_font)
+        for tick in range(int(y_min), int(y_max) + 1, 1):
+            y = y_pos(tick)
+            draw.line((plot_left, y, plot_right, y), fill="#eeeeee", width=1)
+            draw.text((plot_left - 90, y - 15), f"{tick}%", fill="#555555", font=small_font)
+        if y_min < 0 < y_max:
+            draw.line((plot_left, y_pos(0), plot_right, y_pos(0)), fill="#999999", width=2)
+
+        xs = x_values.astype(float).to_numpy()
+        ys = y_values.astype(float).to_numpy()
+        slope, intercept = np.polyfit(xs, ys, 1)
+        draw.line(
+            (x_pos(x_min), y_pos(slope * x_min + intercept), x_pos(x_max), y_pos(slope * x_max + intercept)),
+            fill="#b44b3f",
+            width=4,
+        )
+        corr = np.corrcoef(xs, ys)[0, 1]
+        draw.text((plot_left + 18, plot_top + 16), f"r = {fmt_num_es(corr, 2)}", fill="#b44b3f", font=label_font)
+
+        for _, row in data.iterrows():
+            x = x_pos(row[x_col] / divisor)
+            y = y_pos(row[y_col] * 100)
+            draw.ellipse((x - 10, y - 10, x + 10, y + 10), fill="#1f77b4", outline="white", width=2)
+            if row["departamento"] in label_offsets:
+                dx, dy = label_offsets[row["departamento"]]
+                draw.text((x + dx, y + dy), row["departamento"], fill="#222222", font=tiny_font)
+
+        draw.text(
+            (plot_left + 190, plot_bottom + 80),
+            f"{x_title} ({x_unit})",
+            fill="#333333",
+            font=small_font,
+        )
+
+    draw.text(
+        (90, 1370),
+        "Fuente: cálculos propios con DANE y GEIH. Se excluye 2020. Una correlación negativa sugiere convergencia descriptiva, no una relación causal.",
+        fill="#555555",
+        font=note_font,
+    )
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_pib_geih_productividad_departamento_convergencia.png")
+
+
 def write_benchmarks(benchmarks: dict[str, float]) -> None:
     pd.DataFrame([benchmarks]).to_csv(
         TABLE_DIR / "pib_geih_productividad_departamento_benchmarks.csv",
@@ -769,10 +965,12 @@ def main() -> None:
     write_benchmarks(benchmarks)
 
     write_summary_table(summary)
+    write_level_ranking_table(summary)
     write_detail_section(data, summary)
     write_correlation_table(summary)
     draw_department_growth_chart(summary)
     draw_department_quadrant_chart(summary, benchmarks)
+    draw_department_convergence_scatter(summary)
     draw_department_correlation_scatter(summary)
 
     print(f"Departamentos con información completa: {len(summary)}")
