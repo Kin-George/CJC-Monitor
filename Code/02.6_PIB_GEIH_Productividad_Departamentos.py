@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import math
 import os
+import re
+import unicodedata
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +15,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PIB_DEP_XLSX = Path(
     os.environ.get(
         "PIB_DEP_XLSX",
-        r"C:\Users\olive\Downloads\anex-PIBDep-Regiones-2024pr.xlsx",
+        r"C:\Users\olive\Downloads\anex-PIBDep-departamento-2024pr.xlsx",
     )
 )
 GEIH_DTA = PROJECT_ROOT / "Datos" / "Processed" / "Paper-GEIH_base_modelo_personas_2008_2025.dta"
@@ -24,11 +26,15 @@ FIGURE_DIR = PROJECT_ROOT / "Paper" / "figures"
 OUTPUT_TABLE_DIR = PROJECT_ROOT / "Outputs" / "tables"
 OUTPUT_FIGURE_DIR = PROJECT_ROOT / "Outputs" / "Figures"
 
+START_YEAR = 2010
+END_YEAR = 2024
+EXCLUDED_YEARS = {2020}
+
 for directory in [TABLE_DIR, SECTION_DIR, FIGURE_DIR, OUTPUT_TABLE_DIR, OUTPUT_FIGURE_DIR]:
     directory.mkdir(parents=True, exist_ok=True)
 
 
-DEPARTMENT_NAMES = {
+DEPARTMENTS_24 = {
     5: "Antioquia",
     8: "Atlántico",
     11: "Bogotá D.C.",
@@ -53,30 +59,17 @@ DEPARTMENT_NAMES = {
     70: "Sucre",
     73: "Tolima",
     76: "Valle del Cauca",
-    81: "Arauca",
-    85: "Casanare",
-    86: "Putumayo",
-    88: "San Andrés y Providencia",
-    91: "Amazonas",
-    94: "Guainía",
-    95: "Guaviare",
-    97: "Vaupés",
-    99: "Vichada",
 }
 
-REGION_NAMES = {"CARIBE", "ORIENTAL", "CENTRAL", "PACÍFICA", "AMAZONÍA - ORINOQUÍA", "COLOMBIA"}
+
+def normalize_name(value: object) -> str:
+    text = str(value).split(":")[0].strip().upper()
+    text = "".join(ch for ch in unicodedata.normalize("NFKD", text) if not unicodedata.combining(ch))
+    text = re.sub(r"[^A-Z0-9 ]+", "", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
-def clean_divipola(value: object) -> int | None:
-    if pd.isna(value):
-        return None
-    text = str(value).strip()
-    if not text:
-        return None
-    try:
-        return int(float(text))
-    except ValueError:
-        return None
+DEPARTMENT_CODE_BY_NAME = {normalize_name(name): code for code, name in DEPARTMENTS_24.items()}
 
 
 def parse_year(value: object) -> int | None:
@@ -89,7 +82,7 @@ def parse_year(value: object) -> int | None:
         return None
 
 
-def cagr(start_value: float, end_value: float, start_year: int, end_year: int) -> float:
+def cagr(start_value: float, end_value: float, start_year: int = START_YEAR, end_year: int = END_YEAR) -> float:
     if start_value <= 0 or end_value <= 0 or end_year <= start_year:
         return np.nan
     return (end_value / start_value) ** (1 / (end_year - start_year)) - 1
@@ -128,50 +121,53 @@ def escape_latex(text: object) -> str:
 
 
 def latex_id(text: object) -> str:
-    return (
-        str(text)
-        .lower()
-        .replace(" ", "_")
-        .replace(".", "")
-        .replace("á", "a")
-        .replace("é", "e")
-        .replace("í", "i")
-        .replace("ó", "o")
-        .replace("ú", "u")
-        .replace("ñ", "n")
-    )
+    result = normalize_name(text).lower().replace(" ", "_")
+    return re.sub(r"[^a-z0-9_]+", "", result)
 
 
 def load_pib_departamental() -> pd.DataFrame:
     raw = pd.read_excel(PIB_DEP_XLSX, sheet_name="Cuadro 2", header=None)
-    block_start = raw.index[
-        raw.iloc[:, 0].astype(str).str.contains("Producto Interno Bruto por regiones", case=False, na=False)
-    ].max()
-    header_idx = block_start + 4
-    years = {col: parse_year(raw.iat[header_idx, col]) for col in range(2, raw.shape[1])}
-    year_cols = [col for col, year in years.items() if year is not None]
+    header_rows = raw.index[
+        raw.iloc[:, 0].astype(str).str.contains("Cuentas Nacionales", case=False, na=False)
+    ].tolist()
 
     rows = []
-    for idx in range(header_idx + 1, len(raw)):
-        code = clean_divipola(raw.iat[idx, 0])
-        name = raw.iat[idx, 1]
-        if isinstance(raw.iat[idx, 0], str) and "Fuente:" in raw.iat[idx, 0]:
-            break
-        if code is None or code not in DEPARTMENT_NAMES:
+    for header_idx in header_rows:
+        department_title = raw.iat[header_idx - 5, 0]
+        code = DEPARTMENT_CODE_BY_NAME.get(normalize_name(department_title))
+        if code is None:
             continue
-        for col in year_cols:
-            value = pd.to_numeric(raw.iat[idx, col], errors="coerce")
-            if pd.notna(value):
+
+        year_cols = {
+            col: parse_year(raw.iat[header_idx, col])
+            for col in range(3, min(23, raw.shape[1]))
+        }
+
+        pib_row = None
+        for idx in range(header_idx + 1, min(header_idx + 25, len(raw))):
+            if str(raw.iat[idx, 2]).strip().upper() == "PIB DEPARTAMENTAL":
+                pib_row = idx
+                break
+        if pib_row is None:
+            raise ValueError(f"No se encontró el renglón de PIB departamental para {department_title}")
+
+        for col, year in year_cols.items():
+            value = pd.to_numeric(raw.iat[pib_row, col], errors="coerce")
+            if year is not None and START_YEAR <= year <= END_YEAR and pd.notna(value):
                 rows.append(
                     {
-                        "anio": years[col],
+                        "anio": year,
                         "depto": code,
-                        "departamento": DEPARTMENT_NAMES.get(code, str(name).strip()),
+                        "departamento": DEPARTMENTS_24[code],
                         "pib_miles_millones_2015": float(value),
                     }
                 )
+
     pib = pd.DataFrame(rows)
-    return pib[pib["anio"].between(2014, 2024)].copy()
+    expected = len(DEPARTMENTS_24) * (END_YEAR - START_YEAR + 1)
+    if len(pib) != expected:
+        raise ValueError(f"Se esperaban {expected} filas de PIB departamental y se obtuvieron {len(pib)}")
+    return pib
 
 
 def load_geih_departamental() -> pd.DataFrame:
@@ -185,9 +181,9 @@ def load_geih_departamental() -> pd.DataFrame:
     geih["fex"] = pd.to_numeric(geih["fex"], errors="coerce")
     geih["horas"] = pd.to_numeric(geih["horas"], errors="coerce")
     geih = geih[
-        geih["anio"].between(2014, 2024)
-        & (geih["anio"] != 2020)
-        & geih["depto"].isin(DEPARTMENT_NAMES)
+        geih["anio"].between(START_YEAR, END_YEAR)
+        & ~geih["anio"].isin(EXCLUDED_YEARS)
+        & geih["depto"].isin(DEPARTMENTS_24)
         & (geih["fex"] > 0)
     ].copy()
     geih["horas_validas"] = geih["horas"].where(geih["horas"].between(1, 112))
@@ -197,25 +193,31 @@ def load_geih_departamental() -> pd.DataFrame:
         .agg(ocupados=("fex", "sum"), horas_sem_expandidas=("horas_sem_expand", "sum"))
         .assign(horas_anuales=lambda x: x["horas_sem_expandidas"] * 52)
     )
-    dep["departamento"] = dep["depto"].map(DEPARTMENT_NAMES)
+    dep["departamento"] = dep["depto"].map(DEPARTMENTS_24)
+
+    required_years = set(range(START_YEAR, END_YEAR + 1)) - EXCLUDED_YEARS
+    counts = dep.groupby("depto")["anio"].nunique()
+    missing = counts[counts != len(required_years)]
+    if not missing.empty:
+        raise ValueError(f"Departamentos sin todos los años GEIH requeridos: {missing.to_dict()}")
     return dep
 
 
-def build_productivity_departamental() -> tuple[pd.DataFrame, pd.DataFrame]:
+def build_productivity_departamental() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, float]]:
     pib = load_pib_departamental()
     labor = load_geih_departamental()
     data = pib.merge(labor, on=["anio", "depto", "departamento"], how="inner")
+    data = data[~data["anio"].isin(EXCLUDED_YEARS)].copy()
     data["pib_pesos_2015"] = data["pib_miles_millones_2015"] * 1e9
     data["pib_por_trabajador_millones_2015"] = data["pib_pesos_2015"] / data["ocupados"] / 1e6
     data["pib_por_hora_pesos_2015"] = data["pib_pesos_2015"] / data["horas_anuales"]
     data["horas_semanales_por_trabajador"] = data["horas_anuales"] / data["ocupados"] / 52
     data = data.sort_values(["departamento", "anio"])
 
-    start_year, end_year = 2014, 2024
     rows = []
     for depto, part in data.groupby("depto"):
-        start = part[part["anio"] == start_year]
-        end = part[part["anio"] == end_year]
+        start = part[part["anio"] == START_YEAR]
+        end = part[part["anio"] == END_YEAR]
         if start.empty or end.empty:
             continue
         start = start.iloc[0]
@@ -224,43 +226,67 @@ def build_productivity_departamental() -> tuple[pd.DataFrame, pd.DataFrame]:
             {
                 "depto": depto,
                 "departamento": end["departamento"],
-                "pib_2014": start["pib_miles_millones_2015"],
+                "pib_2010": start["pib_miles_millones_2015"],
                 "pib_2024": end["pib_miles_millones_2015"],
-                "ocupados_2014": start["ocupados"],
+                "ocupados_2010": start["ocupados"],
                 "ocupados_2024": end["ocupados"],
-                "horas_2014": start["horas_anuales"],
+                "horas_2010": start["horas_anuales"],
                 "horas_2024": end["horas_anuales"],
-                "horas_sem_2014": start["horas_semanales_por_trabajador"],
+                "horas_sem_2010": start["horas_semanales_por_trabajador"],
                 "horas_sem_2024": end["horas_semanales_por_trabajador"],
-                "pib_trabajador_2014": start["pib_por_trabajador_millones_2015"],
+                "pib_trabajador_2010": start["pib_por_trabajador_millones_2015"],
                 "pib_trabajador_2024": end["pib_por_trabajador_millones_2015"],
-                "pib_hora_2014": start["pib_por_hora_pesos_2015"],
+                "pib_hora_2010": start["pib_por_hora_pesos_2015"],
                 "pib_hora_2024": end["pib_por_hora_pesos_2015"],
-                "crec_pib": cagr(start["pib_miles_millones_2015"], end["pib_miles_millones_2015"], start_year, end_year),
-                "crec_ocupados": cagr(start["ocupados"], end["ocupados"], start_year, end_year),
-                "crec_horas": cagr(start["horas_anuales"], end["horas_anuales"], start_year, end_year),
+                "crec_pib": cagr(start["pib_miles_millones_2015"], end["pib_miles_millones_2015"]),
+                "crec_ocupados": cagr(start["ocupados"], end["ocupados"]),
+                "crec_horas": cagr(start["horas_anuales"], end["horas_anuales"]),
                 "crec_horas_por_trabajador": cagr(
                     start["horas_semanales_por_trabajador"],
                     end["horas_semanales_por_trabajador"],
-                    start_year,
-                    end_year,
                 ),
                 "crec_pib_trabajador": cagr(
                     start["pib_por_trabajador_millones_2015"],
                     end["pib_por_trabajador_millones_2015"],
-                    start_year,
-                    end_year,
                 ),
                 "crec_pib_hora": cagr(
                     start["pib_por_hora_pesos_2015"],
                     end["pib_por_hora_pesos_2015"],
-                    start_year,
-                    end_year,
                 ),
             }
         )
     summary = pd.DataFrame(rows).sort_values("crec_pib_hora", ascending=False)
-    return data, summary
+
+    aggregate = (
+        data.groupby("anio", as_index=False)
+        .agg(
+            pib_miles_millones_2015=("pib_miles_millones_2015", "sum"),
+            ocupados=("ocupados", "sum"),
+            horas_anuales=("horas_anuales", "sum"),
+        )
+    )
+    aggregate["pib_pesos_2015"] = aggregate["pib_miles_millones_2015"] * 1e9
+    aggregate["pib_por_trabajador_millones_2015"] = aggregate["pib_pesos_2015"] / aggregate["ocupados"] / 1e6
+    aggregate["pib_por_hora_pesos_2015"] = aggregate["pib_pesos_2015"] / aggregate["horas_anuales"]
+    aggregate["horas_semanales_por_trabajador"] = aggregate["horas_anuales"] / aggregate["ocupados"] / 52
+    agg_start = aggregate[aggregate["anio"] == START_YEAR].iloc[0]
+    agg_end = aggregate[aggregate["anio"] == END_YEAR].iloc[0]
+    benchmarks = {
+        "pib_trabajador_2024": agg_end["pib_por_trabajador_millones_2015"],
+        "pib_hora_2024": agg_end["pib_por_hora_pesos_2015"],
+        "crec_pib_trabajador": cagr(
+            agg_start["pib_por_trabajador_millones_2015"],
+            agg_end["pib_por_trabajador_millones_2015"],
+        ),
+        "crec_pib_hora": cagr(
+            agg_start["pib_por_hora_pesos_2015"],
+            agg_end["pib_por_hora_pesos_2015"],
+        ),
+        "crec_ocupados": cagr(agg_start["ocupados"], agg_end["ocupados"]),
+        "crec_pib": cagr(agg_start["pib_miles_millones_2015"], agg_end["pib_miles_millones_2015"]),
+        "horas_sem_2024": agg_end["horas_semanales_por_trabajador"],
+    }
+    return data, summary, benchmarks
 
 
 def write_summary_table(summary: pd.DataFrame) -> None:
@@ -268,12 +294,12 @@ def write_summary_table(summary: pd.DataFrame) -> None:
     lines = [
         r"\begin{table}[H]",
         r"\centering",
-        r"\caption{Productividad laboral por departamento, 2014--2024pr}",
+        rf"\caption{{Productividad laboral por departamento, {START_YEAR}--{END_YEAR}pr}}",
         r"\label{tab:pib_geih_productividad_departamento}",
         r"\scriptsize",
         r"\begin{tabular}{lrrrr}",
         r"\toprule",
-        r"Departamento & PIB/trab. 2024 & PIB/hora 2024 & Crec. PIB/trab. & Crec. PIB/hora \\",
+        rf"Departamento & PIB/trab. {END_YEAR}pr & PIB/hora {END_YEAR}pr & Crec. PIB/trab. & Crec. PIB/hora \\",
         r"\midrule",
     ]
     for _, row in table.iterrows():
@@ -288,7 +314,7 @@ def write_summary_table(summary: pd.DataFrame) -> None:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. Bogotá se trata como departamento. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE, Cuentas Nacionales Departamentales, y GEIH.}",
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. Bogotá se trata como departamento. El universo corresponde a los 24 departamentos con información comparable en la GEIH para todo el periodo. Se excluye 2020 por no contar con GEIH anual comparable en la base del proyecto. Fuente: cálculos propios con DANE, Cuentas Nacionales Departamentales, y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -300,67 +326,64 @@ def write_summary_table(summary: pd.DataFrame) -> None:
 def metric_rows(start: pd.Series, end: pd.Series) -> list[tuple[str, str, str, str]]:
     return [
         (
-            "PIB real",
+            "PIB real (Billones de pesos de 2015)",
             fmt_num_es(start["pib_miles_millones_2015"] / 1000, 1),
             fmt_num_es(end["pib_miles_millones_2015"] / 1000, 1),
-            fmt_pct_es(cagr(start["pib_miles_millones_2015"], end["pib_miles_millones_2015"], 2014, 2024), 2),
+            fmt_pct_es(cagr(start["pib_miles_millones_2015"], end["pib_miles_millones_2015"]), 2),
         ),
         (
-            "Ocupados",
+            "Ocupados (Millones)",
             fmt_num_es(start["ocupados"] / 1e6, 2),
             fmt_num_es(end["ocupados"] / 1e6, 2),
-            fmt_pct_es(cagr(start["ocupados"], end["ocupados"], 2014, 2024), 2),
+            fmt_pct_es(cagr(start["ocupados"], end["ocupados"]), 2),
+        ),
+        (
+            "PIB por trabajador (Millones de pesos de 2015)",
+            fmt_num_es(start["pib_por_trabajador_millones_2015"], 1),
+            fmt_num_es(end["pib_por_trabajador_millones_2015"], 1),
+            fmt_pct_es(cagr(start["pib_por_trabajador_millones_2015"], end["pib_por_trabajador_millones_2015"]), 2),
         ),
         (
             "Horas semanales por trabajador",
             fmt_num_es(start["horas_semanales_por_trabajador"], 1),
             fmt_num_es(end["horas_semanales_por_trabajador"], 1),
             fmt_pct_es(
-                cagr(start["horas_semanales_por_trabajador"], end["horas_semanales_por_trabajador"], 2014, 2024),
+                cagr(start["horas_semanales_por_trabajador"], end["horas_semanales_por_trabajador"]),
                 2,
             ),
         ),
         (
-            "PIB por trabajador",
-            fmt_num_es(start["pib_por_trabajador_millones_2015"], 1),
-            fmt_num_es(end["pib_por_trabajador_millones_2015"], 1),
-            fmt_pct_es(
-                cagr(start["pib_por_trabajador_millones_2015"], end["pib_por_trabajador_millones_2015"], 2014, 2024),
-                2,
-            ),
-        ),
-        (
-            "PIB por hora",
+            "PIB por hora trabajada (Miles de pesos de 2015)",
             fmt_num_es(start["pib_por_hora_pesos_2015"] / 1000, 1),
             fmt_num_es(end["pib_por_hora_pesos_2015"] / 1000, 1),
-            fmt_pct_es(cagr(start["pib_por_hora_pesos_2015"], end["pib_por_hora_pesos_2015"], 2014, 2024), 2),
+            fmt_pct_es(cagr(start["pib_por_hora_pesos_2015"], end["pib_por_hora_pesos_2015"]), 2),
         ),
     ]
 
 
 def write_detail_section(data: pd.DataFrame, summary: pd.DataFrame) -> None:
     lines = [
-        r"\textbf{A continuación se presenta la descomposición departamental del crecimiento de la productividad laboral.} Para cada departamento se reportan el PIB real, el número de ocupados, las horas semanales por trabajador, el PIB por trabajador y el PIB por hora trabajada al inicio y al final del periodo disponible.",
+        r"\textbf{A continuación se presenta el detalle departamental del crecimiento de la productividad laboral.} Para cada departamento se reportan el PIB real, el número de ocupados, el PIB por trabajador, las horas semanales por trabajador y el PIB por hora trabajada al inicio y al final del periodo.",
         "",
     ]
     ordered = summary.sort_values("crec_pib_hora", ascending=False)
     for _, row in ordered.iterrows():
         part = data[data["depto"] == row["depto"]].sort_values("anio")
-        start = part[part["anio"] == 2014].iloc[0]
-        end = part[part["anio"] == 2024].iloc[0]
+        start = part[part["anio"] == START_YEAR].iloc[0]
+        end = part[part["anio"] == END_YEAR].iloc[0]
         name = row["departamento"]
         lines.extend(
             [
                 rf"\subsection{{{escape_latex(name)}}}",
-                rf"\textbf{{Entre 2014 y 2024, el PIB por hora trabajada de {escape_latex(name)} creció {fmt_pct_es(row['crec_pib_hora'], 2)} anual.}} El PIB por trabajador creció {fmt_pct_es(row['crec_pib_trabajador'], 2)} anual, mientras que las horas semanales por trabajador cambiaron {fmt_pct_es(row['crec_horas_por_trabajador'], 2)} anual. Esta diferencia muestra si la productividad medida por trabajador se mueve en línea con la productividad por hora o si está afectada por cambios en la intensidad horaria.",
+                rf"\textbf{{Entre {START_YEAR} y {END_YEAR}pr, el PIB por hora trabajada de {escape_latex(name)} creció {fmt_pct_es(row['crec_pib_hora'], 2)} anual.}} El PIB por trabajador creció {fmt_pct_es(row['crec_pib_trabajador'], 2)} anual, mientras que las horas semanales por trabajador cambiaron {fmt_pct_es(row['crec_horas_por_trabajador'], 2)} anual. Esta diferencia muestra si la productividad medida por trabajador se mueve en línea con la productividad por hora o si está afectada por cambios en la intensidad horaria.",
                 r"\begin{table}[H]",
                 r"\centering",
-                rf"\caption{{{escape_latex(name)}: PIB, ocupados, horas y productividad laboral, 2014--2024pr}}",
+                rf"\caption{{{escape_latex(name)}: PIB, ocupados, horas y productividad laboral, {START_YEAR}--{END_YEAR}pr}}",
                 rf"\label{{tab:departamento_{latex_id(name)}_productividad}}",
                 r"\scriptsize",
                 r"\begin{tabular}{lrrr}",
                 r"\toprule",
-                r"Indicador & 2014 & 2024pr & Crec. anual \\",
+                rf"Indicador & {START_YEAR} & {END_YEAR}pr & Crec. anual \\",
                 r"\midrule",
             ]
         )
@@ -388,7 +411,7 @@ def write_correlation_table(summary: pd.DataFrame) -> None:
         ("Crec. ocupados", "Crec. PIB por hora", "crec_ocupados", "crec_pib_hora"),
         ("Crec. horas totales", "Crec. PIB por trabajador", "crec_horas", "crec_pib_trabajador"),
         ("Crec. horas totales", "Crec. PIB por hora", "crec_horas", "crec_pib_hora"),
-        ("PIB por hora inicial", "Crec. PIB por hora", "pib_hora_2014", "crec_pib_hora"),
+        ("PIB por hora inicial", "Crec. PIB por hora", "pib_hora_2010", "crec_pib_hora"),
     ]
     lines = [
         r"\begin{table}[H]",
@@ -409,38 +432,58 @@ def write_correlation_table(summary: pd.DataFrame) -> None:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: correlaciones de Pearson calculadas entre departamentos, tratando a Bogotá como departamento. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: correlaciones de Pearson calculadas entre los 24 departamentos comparables, tratando a Bogotá como departamento. Fuente: cálculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
-    pd.DataFrame(rows).to_csv(TABLE_DIR / "pib_geih_productividad_departamento_correlaciones.csv", index=False, encoding="utf-8-sig")
-    pd.DataFrame(rows).to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_departamento_correlaciones.csv", index=False, encoding="utf-8-sig")
+    pd.DataFrame(rows).to_csv(
+        TABLE_DIR / "pib_geih_productividad_departamento_correlaciones.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    pd.DataFrame(rows).to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_departamento_correlaciones.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
     (SECTION_DIR / "pib_geih_productividad_departamento_correlaciones.tex").write_text(
         "\n".join(lines), encoding="utf-8"
     )
 
 
-def fonts() -> tuple[ImageFont.ImageFont, ImageFont.ImageFont, ImageFont.ImageFont, ImageFont.ImageFont]:
+def fonts() -> tuple[ImageFont.ImageFont, ImageFont.ImageFont, ImageFont.ImageFont, ImageFont.ImageFont, ImageFont.ImageFont]:
     font = ImageFont.load_default()
     arial = Path(r"C:\Windows\Fonts\arial.ttf")
+    arial_bold = Path(r"C:\Windows\Fonts\arialbd.ttf")
     if arial.exists():
         return (
-            ImageFont.truetype(str(arial), 52),
-            ImageFont.truetype(str(arial), 34),
-            ImageFont.truetype(str(arial), 28),
-            ImageFont.truetype(str(arial), 24),
+            ImageFont.truetype(str(arial_bold if arial_bold.exists() else arial), 54),
+            ImageFont.truetype(str(arial_bold if arial_bold.exists() else arial), 36),
+            ImageFont.truetype(str(arial), 29),
+            ImageFont.truetype(str(arial), 25),
+            ImageFont.truetype(str(arial), 21),
         )
-    return font, font, font, font
+    return font, font, font, font, font
 
 
 def draw_department_growth_chart(summary: pd.DataFrame) -> None:
     data = summary.sort_values("crec_pib_hora", ascending=True).reset_index(drop=True)
-    title_font, label_font, small_font, note_font = fonts()
-    img = Image.new("RGB", (1900, 1700), "white")
+    title_font, label_font, small_font, note_font, _ = fonts()
+    img = Image.new("RGB", (1900, 1650), "white")
     draw = ImageDraw.Draw(img)
-    draw.text((80, 45), "Crecimiento anualizado de la productividad laboral por departamento, 2014--2024pr", fill="#222222", font=title_font)
-    draw.text((80, 105), "Bogotá se trata como departamento; PIB departamental real y trabajo GEIH", fill="#555555", font=label_font)
-    left, top, right, bottom = 600, 190, 1780, 1530
+    draw.text(
+        (80, 45),
+        f"Crecimiento anualizado de la productividad laboral, {START_YEAR}--{END_YEAR}pr",
+        fill="#222222",
+        font=title_font,
+    )
+    draw.text(
+        (80, 105),
+        "24 departamentos comparables; Bogotá se trata como departamento",
+        fill="#555555",
+        font=label_font,
+    )
+    left, top, right, bottom = 600, 200, 1780, 1460
     min_value = min(data["crec_pib_trabajador"].min(), data["crec_pib_hora"].min(), 0)
     max_value = max(data["crec_pib_trabajador"].max(), data["crec_pib_hora"].max(), 0)
     min_value = math.floor(min_value * 100) / 100 - 0.005
@@ -454,7 +497,7 @@ def draw_department_growth_chart(summary: pd.DataFrame) -> None:
         value = tick / 100
         x = x_pos(value)
         draw.line((x, top - 20, x, bottom), fill="#eeeeee", width=1)
-        draw.text((x - 26, bottom + 20), f"{tick}%", fill="#555555", font=small_font)
+        draw.text((x - 26, bottom + 18), f"{tick}%", fill="#555555", font=small_font)
     x0 = x_pos(0)
     draw.line((x0, top - 20, x0, bottom), fill="#888888", width=2)
 
@@ -469,22 +512,177 @@ def draw_department_growth_chart(summary: pd.DataFrame) -> None:
             draw.rectangle((min(x0, x), y + offset - 5, max(x0, x), y + offset + 5), fill=color)
             draw.ellipse((x - 7, y + offset - 7, x + 7, y + offset + 7), fill=color)
 
-    draw.rectangle((1180, 1538, 1210, 1560), fill="#1f77b4")
-    draw.text((1220, 1530), "PIB por trabajador", fill="#333333", font=small_font)
-    draw.rectangle((1460, 1538, 1490, 1560), fill="#d95f02")
-    draw.text((1500, 1530), "PIB por hora", fill="#333333", font=small_font)
-    draw.text((80, 1620), "Fuente: cálculos propios con DANE y GEIH. Se excluye 2020.", fill="#555555", font=note_font)
+    draw.rectangle((1180, 155, 1210, 177), fill="#1f77b4")
+    draw.text((1220, 147), "PIB por trabajador", fill="#333333", font=small_font)
+    draw.rectangle((1460, 155, 1490, 177), fill="#d95f02")
+    draw.text((1500, 147), "PIB por hora", fill="#333333", font=small_font)
+    draw.text((80, 1580), "Fuente: cálculos propios con DANE y GEIH. Se excluye 2020.", fill="#555555", font=note_font)
     for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
         img.save(directory / "fig_pib_geih_productividad_departamento.png")
 
 
+def classify_quadrant(row: pd.Series, x_ref: float, y_ref: float) -> str:
+    right = row["crec_pib_hora"] >= x_ref
+    high = row["pib_hora_2024"] >= y_ref
+    if high and right:
+        return "Líderes en auge"
+    if high and not right:
+        return "Líderes en declive"
+    if not high and right:
+        return "Aceleradores"
+    return "Rezagados"
+
+
+def draw_department_quadrant_chart(summary: pd.DataFrame, benchmarks: dict[str, float]) -> None:
+    data = summary.copy()
+    x_ref = benchmarks["crec_pib_hora"]
+    y_ref = benchmarks["pib_hora_2024"]
+    data["cuadrante"] = data.apply(classify_quadrant, axis=1, args=(x_ref, y_ref))
+
+    title_font, label_font, small_font, note_font, tiny_font = fonts()
+    img = Image.new("RGB", (2400, 1700), "white")
+    draw = ImageDraw.Draw(img)
+    draw.text(
+        (90, 45),
+        f"Nivel y crecimiento de la productividad por hora, {START_YEAR}--{END_YEAR}pr",
+        fill="#222222",
+        font=title_font,
+    )
+    draw.text(
+        (90, 108),
+        "Cada burbuja representa un departamento; el eje vertical mide PIB por hora en 2024pr y el eje horizontal su crecimiento anualizado",
+        fill="#555555",
+        font=label_font,
+    )
+
+    left, top, right, bottom = 320, 250, 2180, 1390
+    x_values = data["crec_pib_hora"] * 100
+    y_values = data["pib_hora_2024"] / 1000
+    x_ref_pct = x_ref * 100
+    y_ref_th = y_ref / 1000
+    x_min = math.floor(min(x_values.min(), x_ref_pct) - 1.2)
+    x_max = math.ceil(max(x_values.max(), x_ref_pct) + 1.2)
+    y_min = max(0, math.floor(min(y_values.min(), y_ref_th) - 2))
+    y_max = math.ceil(max(y_values.max(), y_ref_th) + 5)
+
+    def x_pos(value: float) -> float:
+        return left + (value - x_min) / (x_max - x_min) * (right - left)
+
+    def y_pos(value: float) -> float:
+        return bottom - (value - y_min) / (y_max - y_min) * (bottom - top)
+
+    draw.rectangle((left, top, right, bottom), outline="#333333", width=2)
+    for tick in range(math.ceil(x_min), math.floor(x_max) + 1, 1):
+        x = x_pos(tick)
+        draw.line((x, top, x, bottom), fill="#eeeeee", width=1)
+        draw.text((x - 22, bottom + 18), f"{tick}%", fill="#555555", font=small_font)
+    y_tick_step = 5 if y_max <= 45 else 10
+    for tick in range(math.ceil(y_min / y_tick_step) * y_tick_step, math.floor(y_max) + 1, y_tick_step):
+        y = y_pos(tick)
+        draw.line((left, y, right, y), fill="#eeeeee", width=1)
+        draw.text((left - 85, y - 15), f"{tick}", fill="#555555", font=small_font)
+
+    x_line = x_pos(x_ref_pct)
+    y_line = y_pos(y_ref_th)
+    blue = "#1f66c2"
+    draw.line((x_line, top, x_line, bottom), fill=blue, width=4)
+    draw.line((left, y_line, right, y_line), fill=blue, width=4)
+    draw.text((x_line + 10, top + 12), f"Crec. agregado: {fmt_num_es(x_ref_pct, 1)}%", fill=blue, font=small_font)
+    draw.text((right - 430, y_line - 42), f"Nivel agregado: {fmt_num_es(y_ref_th, 1)}", fill=blue, font=small_font)
+
+    quadrant_labels = [
+        ("Líderes en declive", left + 25, top + 25),
+        ("Líderes en auge", right - 390, top + 25),
+        ("Rezagados", left + 25, y_line + 25),
+        ("Aceleradores", right - 330, y_line + 25),
+    ]
+    for label, x, y in quadrant_labels:
+        draw.text((x, y), label, fill=blue, font=label_font)
+
+    colors = {
+        "Líderes en auge": "#f28e2b",
+        "Líderes en declive": "#9aa7b0",
+        "Aceleradores": "#59a14f",
+        "Rezagados": "#4e79a7",
+    }
+    pib = data["pib_2024"]
+    min_pib, max_pib = pib.min(), pib.max()
+
+    label_offsets = {
+        "Bogotá D.C.": (-160, -36),
+        "Antioquia": (12, 34),
+        "Valle del Cauca": (16, 12),
+        "Santander": (16, -28),
+        "Cundinamarca": (-210, 22),
+        "Atlántico": (-170, -20),
+        "Bolívar": (15, -35),
+        "Meta": (15, 15),
+        "Cesar": (15, -30),
+        "Córdoba": (-150, 12),
+        "Nariño": (16, 12),
+        "Norte de Santander": (-250, -26),
+        "Quindío": (16, -28),
+        "Risaralda": (16, 10),
+        "Caldas": (16, -32),
+        "Sucre": (16, 10),
+        "Chocó": (16, 10),
+        "La Guajira": (16, -18),
+        "Magdalena": (16, 10),
+        "Caquetá": (16, -28),
+        "Cauca": (-120, 16),
+        "Huila": (16, -28),
+        "Boyacá": (16, -28),
+        "Tolima": (16, 10),
+    }
+
+    for _, row in data.sort_values("pib_2024", ascending=False).iterrows():
+        x = x_pos(row["crec_pib_hora"] * 100)
+        y = y_pos(row["pib_hora_2024"] / 1000)
+        radius = 13 + 62 * math.sqrt((row["pib_2024"] - min_pib) / (max_pib - min_pib))
+        color = colors[row["cuadrante"]]
+        draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=color, outline="white", width=3)
+        dx, dy = label_offsets.get(row["departamento"], (16, 10))
+        draw.text((x + dx, y + dy), row["departamento"], fill="#222222", font=tiny_font)
+
+    draw.text(
+        ((left + right) / 2 - 260, bottom + 75),
+        "Crecimiento anualizado del PIB por hora trabajada",
+        fill="#333333",
+        font=label_font,
+    )
+    draw.text(
+        (left, top - 55),
+        "PIB por hora trabajada, 2024pr (miles de pesos de 2015)",
+        fill="#333333",
+        font=label_font,
+    )
+    draw.text(
+        (90, 1570),
+        "Fuente: cálculos propios con DANE y GEIH. Líneas azules: agregado de los 24 departamentos comparables. Se excluye 2020.",
+        fill="#555555",
+        font=note_font,
+    )
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_pib_geih_productividad_departamento_cuadrantes.png")
+
+
 def draw_department_correlation_scatter(summary: pd.DataFrame) -> None:
     data = summary.dropna(subset=["crec_ocupados", "crec_horas", "crec_pib_trabajador", "crec_pib_hora"]).copy()
-    title_font, label_font, small_font, note_font = fonts()
+    title_font, label_font, small_font, note_font, _ = fonts()
     img = Image.new("RGB", (2500, 1750), "white")
     draw = ImageDraw.Draw(img)
-    draw.text((90, 45), "Crecimiento del trabajo y la productividad por departamento, 2014--2024pr", fill="#222222", font=title_font)
-    draw.text((90, 105), f"Tasas anualizadas para {len(data)} departamentos; cada punto representa un departamento", fill="#555555", font=label_font)
+    draw.text(
+        (90, 45),
+        f"Crecimiento del trabajo y la productividad por departamento, {START_YEAR}--{END_YEAR}pr",
+        fill="#222222",
+        font=title_font,
+    )
+    draw.text(
+        (90, 105),
+        f"Tasas anualizadas para {len(data)} departamentos comparables; cada punto representa un departamento",
+        fill="#555555",
+        font=label_font,
+    )
 
     panels = [
         (90, 220, 1200, 780, "crec_ocupados", "crec_pib_trabajador", "Ocupados", "PIB por trabajador"),
@@ -527,7 +725,11 @@ def draw_department_correlation_scatter(summary: pd.DataFrame) -> None:
         xs = data[x_col].astype(float).to_numpy()
         ys = data[y_col].astype(float).to_numpy()
         slope, intercept = np.polyfit(xs, ys, 1)
-        draw.line((x_pos(x_min), y_pos(slope * x_min + intercept), x_pos(x_max), y_pos(slope * x_max + intercept)), fill="#b44b3f", width=4)
+        draw.line(
+            (x_pos(x_min), y_pos(slope * x_min + intercept), x_pos(x_max), y_pos(slope * x_max + intercept)),
+            fill="#b44b3f",
+            width=4,
+        )
         for _, row in data.iterrows():
             x = x_pos(row[x_col])
             y = y_pos(row[y_col])
@@ -535,26 +737,52 @@ def draw_department_correlation_scatter(summary: pd.DataFrame) -> None:
         corr = data[[x_col, y_col]].corr().iloc[0, 1]
         draw.text((plot_left + 16, plot_top + 12), f"r = {fmt_num_es(corr, 2)}", fill="#b44b3f", font=label_font)
 
-    draw.text((90, 1630), "Nota: r es la correlación de Pearson; la línea roja muestra la tendencia lineal simple entre departamentos.", fill="#555555", font=note_font)
+    draw.text(
+        (90, 1630),
+        "Nota: r es la correlación de Pearson; la línea roja muestra la tendencia lineal simple entre departamentos.",
+        fill="#555555",
+        font=note_font,
+    )
     for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
         img.save(directory / "fig_pib_geih_productividad_departamento_correlaciones.png")
 
 
+def write_benchmarks(benchmarks: dict[str, float]) -> None:
+    pd.DataFrame([benchmarks]).to_csv(
+        TABLE_DIR / "pib_geih_productividad_departamento_benchmarks.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    pd.DataFrame([benchmarks]).to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_departamento_benchmarks.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+
 def main() -> None:
-    data, summary = build_productivity_departamental()
+    data, summary, benchmarks = build_productivity_departamental()
     data.to_csv(TABLE_DIR / "pib_geih_productividad_departamento_series.csv", index=False, encoding="utf-8-sig")
     data.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_departamento_series.csv", index=False, encoding="utf-8-sig")
     summary.to_csv(TABLE_DIR / "pib_geih_productividad_departamento_summary.csv", index=False, encoding="utf-8-sig")
     summary.to_csv(OUTPUT_TABLE_DIR / "pib_geih_productividad_departamento_summary.csv", index=False, encoding="utf-8-sig")
+    write_benchmarks(benchmarks)
 
     write_summary_table(summary)
     write_detail_section(data, summary)
     write_correlation_table(summary)
     draw_department_growth_chart(summary)
+    draw_department_quadrant_chart(summary, benchmarks)
     draw_department_correlation_scatter(summary)
 
     print(f"Departamentos con información completa: {len(summary)}")
-    print(summary[["departamento", "crec_pib_trabajador", "crec_pib_hora", "crec_ocupados"]].to_string(index=False))
+    print(f"Periodo: {START_YEAR}-{END_YEAR}pr; se excluye 2020")
+    print(
+        summary[["departamento", "crec_pib_trabajador", "crec_pib_hora", "crec_ocupados"]]
+        .sort_values("crec_pib_hora", ascending=False)
+        .to_string(index=False)
+    )
+    print("Agregado 24 departamentos:", benchmarks)
 
 
 if __name__ == "__main__":
