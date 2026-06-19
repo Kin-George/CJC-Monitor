@@ -132,10 +132,10 @@ def main() -> None:
     def y_pos(value: float) -> float:
         return bottom - (value - y_min) / (y_max - y_min) * (bottom - top)
 
-    draw.text((75, 55), "Nivel y crecimiento de la productividad por hora por actividad económica", fill="#222222", font=title_font)
+    draw.text((75, 55), "Nivel y crecimiento de la productividad por hora en 13 grandes ramas", fill="#222222", font=title_font)
     draw.text(
         (75, 112),
-        "Eje horizontal: crecimiento anualizado, 2010--2025. Eje vertical: PIB por hora en 2025. Tamaño de burbuja: PIB de la actividad.",
+        "Eje horizontal: crecimiento anualizado, 2010--2025. Eje vertical: PIB por hora en 2025. Tamaño de burbuja: PIB de la rama.",
         fill="#555555",
         font=subtitle_font,
     )
@@ -214,7 +214,7 @@ def main() -> None:
 
     draw.text(
         (75, 1510),
-        "Fuente: cálculos propios con DANE y GEIH. El tamaño de la burbuja es proporcional al PIB real de cada actividad en 2025.",
+        "Fuente: cálculos propios con DANE y GEIH. El tamaño de la burbuja es proporcional al PIB real de cada rama en 2025.",
         fill="#555555",
         font=note_font,
     )
