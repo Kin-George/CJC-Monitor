@@ -201,9 +201,9 @@ def main() -> None:
         draw.text((x, y), text, fill=blue, font=quadrant_font)
 
     draw_quadrant_label("Aceleradoras", left + 30, top + 35)
-    draw_quadrant_label("Líderes dinámicos", x_line + 260, top + 35)
-    draw_quadrant_label("Rezagadas", left + 30, y_line + 120)
-    draw_quadrant_label("Líderes con menor crecimiento", x_pos(64), y_line + 55)
+    draw_quadrant_label("Productivas y dinámicas", x_line + 260, top + 35)
+    draw_quadrant_label("Rezagadas", left + 30, y_line + 155)
+    draw_quadrant_label("Productivas de bajo dinamismo", x_pos(64), y_line + 55)
 
     offsets = {
         "A": (26, -46, 230),
