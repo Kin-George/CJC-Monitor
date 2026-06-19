@@ -182,7 +182,7 @@ def main() -> None:
     draw.line((left, top, left, bottom), fill="#333333", width=2)
     draw.line((left, bottom, right, bottom), fill="#333333", width=2)
 
-    draw.text((x_line + 15, top + 172), f"Agregado = {fmt_num_es(agg_level, 1)}", fill=blue, font=tick_font)
+    draw.text((x_line + 15, top + 220), f"Agregado = {fmt_num_es(agg_level, 1)}", fill=blue, font=tick_font)
     draw.text((right - 330, y_line - 45), f"Agregado = {fmt_num_es(agg_growth, 1)}%", fill=blue, font=tick_font)
 
     for _, row in data.sort_values("pib_billones", ascending=False).iterrows():
@@ -201,24 +201,24 @@ def main() -> None:
         draw.text((x, y), text, fill=blue, font=quadrant_font)
 
     draw_quadrant_label("Aceleradoras", left + 30, top + 35)
-    draw_quadrant_label("Líderes dinámicos", x_line + 145, top + 35)
-    draw_quadrant_label("Rezagadas", left + 30, y_line + 55)
+    draw_quadrant_label("Líderes dinámicos", x_line + 260, top + 35)
+    draw_quadrant_label("Rezagadas", left + 30, y_line + 120)
     draw_quadrant_label("Líderes con menor crecimiento", x_pos(64), y_line + 55)
 
     offsets = {
         "A": (26, -46, 230),
         "B": (28, -24, 180),
         "C": (32, 32, 220),
-        "D+E": (28, -8, 220),
+        "D+E": (-55, -8, 220),
         "F": (26, 10, 190),
-        "G+H+I": (32, 26, 300),
+        "G+H+I": (-45, 26, 300),
         "J": (30, -52, 300),
         "K": (30, -32, 180),
         "L": (-360, -30, 260),
         "M+N": (30, -70, 310),
         "O+P+Q": (28, -6, 320),
         "R+S": (30, 8, 360),
-        "T": (26, -12, 230),
+        "T": (-55, -12, 230),
     }
     for _, row in data.iterrows():
         x, y = x_pos(row["level_hour"]), y_pos(row["growth_hour"])
