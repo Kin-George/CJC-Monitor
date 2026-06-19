@@ -2,3 +2,5 @@
 Datos/Processed/GEIH_base_modelo_personas_2008_2025.dta filter=lfs diff=lfs merge=lfs -text
 Datos/Processed/GEIH_base_modelo_celdas_2008_2025.dta filter=lfs diff=lfs merge=lfs -text
 Datos/Processed/Paper-GEIH_base_modelo_personas_2008_2025.dta filter=lfs diff=lfs merge=lfs -text
+Datos/Proccessed/Paper-GEIH_base_modelo_personas_2021_2025_EI.dta filter=lfs diff=lfs merge=lfs -text
+Datos/Processed/Paper-GEIH_base_modelo_personas_2021_2025_EI.dta filter=lfs diff=lfs merge=lfs -text
