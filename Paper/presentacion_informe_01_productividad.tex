@@ -43,6 +43,7 @@
 \newcommand{\fuente}[1]{\vspace{0.15cm}{\tiny\color{cjcgray}#1}}
 \newcommand{\idea}[1]{\textbf{\color{cjcblue}#1}}
 \newcommand{\cjcbar}{\textcolor{cjcyellow}{\rule{0.18\textwidth}{1.6pt}}\hspace{0.3em}\textcolor{cjcblue}{\rule{0.72\textwidth}{1.6pt}}}
+\newcommand{\subactividadfuente}{\fuente{Nota: PIB/trab. 2025 en millones de pesos constantes de 2015; PIB/hora 2025 en miles de pesos constantes de 2015. Fuente: cálculos propios con DANE y GEIH.}}
 \newcommand{\trayectoriaframe}[1]{%
   \begin{frame}{Trayectoria anual de la productividad}
     \begin{center}
@@ -220,6 +221,189 @@
   \begin{center}
     \includegraphics[width=1.21\textwidth,height=0.84\textheight,keepaspectratio]{fig_pib_geih_productividad_burbujas_2025.png}
   \end{center}
+\end{frame}
+
+\begin{frame}{Zoom por subactividades}
+  \idea{La apertura interna permite ver si el resultado de una gran rama proviene de todas sus subactividades o de algunas en particular.}
+
+  \vspace{0.35cm}
+  \begin{itemize}
+    \item Los siguientes cuadros presentan la apertura más detallada que puede compararse de manera consistente entre cuentas nacionales y GEIH.
+    \item Se muestran solo las ramas donde existe una desagregación laboral comparable.
+    \item La lectura combina niveles de productividad en 2025 y crecimiento anual entre 2010 y 2025.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Agropecuario: subactividades}
+  \idea{El buen desempeño agropecuario no fue uniforme, pero todas sus subactividades crecieron por encima del agregado.}
+
+  \vspace{0.12cm}
+  \begin{center}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \begin{tabular}{@{}p{0.45\textwidth}rrrr@{}}
+    \toprule
+    Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\
+    \midrule
+    Silvicultura & 70,2 & 5,15\% & 32,9 & 6,27\% \\
+    Pesca y acuicultura & 24,6 & 4,79\% & 10,9 & 5,75\% \\
+    Ganadería & 27,1 & 4,45\% & 12,0 & 5,10\% \\
+    Cultivos, apoyo agropecuario y mixtos & 20,5 & 2,24\% & 9,6 & 2,61\% \\
+    Café & 9,3 & 1,75\% & 4,1 & 1,98\% \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \subactividadfuente
+\end{frame}
+
+\begin{frame}{Minas: subactividades}
+  \idea{La caída de la productividad minera atraviesa casi toda la apertura interna de la rama.}
+
+  \vspace{0.12cm}
+  \begin{center}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \begin{tabular}{@{}p{0.45\textwidth}rrrr@{}}
+    \toprule
+    Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\
+    \midrule
+    Petróleo, gas y apoyo conexo & 576,1 & 0,07\% & 231,6 & 0,59\% \\
+    Otras minas y canteras & 45,6 & -0,89\% & 19,7 & -0,45\% \\
+    Carbón & 103,5 & -5,88\% & 41,8 & -5,33\% \\
+    Minerales metalíferos & 17,6 & -6,44\% & 7,5 & -5,98\% \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \subactividadfuente
+\end{frame}
+
+\begin{frame}{Manufactura: subactividades}
+  \idea{La manufactura combina subactividades con avances moderados y otras con caídas de productividad.}
+
+  \vspace{0.12cm}
+  \begin{center}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \begin{tabular}{@{}p{0.45\textwidth}rrrr@{}}
+    \toprule
+    Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\
+    \midrule
+    Metalurgia, maquinaria y equipo & 48,8 & 1,69\% & 20,5 & 2,16\% \\
+    Alimentos, bebidas y tabaco & 50,8 & 1,60\% & 21,8 & 1,70\% \\
+    Madera, papel e impresión & 46,9 & 1,46\% & 21,8 & 2,21\% \\
+    Textiles, confecciones y cuero & 17,5 & 0,74\% & 7,8 & 1,19\% \\
+    Refinación, químicos y minerales & 106,6 & -0,75\% & 44,8 & -0,30\% \\
+    Muebles y otras manufactureras & 17,4 & -1,38\% & 7,6 & -1,13\% \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \subactividadfuente
+\end{frame}
+
+\begin{frame}{Servicios públicos: subactividades}
+  \idea{La caída de servicios públicos se concentra con especial fuerza en agua, saneamiento y desechos.}
+
+  \vspace{0.12cm}
+  \begin{center}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \begin{tabular}{@{}p{0.45\textwidth}rrrr@{}}
+    \toprule
+    Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\
+    \midrule
+    Electricidad, gas y vapor & 262,2 & -0,13\% & 109,6 & 0,28\% \\
+    Agua, saneamiento y desechos & 37,9 & -6,41\% & 16,9 & -5,74\% \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \subactividadfuente
+\end{frame}
+
+\begin{frame}{Construcción: subactividades}
+  \idea{En construcción, las tres subactividades registraron caídas de productividad.}
+
+  \vspace{0.12cm}
+  \begin{center}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \begin{tabular}{@{}p{0.45\textwidth}rrrr@{}}
+    \toprule
+    Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\
+    \midrule
+    Obras civiles & 56,2 & -2,58\% & 23,1 & -2,01\% \\
+    Actividades especializadas de construcción & 26,7 & -3,27\% & 11,7 & -2,90\% \\
+    Edificaciones & 19,9 & -3,52\% & 8,3 & -3,08\% \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \subactividadfuente
+\end{frame}
+
+\begin{frame}{Comercio, transporte y alojamiento: subactividades}
+  \idea{El promedio de esta rama esconde mejores resultados en comercio y rezagos en alojamiento y comida.}
+
+  \vspace{0.12cm}
+  \begin{center}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \begin{tabular}{@{}p{0.45\textwidth}rrrr@{}}
+    \toprule
+    Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\
+    \midrule
+    Comercio y reparación & 22,8 & 2,28\% & 9,5 & 2,76\% \\
+    Transporte y almacenamiento & 27,8 & -0,18\% & 10,9 & 0,83\% \\
+    Alojamiento y comida & 23,4 & -1,08\% & 10,7 & -0,42\% \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \subactividadfuente
+\end{frame}
+
+\begin{frame}{Profesionales y administrativas: subactividades}
+  \idea{Las dos subactividades comparables registraron caídas de productividad.}
+
+  \vspace{0.12cm}
+  \begin{center}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \begin{tabular}{@{}p{0.45\textwidth}rrrr@{}}
+    \toprule
+    Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\
+    \midrule
+    Servicios administrativos y de apoyo & 36,0 & -1,32\% & 18,0 & -0,87\% \\
+    Profesionales, científicas y técnicas & 54,7 & -1,91\% & 25,2 & -1,60\% \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \subactividadfuente
+\end{frame}
+
+\begin{frame}{Adm. pública, educación y salud: subactividades}
+  \idea{El crecimiento de esta rama fue favorable, aunque el desempeño por hora no fue igual en sus tres componentes.}
+
+  \vspace{0.12cm}
+  \begin{center}
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \begin{tabular}{@{}p{0.45\textwidth}rrrr@{}}
+    \toprule
+    Actividad económica & PIB/trab. 2025 & Crec. & PIB/hora 2025 & Crec. \\
+    \midrule
+    Salud y servicios sociales & 49,1 & 2,54\% & 21,3 & 2,47\% \\
+    Educación & 52,3 & 1,54\% & 25,8 & 1,26\% \\
+    Administración pública & 77,2 & 1,40\% & 32,2 & 2,06\% \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \subactividadfuente
 \end{frame}
 
 \trayectoriaframe{A}
