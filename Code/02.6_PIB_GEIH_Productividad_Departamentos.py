@@ -471,6 +471,21 @@ def build_productivity_remuneration_table(summary: pd.DataFrame) -> tuple[pd.Dat
     table["brecha_ranking_rem_menos_pib"] = (
         table["ranking_rem_trabajador"] - table["ranking_pib_trabajador"]
     )
+    slope, intercept = np.polyfit(
+        table["pib_trabajador_2024"].astype(float).to_numpy(),
+        (table["rem_por_trabajador_2024"] / 1e6).astype(float).to_numpy(),
+        1,
+    )
+    table["rem_por_trabajador_predicha_tendencia"] = (
+        intercept + slope * table["pib_trabajador_2024"]
+    ) * 1e6
+    table["residuo_rem_por_trabajador_tendencia"] = (
+        table["rem_por_trabajador_2024"] - table["rem_por_trabajador_predicha_tendencia"]
+    )
+    table["residuo_pct_tendencia"] = (
+        table["residuo_rem_por_trabajador_tendencia"]
+        / table["rem_por_trabajador_predicha_tendencia"]
+    )
     table = table.sort_values("ranking_pib_trabajador")
 
     benchmarks = {
@@ -524,6 +539,9 @@ def write_productivity_remuneration_table(table: pd.DataFrame) -> None:
         "ranking_rem_trabajador",
         "brecha_ranking_rem_menos_pib",
         "share_ocupados_remuneracion_valida",
+        "rem_por_trabajador_predicha_tendencia",
+        "residuo_rem_por_trabajador_tendencia",
+        "residuo_pct_tendencia",
     ]
     for directory in [TABLE_DIR, OUTPUT_TABLE_DIR]:
         table[cols].to_csv(
