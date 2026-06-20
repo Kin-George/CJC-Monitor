@@ -29,6 +29,7 @@ OUTPUT_FIGURE_DIR = PROJECT_ROOT / "Outputs" / "Figures"
 START_YEAR = 2010
 END_YEAR = 2024
 EXCLUDED_YEARS = {2020}
+MONTHS_PER_WEEK = 52.0 / 12.0
 
 for directory in [TABLE_DIR, SECTION_DIR, FIGURE_DIR, OUTPUT_TABLE_DIR, OUTPUT_FIGURE_DIR]:
     directory.mkdir(parents=True, exist_ok=True)
@@ -396,6 +397,141 @@ def write_level_ranking_table(summary: pd.DataFrame) -> None:
         encoding="utf-8-sig",
     )
     (SECTION_DIR / "pib_geih_productividad_departamento_ranking_niveles.tex").write_text(
+        "\n".join(lines), encoding="utf-8"
+    )
+
+
+def build_productivity_remuneration_table(summary: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, float]]:
+    totals: dict[int, list[float]] = {}
+    reader = pd.read_stata(
+        GEIH_DTA,
+        columns=["anio", "depto", "fex", "horas", "ingreso_hora_real"],
+        convert_categoricals=False,
+        chunksize=200_000,
+    )
+
+    for chunk in reader:
+        chunk = chunk[
+            (chunk["anio"] == END_YEAR)
+            & chunk["depto"].isin(DEPARTMENTS_24)
+        ].copy()
+        if chunk.empty:
+            continue
+        for col in ["fex", "horas", "ingreso_hora_real"]:
+            chunk[col] = pd.to_numeric(chunk[col], errors="coerce")
+        valid = chunk[
+            (chunk["fex"] > 0)
+            & chunk["horas"].between(1, 112)
+            & (chunk["ingreso_hora_real"] > 0)
+        ].copy()
+        if valid.empty:
+            continue
+        valid["rem_total_mensual"] = (
+            valid["fex"] * valid["ingreso_hora_real"] * valid["horas"] * MONTHS_PER_WEEK
+        )
+        grouped = valid.groupby("depto", as_index=False).agg(
+            ocupados_remuneracion_valida=("fex", "sum"),
+            rem_total_mensual=("rem_total_mensual", "sum"),
+        )
+        for row in grouped.itertuples(index=False):
+            key = int(row.depto)
+            if key not in totals:
+                totals[key] = [0.0, 0.0]
+            totals[key][0] += float(row.ocupados_remuneracion_valida)
+            totals[key][1] += float(row.rem_total_mensual)
+
+    rem = pd.DataFrame(
+        [
+            {
+                "depto": depto,
+                "ocupados_remuneracion_valida": values[0],
+                "rem_total_mensual": values[1],
+            }
+            for depto, values in totals.items()
+        ]
+    )
+    table = summary[
+        ["depto", "departamento", "ocupados_2024", "pib_trabajador_2024"]
+    ].merge(rem, on="depto", how="inner")
+    if len(table) != len(DEPARTMENTS_24):
+        raise ValueError(
+            f"Se esperaban {len(DEPARTMENTS_24)} departamentos con remuneracion y se obtuvieron {len(table)}"
+        )
+
+    table["rem_por_trabajador_2024"] = table["rem_total_mensual"] / table["ocupados_2024"]
+    table["share_ocupados_remuneracion_valida"] = (
+        table["ocupados_remuneracion_valida"] / table["ocupados_2024"]
+    )
+    table["ranking_pib_trabajador"] = table["pib_trabajador_2024"].rank(
+        ascending=False, method="min"
+    ).astype(int)
+    table["ranking_rem_trabajador"] = table["rem_por_trabajador_2024"].rank(
+        ascending=False, method="min"
+    ).astype(int)
+    table["brecha_ranking_rem_menos_pib"] = (
+        table["ranking_rem_trabajador"] - table["ranking_pib_trabajador"]
+    )
+    table = table.sort_values("ranking_pib_trabajador")
+
+    benchmarks = {
+        "rem_por_trabajador_2024": table["rem_total_mensual"].sum() / table["ocupados_2024"].sum(),
+        "pib_trabajador_2024": summary["pib_2024"].sum() * 1e9 / summary["ocupados_2024"].sum() / 1e6,
+        "corr_pib_remuneracion": table[["pib_trabajador_2024", "rem_por_trabajador_2024"]]
+        .corr()
+        .iloc[0, 1],
+        "corr_rank_pib_remuneracion": table[["ranking_pib_trabajador", "ranking_rem_trabajador"]]
+        .corr()
+        .iloc[0, 1],
+    }
+    return table, benchmarks
+
+
+def write_productivity_remuneration_table(table: pd.DataFrame) -> None:
+    lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        rf"\caption{{Ranking departamental de PIB por trabajador y remuneraci\'on por trabajador, {END_YEAR}pr}}",
+        r"\label{tab:pib_geih_productividad_departamento_remuneracion}",
+        r"\scriptsize",
+        r"\begin{tabular}{lrrrrr}",
+        r"\toprule",
+        rf"Departamento & PIB/trab. {END_YEAR}pr & Puesto & Rem./trab. {END_YEAR} & Puesto & Dif. puestos \\",
+        r"\midrule",
+    ]
+    for _, row in table.iterrows():
+        lines.append(
+            f"{escape_latex(row['departamento'])} & "
+            f"{fmt_num_es(row['pib_trabajador_2024'], 1)} & "
+            f"{int(row['ranking_pib_trabajador'])} & "
+            f"{fmt_num_es(row['rem_por_trabajador_2024'] / 1e6, 2)} & "
+            f"{int(row['ranking_rem_trabajador'])} & "
+            f"{int(row['brecha_ranking_rem_menos_pib']):+d} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; remuneraci\'on por trabajador en millones de pesos constantes de 2025 al mes. La remuneraci\'on por trabajador se calcula como la remuneraci\'on laboral mensual total observada entre ocupados con ingreso horario positivo y horas v\'alidas, dividida por el n\'umero total de ocupados del departamento. La diferencia de puestos corresponde al puesto en remuneraci\'on menos el puesto en PIB por trabajador; un valor positivo indica que el departamento ocupa una posici\'on m\'as baja en remuneraci\'on que en productividad. Fuente: c\'alculos propios con DANE y GEIH.}",
+            r"\end{table}",
+        ]
+    )
+    cols = [
+        "depto",
+        "departamento",
+        "pib_trabajador_2024",
+        "ranking_pib_trabajador",
+        "rem_por_trabajador_2024",
+        "ranking_rem_trabajador",
+        "brecha_ranking_rem_menos_pib",
+        "share_ocupados_remuneracion_valida",
+    ]
+    for directory in [TABLE_DIR, OUTPUT_TABLE_DIR]:
+        table[cols].to_csv(
+            directory / "pib_geih_productividad_departamento_remuneracion.csv",
+            index=False,
+            encoding="utf-8-sig",
+        )
+    (SECTION_DIR / "pib_geih_productividad_departamento_remuneracion.tex").write_text(
         "\n".join(lines), encoding="utf-8"
     )
 
@@ -953,6 +1089,121 @@ def draw_department_convergence_scatter(summary: pd.DataFrame) -> None:
         img.save(directory / "fig_pib_geih_productividad_departamento_convergencia.png")
 
 
+def draw_productivity_remuneration_scatter(
+    table: pd.DataFrame, benchmarks: dict[str, float]
+) -> None:
+    data = table.copy()
+    data["pib_trabajador_millones"] = data["pib_trabajador_2024"]
+    data["rem_trabajador_millones"] = data["rem_por_trabajador_2024"] / 1e6
+
+    title_font, label_font, small_font, note_font, tiny_font = fonts()
+    img = Image.new("RGB", (2400, 1550), "white")
+    draw = ImageDraw.Draw(img)
+    draw.text(
+        (90, 45),
+        f"PIB por trabajador y remuneraci\u00f3n por trabajador, {END_YEAR}pr",
+        fill="#222222",
+        font=title_font,
+    )
+    draw.text(
+        (90, 105),
+        "Cada punto representa un departamento; las l\u00edneas azules muestran el agregado de los 24 departamentos",
+        fill="#555555",
+        font=label_font,
+    )
+
+    plot_left, plot_top, plot_right, plot_bottom = 250, 230, 2260, 1290
+    x_min = math.floor(data["pib_trabajador_millones"].min() / 10) * 10
+    x_max = math.ceil(data["pib_trabajador_millones"].max() / 10) * 10
+    y_min = math.floor(data["rem_trabajador_millones"].min() * 10) / 10
+    y_max = math.ceil(data["rem_trabajador_millones"].max() * 10) / 10
+
+    def x_pos(value: float) -> float:
+        return plot_left + (value - x_min) / (x_max - x_min) * (plot_right - plot_left)
+
+    def y_pos(value: float) -> float:
+        return plot_bottom - (value - y_min) / (y_max - y_min) * (plot_bottom - plot_top)
+
+    draw.rectangle((plot_left, plot_top, plot_right, plot_bottom), outline="#333333", width=2)
+
+    for tick in range(int(x_min), int(x_max) + 1, 10):
+        x = x_pos(tick)
+        draw.line((x, plot_top, x, plot_bottom), fill="#eeeeee", width=1)
+        draw.text((x - 28, plot_bottom + 18), f"{tick}", fill="#555555", font=small_font)
+    y_tick = y_min
+    while y_tick <= y_max + 1e-9:
+        y = y_pos(y_tick)
+        draw.line((plot_left, y, plot_right, y), fill="#eeeeee", width=1)
+        draw.text((plot_left - 95, y - 15), fmt_num_es(y_tick, 1), fill="#555555", font=small_font)
+        y_tick += 0.2
+
+    x_agg = benchmarks["pib_trabajador_2024"]
+    y_agg = benchmarks["rem_por_trabajador_2024"] / 1e6
+    draw.line((x_pos(x_agg), plot_top, x_pos(x_agg), plot_bottom), fill="#1f5aa6", width=4)
+    draw.line((plot_left, y_pos(y_agg), plot_right, y_pos(y_agg)), fill="#1f5aa6", width=4)
+
+    xs = data["pib_trabajador_millones"].astype(float).to_numpy()
+    ys = data["rem_trabajador_millones"].astype(float).to_numpy()
+    slope, intercept = np.polyfit(xs, ys, 1)
+    draw.line(
+        (x_pos(x_min), y_pos(slope * x_min + intercept), x_pos(x_max), y_pos(slope * x_max + intercept)),
+        fill="#b44b3f",
+        width=5,
+    )
+
+    label_offsets = {
+        "Bogotá D.C.": (-165, -44),
+        "Meta": (18, -38),
+        "Santander": (18, 16),
+        "Valle del Cauca": (16, 18),
+        "Antioquia": (-160, -38),
+        "Caldas": (-115, -44),
+        "Risaralda": (-120, 18),
+        "Norte de Santander": (18, -40),
+        "Bolívar": (18, 12),
+        "Boyacá": (18, -40),
+        "La Guajira": (18, 10),
+        "Nariño": (-105, 16),
+        "Cundinamarca": (20, -44),
+        "Quindío": (18, 12),
+        "Atlántico": (18, -6),
+    }
+    for _, row in data.iterrows():
+        x = x_pos(row["pib_trabajador_millones"])
+        y = y_pos(row["rem_trabajador_millones"])
+        draw.ellipse((x - 13, y - 13, x + 13, y + 13), fill="#1f77b4", outline="white", width=2)
+        dx, dy = label_offsets.get(row["departamento"], (16, -12))
+        draw.text((x + dx, y + dy), row["departamento"], fill="#222222", font=tiny_font)
+
+    corr = benchmarks["corr_pib_remuneracion"]
+    draw.text(
+        (plot_left + 24, plot_top + 22),
+        f"r = {fmt_num_es(corr, 2)}",
+        fill="#b44b3f",
+        font=label_font,
+    )
+    draw.text(
+        (plot_left + 570, plot_bottom + 80),
+        "PIB por trabajador, millones de pesos de 2015",
+        fill="#333333",
+        font=label_font,
+    )
+    y_label = "Remuneraci\u00f3n mensual por trabajador, millones de pesos de 2025"
+    label_img = Image.new("RGBA", (980, 70), (255, 255, 255, 0))
+    label_draw = ImageDraw.Draw(label_img)
+    label_draw.text((0, 0), y_label, fill="#333333", font=label_font)
+    label_img = label_img.rotate(90, expand=True)
+    img.paste(label_img, (45, 380), label_img)
+    draw.text(
+        (90, 1430),
+        "Fuente: c\u00e1lculos propios con DANE y GEIH. La l\u00ednea roja muestra la tendencia lineal simple entre departamentos.",
+        fill="#555555",
+        font=note_font,
+    )
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_pib_geih_productividad_departamento_remuneracion.png")
+
+
 def write_benchmarks(benchmarks: dict[str, float]) -> None:
     pd.DataFrame([benchmarks]).to_csv(
         TABLE_DIR / "pib_geih_productividad_departamento_benchmarks.csv",
@@ -976,12 +1227,15 @@ def main() -> None:
 
     write_summary_table(summary)
     write_level_ranking_table(summary)
+    rem_table, rem_benchmarks = build_productivity_remuneration_table(summary)
+    write_productivity_remuneration_table(rem_table)
     write_detail_section(data, summary)
     write_correlation_table(summary)
     draw_department_growth_chart(summary)
     draw_department_quadrant_chart(summary, benchmarks)
     draw_department_convergence_scatter(summary)
     draw_department_correlation_scatter(summary)
+    draw_productivity_remuneration_scatter(rem_table, rem_benchmarks)
 
     print(f"Departamentos con información completa: {len(summary)}")
     print(f"Periodo: {START_YEAR}-{END_YEAR}pr; se excluye 2020")
@@ -991,6 +1245,7 @@ def main() -> None:
         .to_string(index=False)
     )
     print("Agregado 24 departamentos:", benchmarks)
+    print("Correlacion PIB por trabajador y remuneracion por trabajador:", rem_benchmarks["corr_pib_remuneracion"])
 
 
 if __name__ == "__main__":

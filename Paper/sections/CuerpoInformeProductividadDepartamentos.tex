@@ -6,11 +6,13 @@
 
 \textbf{El objetivo de este informe es medir la evolución de la productividad laboral departamental en Colombia entre 2010 y 2024.} Para ello se combina el Producto Interno Bruto departamental reportado del DANE, expresado en pesos constantes de 2015, con ocupados y horas trabajadas de la Gran Encuesta Integrada de Hogares (GEIH). 
 
-\textbf{El informe está organizado en seis secciones, incluyendo esta introducción.} La sección 2 presenta la metodología y las fuentes. La sección 3 compara la productividad laboral de los departamentos. La sección 4 distingue entre niveles y crecimientos de la productividad usando una gráfica de cuadrantes y un ejercicio descriptivo de convergencia. La sección 5 analiza la relación entre crecimiento del trabajo y crecimiento de la productividad. La sección 6 presenta conclusiones. El apéndice incluye el detalle de cada departamento.
+\textbf{El informe está organizado en siete secciones, incluyendo esta introducción.} La sección 2 presenta la metodología y las fuentes. La sección 3 compara la productividad laboral de los departamentos. La sección 4 analiza la relación entre productividad y remuneración laboral. La sección 5 distingue entre niveles y crecimientos de la productividad usando una gráfica de cuadrantes y un ejercicio descriptivo de convergencia. La sección 6 analiza la relación entre crecimiento del trabajo y crecimiento de la productividad. La sección 7 presenta conclusiones. El apéndice incluye el detalle de cada departamento.
 
 \section{Metodología}
 
 \textbf{La medición combina cuentas nacionales departamentales y microdatos de la GEIH.} El numerador corresponde al PIB departamental real del DANE, tomado del anexo \textit{Producto Interno Bruto por departamento}, en series encadenadas de volumen con año de referencia 2015. El denominador se construye con la GEIH. El número de ocupados corresponde al promedio anual de personas ocupadas, calculado con el factor de expansión de la encuesta. Las horas trabajadas se calculan multiplicando el número de ocupados por el promedio ponderado de horas semanales entre los ocupados que reportan horas válidas, y luego anualizando ese resultado por 52 semanas. De esta manera, los ocupados que no reportan horas no se tratan implícitamente como trabajadores con cero horas, sino que se les asigna el promedio observado del respectivo departamento y año.
+
+\textbf{La comparación con remuneración laboral también se construye con la GEIH.} La remuneración mensual se calcula a partir del ingreso laboral por hora, las horas semanales trabajadas y el factor de expansión de la encuesta. La remuneración laboral mensual total se calcula entre los ocupados con ingreso y horas válidas. Luego, para mantener la comparación con el PIB por trabajador, ese total se divide por el número total de ocupados del departamento.
 
 \textbf{El informe se concentra en 24 departamentos comparables durante todo el periodo.} La GEIH permite seguir de manera consistente los departamentos tradicionales del diseño muestral entre 2010 y 2025. Para evitar imputaciones o cambios artificiales en la cobertura, se excluyen San Andrés y Providencia y los departamentos de la Amazonía y la Orinoquía que no hacen parte de ese panel comparable desde 2010. Bogotá D.C. se trata como departamento porque así aparece en las cuentas nacionales departamentales.
 
@@ -42,6 +44,23 @@
 \end{figure}
 
 \textbf{La Figura \ref{fig:pib_geih_productividad_departamento} permite ver que las diferencias no son marginales.} La distancia entre los departamentos de mayor y menor crecimiento supera cinco puntos porcentuales anuales cuando se mide la productividad por hora. El desempeño agregado del país, por tanto, oculta trayectorias territoriales muy distintas.
+
+\section{Productividad y remuneración laboral}
+
+\textbf{La productividad importa, entre otras razones, porque puede sostener mejores remuneraciones laborales.} Por eso, después de medir las diferencias departamentales en PIB por trabajador, conviene preguntar si los departamentos donde se produce más por ocupado son también aquellos donde los trabajadores reciben una mayor remuneración. Esta comparación no agota la relación entre productividad e ingresos, pero ayuda a conectar el diagnóstico productivo con una dimensión directa del bienestar laboral.
+
+\input{Paper/sections/pib_geih_productividad_departamento_remuneracion}
+
+\textbf{La relación entre productividad y remuneración es positiva, pero no mecánica.} Bogotá D.C. ocupa el primer lugar tanto en PIB por trabajador como en remuneración por trabajador. Antioquia, Caldas, Risaralda, Quindío y Norte de Santander tienen una posición relativa mejor en remuneración que en PIB por trabajador. En contraste, Bolívar, Boyacá y La Guajira ocupan una posición más alta en PIB por trabajador que en remuneración. Estos casos muestran que la productividad departamental y la remuneración laboral se mueven en la misma dirección general, pero no siempre con la misma intensidad.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Paper/figures/fig_pib_geih_productividad_departamento_remuneracion.png}
+  \caption{PIB por trabajador y remuneración por trabajador por departamento, 2024pr}
+  \label{fig:pib_geih_productividad_departamento_remuneracion}
+\end{figure}
+
+\textbf{La Figura \ref{fig:pib_geih_productividad_departamento_remuneracion} muestra una asociación clara entre productividad y remuneración.} La correlación entre el PIB por trabajador y la remuneración por trabajador es cercana a 0,8 entre los 24 departamentos comparables. Sin embargo, la dispersión alrededor de la línea de tendencia confirma que los niveles de remuneración también reflejan otros factores: composición sectorial, informalidad, calificación de los trabajadores, estructura empresarial y condiciones locales del mercado laboral.
 
 \section{Niveles y crecimientos de la productividad}
 
@@ -93,6 +112,8 @@
 \textbf{Hay señales de convergencia territorial, pero estas son parciales y desiguales.} Los departamentos que partieron con menores niveles de productividad tendieron, en promedio, a crecer más rápido. Este patrón se observa en Quindío, Caquetá, Risaralda y Chocó. Sin embargo, la relación no es mecánica: Bogotá D.C. partió de un nivel alto y siguió creciendo por encima del agregado, mientras que La Guajira partió de un nivel bajo y registró una caída en productividad. Por eso, el ejercicio sugiere convergencia descriptiva, pero no permite concluir que las brechas territoriales se estén cerrando de manera generalizada.
 
 \textbf{La productividad por hora ofrece una lectura más precisa que la productividad por trabajador cuando las horas trabajadas cambian.} En varios departamentos, el crecimiento del PIB por trabajador y el crecimiento del PIB por hora no son idénticos porque las horas semanales por trabajador se movieron durante el periodo. La distinción es relevante para evaluar si la mejora de productividad implica producir más eficientemente o simplemente trabajar más horas.
+
+\textbf{Los departamentos más productivos tienden a tener mayores remuneraciones, pero la relación no es automática.} La comparación entre PIB por trabajador y remuneración por trabajador muestra una asociación positiva importante. Sin embargo, las diferencias entre ambos rankings sugieren que la remuneración laboral también depende de otros factores, como la composición sectorial, la informalidad, la calificación de los trabajadores y las condiciones locales del mercado laboral.
 
 \textbf{El crecimiento de ocupados no siempre se concentró en los departamentos con mayor crecimiento de productividad.} Esta evidencia no prueba por sí sola una mala asignación territorial del trabajo, pero sí señala una pregunta importante para la política pública: qué condiciones permiten que el empleo y la productividad crezcan al mismo tiempo. La agenda territorial no puede limitarse a generar más empleo; también debe preguntarse qué tipo de empleo se está creando, en qué actividades y bajo qué condiciones de capital, infraestructura y capacidades productivas.
 
