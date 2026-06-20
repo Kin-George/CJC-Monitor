@@ -401,8 +401,8 @@ def write_level_ranking_table(summary: pd.DataFrame) -> None:
     )
 
 
-def build_productivity_remuneration_table(summary: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, float]]:
-    totals: dict[int, list[float]] = {}
+def build_remuneration_departamental_series(data: pd.DataFrame) -> pd.DataFrame:
+    totals: dict[tuple[int, int], list[float]] = {}
     reader = pd.read_stata(
         GEIH_DTA,
         columns=["anio", "depto", "fex", "horas", "ingreso_hora_real"],
@@ -411,14 +411,17 @@ def build_productivity_remuneration_table(summary: pd.DataFrame) -> tuple[pd.Dat
     )
 
     for chunk in reader:
+        for col in ["anio", "depto", "fex", "horas", "ingreso_hora_real"]:
+            chunk[col] = pd.to_numeric(chunk[col], errors="coerce")
         chunk = chunk[
-            (chunk["anio"] == END_YEAR)
+            chunk["anio"].between(START_YEAR, END_YEAR)
+            & ~chunk["anio"].isin(EXCLUDED_YEARS)
             & chunk["depto"].isin(DEPARTMENTS_24)
         ].copy()
         if chunk.empty:
             continue
-        for col in ["fex", "horas", "ingreso_hora_real"]:
-            chunk[col] = pd.to_numeric(chunk[col], errors="coerce")
+        chunk["anio"] = chunk["anio"].astype(int)
+        chunk["depto"] = chunk["depto"].astype(int)
         valid = chunk[
             (chunk["fex"] > 0)
             & chunk["horas"].between(1, 112)
@@ -429,12 +432,12 @@ def build_productivity_remuneration_table(summary: pd.DataFrame) -> tuple[pd.Dat
         valid["rem_total_mensual"] = (
             valid["fex"] * valid["ingreso_hora_real"] * valid["horas"] * MONTHS_PER_WEEK
         )
-        grouped = valid.groupby("depto", as_index=False).agg(
+        grouped = valid.groupby(["anio", "depto"], as_index=False).agg(
             ocupados_remuneracion_valida=("fex", "sum"),
             rem_total_mensual=("rem_total_mensual", "sum"),
         )
         for row in grouped.itertuples(index=False):
-            key = int(row.depto)
+            key = (int(row.anio), int(row.depto))
             if key not in totals:
                 totals[key] = [0.0, 0.0]
             totals[key][0] += float(row.ocupados_remuneracion_valida)
@@ -443,24 +446,79 @@ def build_productivity_remuneration_table(summary: pd.DataFrame) -> tuple[pd.Dat
     rem = pd.DataFrame(
         [
             {
+                "anio": anio,
                 "depto": depto,
                 "ocupados_remuneracion_valida": values[0],
                 "rem_total_mensual": values[1],
             }
-            for depto, values in totals.items()
+            for (anio, depto), values in totals.items()
         ]
     )
+    labor = data[
+        ["anio", "depto", "departamento", "ocupados", "pib_por_trabajador_millones_2015"]
+    ].copy()
+    series = labor.merge(rem, on=["anio", "depto"], how="inner")
+    required_years = set(range(START_YEAR, END_YEAR + 1)) - EXCLUDED_YEARS
+    expected_rows = len(DEPARTMENTS_24) * len(required_years)
+    if len(series) != expected_rows:
+        raise ValueError(
+            f"Se esperaban {expected_rows} observaciones de remuneracion departamental y se obtuvieron {len(series)}"
+        )
+    series["rem_por_trabajador"] = series["rem_total_mensual"] / series["ocupados"]
+    series["share_ocupados_remuneracion_valida"] = (
+        series["ocupados_remuneracion_valida"] / series["ocupados"]
+    )
+    return series.sort_values(["departamento", "anio"])
+
+
+def build_productivity_remuneration_table(
+    data: pd.DataFrame, summary: pd.DataFrame
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, float]]:
+    series = build_remuneration_departamental_series(data)
+    start = series[series["anio"] == START_YEAR][
+        ["depto", "rem_total_mensual", "ocupados_remuneracion_valida", "rem_por_trabajador"]
+    ].rename(
+        columns={
+            "rem_total_mensual": "rem_total_mensual_2010",
+            "ocupados_remuneracion_valida": "ocupados_remuneracion_valida_2010",
+            "rem_por_trabajador": "rem_por_trabajador_2010",
+        }
+    )
+    end = series[series["anio"] == END_YEAR][
+        [
+            "depto",
+            "rem_total_mensual",
+            "ocupados_remuneracion_valida",
+            "rem_por_trabajador",
+            "share_ocupados_remuneracion_valida",
+        ]
+    ].rename(
+        columns={
+            "rem_total_mensual": "rem_total_mensual_2024",
+            "ocupados_remuneracion_valida": "ocupados_remuneracion_valida_2024",
+            "rem_por_trabajador": "rem_por_trabajador_2024",
+            "share_ocupados_remuneracion_valida": "share_ocupados_remuneracion_valida_2024",
+        }
+    )
     table = summary[
-        ["depto", "departamento", "ocupados_2024", "pib_trabajador_2024"]
-    ].merge(rem, on="depto", how="inner")
+        [
+            "depto",
+            "departamento",
+            "ocupados_2010",
+            "ocupados_2024",
+            "pib_trabajador_2010",
+            "pib_trabajador_2024",
+            "crec_pib_trabajador",
+        ]
+    ].merge(start, on="depto", how="inner").merge(end, on="depto", how="inner")
     if len(table) != len(DEPARTMENTS_24):
         raise ValueError(
             f"Se esperaban {len(DEPARTMENTS_24)} departamentos con remuneracion y se obtuvieron {len(table)}"
         )
 
-    table["rem_por_trabajador_2024"] = table["rem_total_mensual"] / table["ocupados_2024"]
-    table["share_ocupados_remuneracion_valida"] = (
-        table["ocupados_remuneracion_valida"] / table["ocupados_2024"]
+    table["crec_rem_trabajador"] = table.apply(
+        lambda row: cagr(row["rem_por_trabajador_2010"], row["rem_por_trabajador_2024"]),
+        axis=1,
     )
     table["ranking_pib_trabajador"] = table["pib_trabajador_2024"].rank(
         ascending=False, method="min"
@@ -470,6 +528,15 @@ def build_productivity_remuneration_table(summary: pd.DataFrame) -> tuple[pd.Dat
     ).astype(int)
     table["brecha_ranking_rem_menos_pib"] = (
         table["ranking_rem_trabajador"] - table["ranking_pib_trabajador"]
+    )
+    table["ranking_crec_pib_trabajador"] = table["crec_pib_trabajador"].rank(
+        ascending=False, method="min"
+    ).astype(int)
+    table["ranking_crec_rem_trabajador"] = table["crec_rem_trabajador"].rank(
+        ascending=False, method="min"
+    ).astype(int)
+    table["brecha_ranking_crec_rem_menos_pib"] = (
+        table["ranking_crec_rem_trabajador"] - table["ranking_crec_pib_trabajador"]
     )
     slope, intercept = np.polyfit(
         table["pib_trabajador_2024"].astype(float).to_numpy(),
@@ -489,7 +556,12 @@ def build_productivity_remuneration_table(summary: pd.DataFrame) -> tuple[pd.Dat
     table = table.sort_values("ranking_pib_trabajador")
 
     benchmarks = {
-        "rem_por_trabajador_2024": table["rem_total_mensual"].sum() / table["ocupados_2024"].sum(),
+        "rem_por_trabajador_2010": table["rem_total_mensual_2010"].sum() / table["ocupados_2010"].sum(),
+        "rem_por_trabajador_2024": table["rem_total_mensual_2024"].sum() / table["ocupados_2024"].sum(),
+        "crec_rem_trabajador": cagr(
+            table["rem_total_mensual_2010"].sum() / table["ocupados_2010"].sum(),
+            table["rem_total_mensual_2024"].sum() / table["ocupados_2024"].sum(),
+        ),
         "pib_trabajador_2024": summary["pib_2024"].sum() * 1e9 / summary["ocupados_2024"].sum() / 1e6,
         "corr_pib_remuneracion": table[["pib_trabajador_2024", "rem_por_trabajador_2024"]]
         .corr()
@@ -497,8 +569,16 @@ def build_productivity_remuneration_table(summary: pd.DataFrame) -> tuple[pd.Dat
         "corr_rank_pib_remuneracion": table[["ranking_pib_trabajador", "ranking_rem_trabajador"]]
         .corr()
         .iloc[0, 1],
+        "corr_crec_pib_remuneracion": table[["crec_pib_trabajador", "crec_rem_trabajador"]]
+        .corr()
+        .iloc[0, 1],
+        "corr_rank_crec_pib_remuneracion": table[
+            ["ranking_crec_pib_trabajador", "ranking_crec_rem_trabajador"]
+        ]
+        .corr()
+        .iloc[0, 1],
     }
-    return table, benchmarks
+    return series, table, benchmarks
 
 
 def write_productivity_remuneration_table(table: pd.DataFrame) -> None:
@@ -533,12 +613,19 @@ def write_productivity_remuneration_table(table: pd.DataFrame) -> None:
     cols = [
         "depto",
         "departamento",
+        "pib_trabajador_2010",
         "pib_trabajador_2024",
+        "crec_pib_trabajador",
         "ranking_pib_trabajador",
+        "rem_por_trabajador_2010",
         "rem_por_trabajador_2024",
+        "crec_rem_trabajador",
         "ranking_rem_trabajador",
         "brecha_ranking_rem_menos_pib",
-        "share_ocupados_remuneracion_valida",
+        "ranking_crec_pib_trabajador",
+        "ranking_crec_rem_trabajador",
+        "brecha_ranking_crec_rem_menos_pib",
+        "share_ocupados_remuneracion_valida_2024",
         "rem_por_trabajador_predicha_tendencia",
         "residuo_rem_por_trabajador_tendencia",
         "residuo_pct_tendencia",
@@ -550,6 +637,75 @@ def write_productivity_remuneration_table(table: pd.DataFrame) -> None:
             encoding="utf-8-sig",
         )
     (SECTION_DIR / "pib_geih_productividad_departamento_remuneracion.tex").write_text(
+        "\n".join(lines), encoding="utf-8"
+    )
+
+
+def write_remuneration_level_ranking_table(table: pd.DataFrame) -> None:
+    ranked = table.sort_values("ranking_rem_trabajador")
+    lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        rf"\caption{{Ranking departamental de niveles de remuneraci\'on por trabajador, {END_YEAR}}}",
+        r"\label{tab:pib_geih_productividad_departamento_remuneracion_niveles}",
+        r"\scriptsize",
+        r"\begin{tabular}{lrrrr}",
+        r"\toprule",
+        rf"Departamento & Rem./trab. {END_YEAR} & Puesto & PIB/trab. {END_YEAR}pr & Puesto \\",
+        r"\midrule",
+    ]
+    for _, row in ranked.iterrows():
+        lines.append(
+            f"{escape_latex(row['departamento'])} & "
+            f"{fmt_num_es(row['rem_por_trabajador_2024'] / 1e6, 2)} & "
+            f"{int(row['ranking_rem_trabajador'])} & "
+            f"{fmt_num_es(row['pib_trabajador_2024'], 1)} & "
+            f"{int(row['ranking_pib_trabajador'])} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: remuneraci\'on por trabajador en millones de pesos constantes de 2025 al mes; PIB por trabajador en millones de pesos constantes de 2015. La tabla est\'a ordenada por el nivel de remuneraci\'on por trabajador. Fuente: c\'alculos propios con DANE y GEIH.}",
+            r"\end{table}",
+        ]
+    )
+    (SECTION_DIR / "pib_geih_productividad_departamento_remuneracion_niveles.tex").write_text(
+        "\n".join(lines), encoding="utf-8"
+    )
+
+
+def write_remuneration_growth_ranking_table(table: pd.DataFrame) -> None:
+    ranked = table.sort_values("ranking_crec_rem_trabajador")
+    lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        rf"\caption{{Crecimiento departamental de remuneraci\'on y PIB por trabajador, {START_YEAR}--{END_YEAR}pr}}",
+        r"\label{tab:pib_geih_productividad_departamento_remuneracion_crecimientos}",
+        r"\scriptsize",
+        r"\begin{tabular}{lrrrrr}",
+        r"\toprule",
+        r"Departamento & Crec. rem./trab. & Puesto & Crec. PIB/trab. & Puesto & Dif. puestos \\",
+        r"\midrule",
+    ]
+    for _, row in ranked.iterrows():
+        lines.append(
+            f"{escape_latex(row['departamento'])} & "
+            f"{fmt_pct_es(row['crec_rem_trabajador'], 2)} & "
+            f"{int(row['ranking_crec_rem_trabajador'])} & "
+            f"{fmt_pct_es(row['crec_pib_trabajador'], 2)} & "
+            f"{int(row['ranking_crec_pib_trabajador'])} & "
+            f"{int(row['brecha_ranking_crec_rem_menos_pib']):+d} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: tasas de crecimiento anualizadas. La diferencia de puestos corresponde al puesto en crecimiento de la remuneraci\'on por trabajador menos el puesto en crecimiento del PIB por trabajador; un valor positivo indica que el departamento ocupa una posici\'on m\'as baja en crecimiento de remuneraci\'on que en crecimiento de productividad. Fuente: c\'alculos propios con DANE y GEIH.}",
+            r"\end{table}",
+        ]
+    )
+    (SECTION_DIR / "pib_geih_productividad_departamento_remuneracion_crecimientos.tex").write_text(
         "\n".join(lines), encoding="utf-8"
     )
 
@@ -1245,8 +1401,30 @@ def main() -> None:
 
     write_summary_table(summary)
     write_level_ranking_table(summary)
-    rem_table, rem_benchmarks = build_productivity_remuneration_table(summary)
+    rem_series, rem_table, rem_benchmarks = build_productivity_remuneration_table(data, summary)
+    rem_series.to_csv(
+        TABLE_DIR / "pib_geih_productividad_departamento_remuneracion_series.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    rem_series.to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_departamento_remuneracion_series.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    pd.DataFrame([rem_benchmarks]).to_csv(
+        TABLE_DIR / "pib_geih_productividad_departamento_remuneracion_benchmarks.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    pd.DataFrame([rem_benchmarks]).to_csv(
+        OUTPUT_TABLE_DIR / "pib_geih_productividad_departamento_remuneracion_benchmarks.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+    write_remuneration_level_ranking_table(rem_table)
     write_productivity_remuneration_table(rem_table)
+    write_remuneration_growth_ranking_table(rem_table)
     write_detail_section(data, summary)
     write_correlation_table(summary)
     draw_department_growth_chart(summary)
