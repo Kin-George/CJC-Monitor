@@ -188,10 +188,20 @@ def load_geih_departamental() -> pd.DataFrame:
     ].copy()
     geih["horas_validas"] = geih["horas"].where(geih["horas"].between(1, 112))
     geih["horas_sem_expand"] = geih["fex"] * geih["horas_validas"]
+    geih["fex_horas_validas"] = geih["fex"].where(geih["horas_validas"].notna(), 0)
     dep = (
         geih.groupby(["anio", "depto"], as_index=False)
-        .agg(ocupados=("fex", "sum"), horas_sem_expandidas=("horas_sem_expand", "sum"))
-        .assign(horas_anuales=lambda x: x["horas_sem_expandidas"] * 52)
+        .agg(
+            ocupados=("fex", "sum"),
+            ocupados_horas_validas=("fex_horas_validas", "sum"),
+            horas_sem_expandidas_validas=("horas_sem_expand", "sum"),
+        )
+        .assign(
+            horas_semanales_promedio=lambda x: x["horas_sem_expandidas_validas"] / x["ocupados_horas_validas"],
+            share_ocupados_sin_horas_validas=lambda x: 1 - x["ocupados_horas_validas"] / x["ocupados"],
+            horas_sem_expandidas=lambda x: x["ocupados"] * x["horas_semanales_promedio"],
+            horas_anuales=lambda x: x["horas_sem_expandidas"] * 52,
+        )
     )
     dep["departamento"] = dep["depto"].map(DEPARTMENTS_24)
 
