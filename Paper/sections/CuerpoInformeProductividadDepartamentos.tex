@@ -58,10 +58,10 @@
   \includegraphics[width=\textwidth]{Paper/figures/fig_pib_geih_productividad_departamento_mapa_niveles.png}
   \caption{Mapa de niveles de PIB por trabajador y remuneración por trabajador, 2024}
   \label{fig:pib_geih_productividad_departamento_mapa_niveles}
-  \caption*{\footnotesize Nota: los puntos se ubican en las capitales departamentales o en una posición representativa del departamento. La figura cubre los 24 departamentos comparables en la GEIH durante todo el periodo. Fuente: cálculos propios con DANE y GEIH; contorno nacional del paquete \texttt{maps}.}
+  \caption*{\footnotesize Nota: la figura cubre los 24 departamentos comparables en la GEIH durante todo el periodo; los demás departamentos aparecen en gris. Fuente: cálculos propios con DANE y GEIH; geometría departamental de GADM.}
 \end{figure}
 
-\textbf{El mapa muestra que las diferencias departamentales tienen una geografía clara.} Los puntos más oscuros de productividad se concentran en Bogotá D.C., Meta, Santander, Valle del Cauca y Antioquia, mientras que la remuneración por trabajador se concentra con más fuerza en Bogotá D.C. y Antioquia. La comparación visual refuerza un punto central del informe: la geografía de la productividad y la geografía de la remuneración se parecen, pero no son idénticas.
+\textbf{El mapa muestra que las diferencias departamentales tienen una geografía clara.} Los tonos más oscuros de productividad se concentran en Bogotá D.C., Meta, Santander, Valle del Cauca y Antioquia, mientras que la remuneración por trabajador se concentra con más fuerza en Bogotá D.C. y Antioquia. La comparación visual refuerza un punto central del informe: la geografía de la productividad y la geografía de la remuneración se parecen, pero no son idénticas.
 
 \begin{figure}[H]
   \centering
@@ -73,6 +73,16 @@
 \textbf{La Figura \ref{fig:pib_geih_productividad_departamento_remuneracion} muestra una asociación clara entre productividad y remuneración.} La correlación entre el PIB por trabajador y la remuneración por trabajador es cercana a 0,8 entre los 24 departamentos comparables. Sin embargo, la dispersión alrededor de la línea de tendencia confirma que los niveles de remuneración también reflejan otros factores: composición sectorial, informalidad, calificación de los trabajadores, estructura empresarial y condiciones locales del mercado laboral.
 
 \textbf{Los departamentos más alejados de la recta son especialmente informativos.} Por encima de la relación promedio aparecen Bogotá D.C., Caldas, Antioquia, Norte de Santander, Quindío, Caquetá y Risaralda: para su nivel de PIB por trabajador, registran una remuneración por trabajador mayor a la que sugiere la tendencia entre departamentos. Por debajo de la recta aparecen Bolívar, Santander, Meta, La Guajira y Boyacá: para su nivel de PIB por trabajador, registran una remuneración menor a la que sugiere la relación promedio. Esto no debe leerse como evidencia directa de que unos departamentos paguen demasiado y otros paguen muy poco. Más bien señala que la conexión entre productividad y remuneración pasa por la estructura productiva y laboral de cada territorio. En particular, los casos de Meta, Santander y Bolívar son importantes porque combinan niveles altos de PIB por trabajador con remuneraciones relativamente más bajas frente a la tendencia.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{Paper/figures/fig_pib_geih_productividad_departamento_mapa_residuos.png}
+  \caption{Mapa de remuneración relativa al PIB por trabajador, 2024}
+  \label{fig:pib_geih_productividad_departamento_mapa_residuos}
+  \caption*{\footnotesize Nota: el color muestra la distancia porcentual entre la remuneración observada por trabajador y la remuneración predicha por la tendencia lineal entre PIB por trabajador y remuneración por trabajador. Azul indica remuneraciones por encima de la tendencia; rojo indica remuneraciones por debajo. Los departamentos no comparables aparecen en gris. Fuente: cálculos propios con DANE y GEIH; geometría departamental de GADM.}
+\end{figure}
+
+\textbf{El mapa de residuales muestra dónde la remuneración se aparta más de la relación promedio con la productividad.} Bogotá D.C., Caldas, Antioquia, Norte de Santander, Quindío, Caquetá y Risaralda aparecen en tonos azules porque registran remuneraciones superiores a las que sugiere su nivel de PIB por trabajador. En cambio, Bolívar, Santander, Meta, La Guajira y Boyacá aparecen en tonos rojos porque registran remuneraciones inferiores a las sugeridas por la tendencia. Esta lectura complementa el diagrama de dispersión porque muestra que esas diferencias no son solo casos aislados, sino patrones territoriales visibles.
 
 \input{Paper/sections/pib_geih_productividad_departamento_remuneracion_crecimientos}
 
