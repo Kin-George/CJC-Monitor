@@ -625,6 +625,7 @@ def write_productivity_remuneration_table(table: pd.DataFrame) -> None:
         "ranking_crec_pib_trabajador",
         "ranking_crec_rem_trabajador",
         "brecha_ranking_crec_rem_menos_pib",
+        "ocupados_2024",
         "share_ocupados_remuneracion_valida_2024",
         "rem_por_trabajador_predicha_tendencia",
         "residuo_rem_por_trabajador_tendencia",
@@ -993,8 +994,8 @@ def draw_department_quadrant_chart(summary: pd.DataFrame, benchmarks: dict[str, 
         "Aceleradores": "#59a14f",
         "Rezagados": "#4e79a7",
     }
-    pib = data["pib_2024"]
-    min_pib, max_pib = pib.min(), pib.max()
+    ocupados = data["ocupados_2024"]
+    min_ocupados, max_ocupados = ocupados.min(), ocupados.max()
 
     label_offsets = {
         "Bogotá D.C.": (-160, -36),
@@ -1023,10 +1024,10 @@ def draw_department_quadrant_chart(summary: pd.DataFrame, benchmarks: dict[str, 
         "Tolima": (16, 10),
     }
 
-    for _, row in data.sort_values("pib_2024", ascending=False).iterrows():
+    for _, row in data.sort_values("ocupados_2024", ascending=False).iterrows():
         x = x_pos(row["crec_pib_hora"] * 100)
         y = y_pos(row["pib_hora_2024"] / 1000)
-        radius = 13 + 62 * math.sqrt((row["pib_2024"] - min_pib) / (max_pib - min_pib))
+        radius = 13 + 62 * math.sqrt((row["ocupados_2024"] - min_ocupados) / (max_ocupados - min_ocupados))
         color = colors[row["cuadrante"]]
         draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=color, outline="white", width=3)
         dx, dy = label_offsets.get(row["departamento"], (16, 10))
@@ -1046,12 +1047,161 @@ def draw_department_quadrant_chart(summary: pd.DataFrame, benchmarks: dict[str, 
     )
     draw.text(
         (90, 1570),
-        "Fuente: cálculos propios con DANE y GEIH. Líneas azules: agregado de los 24 departamentos comparables. Se excluye 2020.",
+        "Fuente: cálculos propios con DANE y GEIH. El tamaño de la burbuja es proporcional al número de ocupados. Líneas azules: agregado de los 24 departamentos comparables. Se excluye 2020.",
         fill="#555555",
         font=note_font,
     )
     for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
         img.save(directory / "fig_pib_geih_productividad_departamento_cuadrantes.png")
+
+
+def classify_remuneration_quadrant(row: pd.Series, x_ref: float, y_ref: float) -> str:
+    right = row["crec_rem_trabajador"] >= x_ref
+    high = row["rem_por_trabajador_2024"] >= y_ref
+    if high and right:
+        return "Líderes en auge"
+    if high and not right:
+        return "Líderes en declive"
+    if not high and right:
+        return "Aceleradores"
+    return "Rezagados"
+
+
+def draw_department_remuneration_quadrant_chart(
+    table: pd.DataFrame, benchmarks: dict[str, float]
+) -> None:
+    data = table.copy()
+    x_ref = benchmarks["crec_rem_trabajador"]
+    y_ref = benchmarks["rem_por_trabajador_2024"]
+    data["cuadrante"] = data.apply(classify_remuneration_quadrant, axis=1, args=(x_ref, y_ref))
+
+    title_font, label_font, small_font, note_font, tiny_font = fonts()
+    img = Image.new("RGB", (2400, 1700), "white")
+    draw = ImageDraw.Draw(img)
+    draw.text(
+        (90, 45),
+        f"Nivel y crecimiento de la remuneración por trabajador, {START_YEAR}--{END_YEAR}pr",
+        fill="#222222",
+        font=title_font,
+    )
+    draw.text(
+        (90, 108),
+        "Eje vertical: nivel en 2024pr; eje horizontal: crecimiento anualizado; burbuja: número de ocupados",
+        fill="#555555",
+        font=label_font,
+    )
+
+    left, top, right, bottom = 320, 250, 2180, 1390
+    x_values = data["crec_rem_trabajador"] * 100
+    y_values = data["rem_por_trabajador_2024"] / 1e6
+    x_ref_pct = x_ref * 100
+    y_ref_millions = y_ref / 1e6
+    x_min = math.floor(min(x_values.min(), x_ref_pct) - 0.8)
+    x_max = math.ceil(max(x_values.max(), x_ref_pct) + 0.8)
+    y_min = max(0, math.floor((min(y_values.min(), y_ref_millions) - 0.2) * 10) / 10)
+    y_max = math.ceil((max(y_values.max(), y_ref_millions) + 0.3) * 10) / 10
+
+    def x_pos(value: float) -> float:
+        return left + (value - x_min) / (x_max - x_min) * (right - left)
+
+    def y_pos(value: float) -> float:
+        return bottom - (value - y_min) / (y_max - y_min) * (bottom - top)
+
+    draw.rectangle((left, top, right, bottom), outline="#333333", width=2)
+    for tick in range(math.ceil(x_min), math.floor(x_max) + 1, 1):
+        x = x_pos(tick)
+        draw.line((x, top, x, bottom), fill="#eeeeee", width=1)
+        draw.text((x - 22, bottom + 18), f"{tick}%", fill="#555555", font=small_font)
+
+    y_tick = math.ceil(y_min * 2) / 2
+    while y_tick <= y_max + 1e-9:
+        y = y_pos(y_tick)
+        draw.line((left, y, right, y), fill="#eeeeee", width=1)
+        draw.text((left - 95, y - 15), fmt_num_es(y_tick, 1), fill="#555555", font=small_font)
+        y_tick += 0.5
+
+    x_line = x_pos(x_ref_pct)
+    y_line = y_pos(y_ref_millions)
+    blue = "#1f66c2"
+    draw.line((x_line, top, x_line, bottom), fill=blue, width=4)
+    draw.line((left, y_line, right, y_line), fill=blue, width=4)
+    draw.text((x_line + 10, top + 12), f"Crec. agregado: {fmt_num_es(x_ref_pct, 1)}%", fill=blue, font=small_font)
+    draw.text((left + 25, y_line - 58), f"Nivel agregado: {fmt_num_es(y_ref_millions, 1)}", fill=blue, font=small_font)
+
+    quadrant_labels = [
+        ("Líderes en declive", left + 25, top + 25),
+        ("Líderes en auge", right - 390, top + 25),
+        ("Rezagados", left + 25, y_line + 25),
+        ("Aceleradores", right - 330, y_line + 95),
+    ]
+    for label, x, y in quadrant_labels:
+        draw.text((x, y), label, fill=blue, font=label_font)
+
+    colors = {
+        "Líderes en auge": "#f28e2b",
+        "Líderes en declive": "#9aa7b0",
+        "Aceleradores": "#59a14f",
+        "Rezagados": "#4e79a7",
+    }
+    ocupados = data["ocupados_2024"]
+    min_ocupados, max_ocupados = ocupados.min(), ocupados.max()
+
+    label_offsets = {
+        "Bogotá D.C.": (-170, -48),
+        "Antioquia": (22, 30),
+        "Valle del Cauca": (18, 28),
+        "Santander": (16, -30),
+        "Cundinamarca": (18, -52),
+        "Atlántico": (-128, 22),
+        "Bolívar": (16, -30),
+        "Meta": (18, -52),
+        "Cesar": (16, -28),
+        "Córdoba": (-150, 12),
+        "Nariño": (-110, 14),
+        "Norte de Santander": (-250, -26),
+        "Quindío": (16, 24),
+        "Risaralda": (20, 24),
+        "Caldas": (18, -54),
+        "Sucre": (16, 10),
+        "Chocó": (16, 10),
+        "La Guajira": (16, -18),
+        "Magdalena": (16, 10),
+        "Caquetá": (16, -28),
+        "Cauca": (-120, 16),
+        "Huila": (16, -28),
+        "Boyacá": (16, -28),
+        "Tolima": (16, 10),
+    }
+
+    for _, row in data.sort_values("ocupados_2024", ascending=False).iterrows():
+        x = x_pos(row["crec_rem_trabajador"] * 100)
+        y = y_pos(row["rem_por_trabajador_2024"] / 1e6)
+        radius = 13 + 62 * math.sqrt((row["ocupados_2024"] - min_ocupados) / (max_ocupados - min_ocupados))
+        color = colors[row["cuadrante"]]
+        draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=color, outline="white", width=3)
+        dx, dy = label_offsets.get(row["departamento"], (16, 10))
+        draw.text((x + dx, y + dy), row["departamento"], fill="#222222", font=tiny_font)
+
+    draw.text(
+        ((left + right) / 2 - 330, bottom + 75),
+        "Crecimiento anualizado de la remuneración por trabajador",
+        fill="#333333",
+        font=label_font,
+    )
+    draw.text(
+        (left, top - 55),
+        "Remuneración mensual por trabajador, 2024pr (millones de pesos de 2025)",
+        fill="#333333",
+        font=label_font,
+    )
+    draw.text(
+        (90, 1570),
+        "Fuente: cálculos propios con GEIH. El tamaño de la burbuja es proporcional al número de ocupados. Líneas azules: agregado de los 24 departamentos comparables. Se excluye 2020.",
+        fill="#555555",
+        font=note_font,
+    )
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_geih_remuneracion_departamento_cuadrantes.png")
 
 
 def draw_department_correlation_scatter(summary: pd.DataFrame) -> None:
@@ -1429,6 +1579,7 @@ def main() -> None:
     write_correlation_table(summary)
     draw_department_growth_chart(summary)
     draw_department_quadrant_chart(summary, benchmarks)
+    draw_department_remuneration_quadrant_chart(rem_table, rem_benchmarks)
     draw_department_convergence_scatter(summary)
     draw_department_correlation_scatter(summary)
     draw_productivity_remuneration_scatter(rem_table, rem_benchmarks)
