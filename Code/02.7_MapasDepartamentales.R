@@ -18,18 +18,33 @@ dir.create(output_fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 poly_path <- file.path(ROOT, "DocumentacionAuxiliar", "Geometria", "gadm41_COL_1_polygons.csv")
 rem_path <- file.path(ROOT, "Outputs", "tables", "pib_geih_productividad_departamento_remuneracion.csv")
+bench_path <- file.path(ROOT, "Outputs", "tables", "pib_geih_productividad_departamento_remuneracion_benchmarks.csv")
 
 poligonos <- read_csv(poly_path, show_col_types = FALSE) %>%
   mutate(group = paste(gid, group, sep = "_"))
+
+benchmarks <- read_csv(bench_path, show_col_types = FALSE)
+crec_rem_agregado <- benchmarks$crec_rem_trabajador[[1]]
+rem_agregado <- benchmarks$rem_por_trabajador_2024[[1]]
 
 datos <- read_csv(rem_path, show_col_types = FALSE) %>%
   mutate(
     pib_trabajador = pib_trabajador_2024,
     remuneracion = rem_por_trabajador_2024 / 1e6,
     residuo_pct = 100 * residuo_pct_tendencia,
+    cuadrante_remuneracion = case_when(
+      rem_por_trabajador_2024 >= rem_agregado & crec_rem_trabajador >= crec_rem_agregado ~ "Líderes en auge",
+      rem_por_trabajador_2024 >= rem_agregado & crec_rem_trabajador < crec_rem_agregado ~ "Líderes en declive",
+      rem_por_trabajador_2024 < rem_agregado & crec_rem_trabajador >= crec_rem_agregado ~ "Aceleradores",
+      TRUE ~ "Rezagados"
+    ),
+    cuadrante_remuneracion = factor(
+      cuadrante_remuneracion,
+      levels = c("Líderes en auge", "Líderes en declive", "Aceleradores", "Rezagados")
+    ),
     comparable = TRUE
   ) %>%
-  select(departamento, pib_trabajador, remuneracion, residuo_pct, comparable)
+  select(departamento, pib_trabajador, remuneracion, residuo_pct, cuadrante_remuneracion, comparable)
 
 mapa <- poligonos %>%
   left_join(datos, by = c("departamento_geo" = "departamento")) %>%
@@ -110,5 +125,38 @@ dev.off()
 file.copy(
   out_resid,
   file.path(output_fig_dir, "fig_pib_geih_productividad_departamento_mapa_residuos.png"),
+  overwrite = TRUE
+)
+
+mapa_cuadrantes_rem <- base_map() +
+  geom_polygon(
+    data = mapa %>% filter(!is.na(cuadrante_remuneracion)),
+    aes(fill = cuadrante_remuneracion),
+    color = "#ffffff",
+    linewidth = 0.18
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Líderes en auge" = "#f28e2b",
+      "Líderes en declive" = "#9aa7b0",
+      "Aceleradores" = "#59a14f",
+      "Rezagados" = "#4e79a7"
+    ),
+    drop = FALSE,
+    name = "Categoría"
+  ) +
+  labs(
+    title = "Cuadrantes de remuneración por trabajador",
+    subtitle = "Nivel en 2024pr y crecimiento anualizado 2010--2024pr"
+  )
+
+out_rem_quad <- file.path(paper_fig_dir, "fig_geih_remuneracion_departamento_mapa_cuadrantes.png")
+png(out_rem_quad, width = 1500, height = 1320, res = 180)
+print(mapa_cuadrantes_rem)
+dev.off()
+
+file.copy(
+  out_rem_quad,
+  file.path(output_fig_dir, "fig_geih_remuneracion_departamento_mapa_cuadrantes.png"),
   overwrite = TRUE
 )
