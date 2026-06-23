@@ -1,0 +1,46 @@
+\documentclass[12pt, a4paper]{article}
+
+\input{Paper/config_informes_departamentales}
+
+\renewcommand{\reportnumber}{Informe 03}
+\renewcommand{\reporttitle}{La Geografía de la Remuneración Laboral en Colombia}
+\renewcommand{\reportsubtitle}{Diferencias departamentales, 2010--2024pr}
+
+\title{\reporttitle\\\reportsubtitle}
+\author{\reportauthorone \and \reportauthortwo}
+\date{\today}
+
+\begin{document}
+
+\input{Paper/sections/PortadaInformesDepartamentales}
+
+\begin{mdframed}[
+  linewidth=1pt,
+  linecolor=gray!60,
+  backgroundcolor=gray!6,
+  innertopmargin=12pt,
+  innerbottommargin=12pt,
+  innerleftmargin=14pt,
+  innerrightmargin=14pt
+]
+\section*{Resumen ejecutivo}
+\addcontentsline{toc}{section}{Resumen ejecutivo}
+
+\textbf{Este informe analiza la remuneración laboral por trabajador en los departamentos de Colombia.} El ejercicio usa la GEIH para construir una remuneración mensual promedio por ocupado, expresada en pesos constantes de 2025, para los 24 departamentos comparables durante todo el periodo.
+
+\textbf{Bogotá D.C. ocupa una posición claramente dominante en niveles de remuneración.} En 2024pr registra una remuneración mensual por trabajador cercana a 2,95 millones de pesos de 2025. Le siguen Antioquia, Caldas, Meta, Risaralda, Santander y Valle del Cauca. En el extremo inferior aparecen La Guajira, Sucre, Córdoba, Nariño y Cauca.
+
+\textbf{El crecimiento de la remuneración también fue desigual.} Risaralda, Cundinamarca, Caldas y Bogotá D.C. registraron los mayores crecimientos anualizados entre 2010 y 2024pr. En contraste, La Guajira, Cesar, Magdalena y Sucre estuvieron entre los desempeños más débiles.
+
+\textbf{La remuneración laboral tiene una dimensión territorial marcada.} Buena parte de los departamentos rezagados se ubica en la periferia norte, pacífica y sur del país, mientras que varios de los aceleradores se concentran en el centro andino. Esta distribución sugiere que la remuneración depende no solo de características individuales de los trabajadores, sino también de conectividad, acceso a mercados, infraestructura, densidad empresarial, composición productiva y capacidad institucional.
+
+\textbf{La geografía de la remuneración prepara el terreno para estudiar su relación con la productividad.} Los departamentos con mayor remuneración no siempre coinciden con los más productivos, y los departamentos donde más crece la remuneración no necesariamente son aquellos donde más crece la productividad.
+\end{mdframed}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{Paper/sections/CuerpoInformeRemuneracionDepartamentos}
+
+\end{document}

@@ -1,0 +1,50 @@
+\documentclass[12pt, a4paper]{article}
+
+\input{Paper/config_informes_departamentales}
+
+\renewcommand{\reportnumber}{Informe 02}
+\renewcommand{\reporttitle}{Productividad Laboral Departamental en Colombia}
+\renewcommand{\reportsubtitle}{Una mirada territorial, 2010--2024pr}
+
+\title{\reporttitle\\\reportsubtitle}
+\author{\reportauthorone \and \reportauthortwo}
+\date{\today}
+
+\begin{document}
+
+\input{Paper/sections/PortadaInformesDepartamentales}
+
+\begin{mdframed}[
+  linewidth=1pt,
+  linecolor=gray!60,
+  backgroundcolor=gray!6,
+  innertopmargin=12pt,
+  innerbottommargin=12pt,
+  innerleftmargin=14pt,
+  innerrightmargin=14pt
+]
+\section*{Resumen ejecutivo}
+\addcontentsline{toc}{section}{Resumen ejecutivo}
+
+\textbf{Este informe analiza la productividad laboral departamental en Colombia.} Para ello combina el PIB departamental del DANE con ocupados y horas trabajadas de la GEIH. El ejercicio se limita a los 24 departamentos que pueden seguirse de manera comparable durante todo el periodo.
+
+\textbf{La productividad creció a ritmos muy distintos a través de los departamentos.} Entre 2010 y 2024pr, los mayores crecimientos del PIB por hora trabajada se observan en Quindío (4,63\% anual), Caquetá (4,17\%) y Risaralda (3,51\%). En el extremo contrario, Cundinamarca (-0,14\%) y La Guajira (-0,51\%) registran caídas en el PIB por hora.
+
+\textbf{Las brechas de productividad entre departamentos persisten.} Bogotá D.C., Santander, Meta y Valle del Cauca tienen niveles de PIB por hora superiores al agregado de los 24 departamentos. En cambio, algunos departamentos con alto crecimiento, como Caquetá y Quindío, todavía tienen niveles de productividad por hora por debajo de ese agregado.
+
+\textbf{Hay señales de convergencia descriptiva, aunque no generalizada.} Los departamentos que partieron con menores niveles de productividad tendieron, en promedio, a crecer más rápido. Sin embargo, esta relación tiene excepciones importantes: Bogotá D.C. partió de un nivel alto y siguió creciendo por encima del agregado, mientras que La Guajira partió de un nivel bajo y registró una caída en productividad.
+
+\textbf{El crecimiento de la ocupación no necesariamente se concentró en los departamentos donde más creció la productividad.} Cundinamarca, Atlántico y Meta registraron crecimientos relativamente altos de ocupados, pero un crecimiento débil o negativo del PIB por hora. Esta evidencia no prueba una mala asignación territorial del trabajo, pero sí muestra que la agenda de productividad debe mirar simultáneamente dónde crece el empleo y dónde crece la producción por hora trabajada.
+\end{mdframed}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{Paper/sections/CuerpoInformeProductividadDepartamentosSolo}
+
+\appendix
+\section{Detalle departamental}
+\input{Paper/sections/pib_geih_productividad_departamento_detalle}
+
+\end{document}

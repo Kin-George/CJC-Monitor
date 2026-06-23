@@ -1,0 +1,46 @@
+\documentclass[12pt, a4paper]{article}
+
+\input{Paper/config_informes_departamentales}
+
+\renewcommand{\reportnumber}{Informe 04}
+\renewcommand{\reporttitle}{Productividad y Remuneración Laboral en los Departamentos de Colombia}
+\renewcommand{\reportsubtitle}{Dónde la producción se traduce en mejores ingresos}
+
+\title{\reporttitle\\\reportsubtitle}
+\author{\reportauthorone \and \reportauthortwo}
+\date{\today}
+
+\begin{document}
+
+\input{Paper/sections/PortadaInformesDepartamentales}
+
+\begin{mdframed}[
+  linewidth=1pt,
+  linecolor=gray!60,
+  backgroundcolor=gray!6,
+  innertopmargin=12pt,
+  innerbottommargin=12pt,
+  innerleftmargin=14pt,
+  innerrightmargin=14pt
+]
+\section*{Resumen ejecutivo}
+\addcontentsline{toc}{section}{Resumen ejecutivo}
+
+\textbf{Este informe analiza la relación entre productividad y remuneración laboral en los departamentos de Colombia.} El ejercicio combina el PIB departamental del DANE con ocupados, horas trabajadas e ingresos laborales de la GEIH para los 24 departamentos comparables entre 2010 y 2024pr.
+
+\textbf{Los departamentos más productivos tienden a tener mayores remuneraciones, pero la relación no es perfecta.} La correlación entre PIB por trabajador y remuneración por trabajador es cercana a 0,8 en niveles. Bogotá D.C. ocupa el primer lugar en ambas medidas, pero hay diferencias relevantes entre ambos rankings.
+
+\textbf{Algunos departamentos se ubican por encima de la relación promedio entre productividad y remuneración.} Bogotá D.C., Caldas, Antioquia, Norte de Santander, Quindío, Caquetá y Risaralda registran remuneraciones superiores a las que sugiere su nivel de PIB por trabajador. En cambio, Bolívar, Santander, Meta, La Guajira y Boyacá se ubican por debajo de la tendencia.
+
+\textbf{La relación se debilita cuando se comparan crecimientos.} La correlación entre el crecimiento del PIB por trabajador y el crecimiento de la remuneración por trabajador es cercana a 0,45. Quindío y Caquetá registraron crecimientos altos del PIB por trabajador, pero no estuvieron entre los mayores crecimientos de remuneración. En cambio, Cundinamarca tuvo un crecimiento relativamente alto de remuneración pese a un desempeño débil del PIB por trabajador.
+
+\textbf{La agenda de productividad necesita una lectura territorial explícita.} Las diferencias entre departamentos no son solo diferencias de nivel; también son diferencias en la forma como la producción se conecta con los ingresos laborales. Por eso, la política pública debe preguntarse no solo dónde se produce más, sino también dónde esa productividad se transforma en mejores remuneraciones.
+\end{mdframed}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{Paper/sections/CuerpoInformeProductividadRemuneracionDepartamentos}
+
+\end{document}
