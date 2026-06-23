@@ -35,7 +35,10 @@ rem_agregado <- rem_benchmarks$rem_por_trabajador_2024[[1]]
 
 datos_productividad <- read_csv(summary_path, show_col_types = FALSE) %>%
   mutate(
+    pib_trabajador = pib_trabajador_2024,
     pib_hora = pib_hora_2024 / 1000,
+    crec_pib_trabajador_pct = 100 * crec_pib_trabajador,
+    crec_pib_hora_pct = 100 * crec_pib_hora,
     ocupados = ocupados_2024 / 1e6,
     cuadrante_productividad = case_when(
       pib_hora_2024 >= pib_hora_agregado & crec_pib_hora >= crec_pib_hora_agregado ~ "Líderes en auge",
@@ -49,7 +52,16 @@ datos_productividad <- read_csv(summary_path, show_col_types = FALSE) %>%
     ),
     comparable = TRUE
   ) %>%
-  select(departamento, pib_hora, ocupados, cuadrante_productividad, comparable)
+  select(
+    departamento,
+    pib_trabajador,
+    pib_hora,
+    crec_pib_trabajador_pct,
+    crec_pib_hora_pct,
+    ocupados,
+    cuadrante_productividad,
+    comparable
+  )
 
 datos <- read_csv(rem_path, show_col_types = FALSE) %>%
   mutate(
@@ -135,6 +147,99 @@ bubble_map_theme <- function() {
     )
 }
 
+label_num_es <- function(x, digits = 1) {
+  format(round(x, digits), decimal.mark = ",", nsmall = digits, trim = TRUE)
+}
+
+label_pct_es <- function(x) {
+  paste0(label_num_es(x, 1), "%")
+}
+
+make_heat_map <- function(map_data, value_col, title, subtitle, legend_title, colors,
+                          diverging = FALSE, midpoint = NULL, labels = label_num_es) {
+  plot <- base_map(map_data) +
+    geom_polygon(aes(fill = .data[[value_col]]), color = "#ffffff", linewidth = 0.18) +
+    labs(title = title, subtitle = subtitle)
+
+  if (diverging) {
+    plot +
+      scale_fill_gradient2(
+        low = colors[[1]],
+        mid = colors[[2]],
+        high = colors[[3]],
+        midpoint = midpoint,
+        na.value = "#eeeeea",
+        name = legend_title,
+        labels = labels
+      )
+  } else {
+    plot +
+      scale_fill_gradientn(
+        colors = colors,
+        na.value = "#eeeeea",
+        name = legend_title,
+        labels = labels
+      )
+  }
+}
+
+make_bubble_value_map <- function(point_data, value_col, title, subtitle, legend_title, colors,
+                                  diverging = FALSE, midpoint = NULL, labels = label_num_es) {
+  plot <- ggplot(poligonos, aes(x = lon, y = lat, group = group)) +
+    geom_polygon(fill = "#fbfaf6", color = "#ddd8d0", linewidth = 0.18) +
+    geom_point(
+      data = point_data,
+      aes(x = lon, y = lat, size = ocupados, fill = .data[[value_col]]),
+      inherit.aes = FALSE,
+      shape = 21,
+      color = "white",
+      stroke = 0.55,
+      alpha = 0.9
+    ) +
+    coord_fixed(xlim = c(-79.5, -66.5), ylim = c(-4.6, 13.5), expand = FALSE) +
+    scale_size_area(
+      max_size = 17,
+      breaks = c(0.25, 1, 2, 4),
+      labels = c("0,25", "1", "2", "4"),
+      name = "Ocupados\n(millones)"
+    ) +
+    guides(size = guide_legend(override.aes = list(fill = "#9aa7b0"))) +
+    labs(title = title, subtitle = subtitle) +
+    bubble_map_theme()
+
+  if (diverging) {
+    plot +
+      scale_fill_gradient2(
+        low = colors[[1]],
+        mid = colors[[2]],
+        high = colors[[3]],
+        midpoint = midpoint,
+        na.value = "#eeeeea",
+        name = legend_title,
+        labels = labels
+      )
+  } else {
+    plot +
+      scale_fill_gradientn(
+        colors = colors,
+        na.value = "#eeeeea",
+        name = legend_title,
+        labels = labels
+      )
+  }
+}
+
+write_four_panel_map <- function(out_file, plots) {
+  png(out_file, width = 2800, height = 2450, res = 180)
+  grid.newpage()
+  pushViewport(viewport(layout = grid.layout(2, 2)))
+  print(plots[[1]], vp = viewport(layout.pos.row = 1, layout.pos.col = 1))
+  print(plots[[2]], vp = viewport(layout.pos.row = 1, layout.pos.col = 2))
+  print(plots[[3]], vp = viewport(layout.pos.row = 2, layout.pos.col = 1))
+  print(plots[[4]], vp = viewport(layout.pos.row = 2, layout.pos.col = 2))
+  dev.off()
+}
+
 centros_productividad <- centros %>%
   left_join(datos_productividad, by = c("departamento_geo" = "departamento")) %>%
   filter(!is.na(cuadrante_productividad))
@@ -172,6 +277,117 @@ dev.off()
 file.copy(
   out_levels,
   file.path(output_fig_dir, "fig_pib_geih_productividad_departamento_mapa_niveles.png"),
+  overwrite = TRUE
+)
+
+level_colors <- c("#eff6fb", "#bdd7e7", "#6baed6", "#2171b5", "#08306b")
+growth_colors <- c("#b2182b", "#f7f7f7", "#2166ac")
+
+out_prod_levels <- file.path(
+  paper_fig_dir,
+  "fig_pib_geih_productividad_departamento_mapa_productividad_niveles.png"
+)
+write_four_panel_map(
+  out_prod_levels,
+  list(
+    make_heat_map(
+      mapa_productividad,
+      "pib_trabajador",
+      "PIB por trabajador",
+      "Mapa de calor por departamento",
+      "Millones de pesos de 2015",
+      level_colors
+    ),
+    make_bubble_value_map(
+      centros_productividad,
+      "pib_trabajador",
+      "PIB por trabajador",
+      "Color: nivel; burbuja: ocupados",
+      "Millones de pesos de 2015",
+      level_colors
+    ),
+    make_heat_map(
+      mapa_productividad,
+      "pib_hora",
+      "PIB por hora trabajada",
+      "Mapa de calor por departamento",
+      "Miles de pesos de 2015",
+      level_colors
+    ),
+    make_bubble_value_map(
+      centros_productividad,
+      "pib_hora",
+      "PIB por hora trabajada",
+      "Color: nivel; burbuja: ocupados",
+      "Miles de pesos de 2015",
+      level_colors
+    )
+  )
+)
+
+file.copy(
+  out_prod_levels,
+  file.path(output_fig_dir, "fig_pib_geih_productividad_departamento_mapa_productividad_niveles.png"),
+  overwrite = TRUE
+)
+
+out_prod_growth <- file.path(
+  paper_fig_dir,
+  "fig_pib_geih_productividad_departamento_mapa_productividad_crecimientos.png"
+)
+write_four_panel_map(
+  out_prod_growth,
+  list(
+    make_heat_map(
+      mapa_productividad,
+      "crec_pib_trabajador_pct",
+      "Crecimiento del PIB por trabajador",
+      paste0("Centro de la escala: agregado ", label_pct_es(100 * prod_benchmarks$crec_pib_trabajador[[1]])),
+      "Crec. anual",
+      growth_colors,
+      diverging = TRUE,
+      midpoint = 100 * prod_benchmarks$crec_pib_trabajador[[1]],
+      labels = label_pct_es
+    ),
+    make_bubble_value_map(
+      centros_productividad,
+      "crec_pib_trabajador_pct",
+      "Crecimiento del PIB por trabajador",
+      "Color: crecimiento; burbuja: ocupados",
+      "Crec. anual",
+      growth_colors,
+      diverging = TRUE,
+      midpoint = 100 * prod_benchmarks$crec_pib_trabajador[[1]],
+      labels = label_pct_es
+    ),
+    make_heat_map(
+      mapa_productividad,
+      "crec_pib_hora_pct",
+      "Crecimiento del PIB por hora trabajada",
+      paste0("Centro de la escala: agregado ", label_pct_es(100 * prod_benchmarks$crec_pib_hora[[1]])),
+      "Crec. anual",
+      growth_colors,
+      diverging = TRUE,
+      midpoint = 100 * prod_benchmarks$crec_pib_hora[[1]],
+      labels = label_pct_es
+    ),
+    make_bubble_value_map(
+      centros_productividad,
+      "crec_pib_hora_pct",
+      "Crecimiento del PIB por hora trabajada",
+      "Color: crecimiento; burbuja: ocupados",
+      "Crec. anual",
+      growth_colors,
+      diverging = TRUE,
+      midpoint = 100 * prod_benchmarks$crec_pib_hora[[1]],
+      labels = label_pct_es
+    )
+  )
+)
+
+file.copy(
+  out_prod_growth,
+  file.path(output_fig_dir, "fig_pib_geih_productividad_departamento_mapa_productividad_crecimientos.png"),
   overwrite = TRUE
 )
 
