@@ -339,6 +339,8 @@ def write_level_ranking_table(summary: pd.DataFrame) -> None:
     table["ranking_pib_trabajador"] = table["pib_trabajador_2024"].rank(ascending=False, method="min").astype(int)
     table["ranking_pib_hora"] = table["pib_hora_2024"].rank(ascending=False, method="min").astype(int)
     table = table.sort_values("ranking_pib_hora")
+    pib_hora_lider = table["pib_hora_2024"].max()
+    table["pib_hora_relativo_lider"] = table["pib_hora_2024"] / pib_hora_lider
 
     lines = [
         r"\begin{table}[H]",
@@ -346,9 +348,9 @@ def write_level_ranking_table(summary: pd.DataFrame) -> None:
         rf"\caption{{Ranking departamental de niveles de productividad laboral, {END_YEAR}pr}}",
         r"\label{tab:pib_geih_productividad_departamento_ranking_niveles}",
         r"\scriptsize",
-        r"\begin{tabular}{lrrrr}",
+        r"\begin{tabular}{lrrrrr}",
         r"\toprule",
-        rf"Departamento & PIB/trab. {END_YEAR}pr & Puesto & PIB/hora {END_YEAR}pr & Puesto \\",
+        rf"Departamento & PIB/trab. {END_YEAR}pr & Puesto & PIB/hora {END_YEAR}pr & Puesto & Rel. a Bogotá \\",
         r"\midrule",
     ]
     for _, row in table.iterrows():
@@ -357,13 +359,14 @@ def write_level_ranking_table(summary: pd.DataFrame) -> None:
             f"{fmt_num_es(row['pib_trabajador_2024'], 1)} & "
             f"{int(row['ranking_pib_trabajador'])} & "
             f"{fmt_num_es(row['pib_hora_2024'] / 1000, 1)} & "
-            f"{int(row['ranking_pib_hora'])} \\\\"
+            f"{int(row['ranking_pib_hora'])} & "
+            f"{fmt_pct_es(row['pib_hora_relativo_lider'], 1)} \\\\"
         )
     lines.extend(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. La tabla está ordenada por el nivel de PIB por hora trabajada en 2024pr. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; PIB por hora en miles de pesos constantes de 2015. La columna relativa compara el PIB por hora de cada departamento con el de Bogotá D.C. (=100\%). La tabla está ordenada por el nivel de PIB por hora trabajada en 2024pr. Fuente: cálculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -376,6 +379,7 @@ def write_level_ranking_table(summary: pd.DataFrame) -> None:
             "ranking_pib_trabajador",
             "pib_hora_2024",
             "ranking_pib_hora",
+            "pib_hora_relativo_lider",
         ]
     ].to_csv(
         TABLE_DIR / "pib_geih_productividad_departamento_ranking_niveles.csv",
@@ -390,6 +394,7 @@ def write_level_ranking_table(summary: pd.DataFrame) -> None:
             "ranking_pib_trabajador",
             "pib_hora_2024",
             "ranking_pib_hora",
+            "pib_hora_relativo_lider",
         ]
     ].to_csv(
         OUTPUT_TABLE_DIR / "pib_geih_productividad_departamento_ranking_niveles.csv",
