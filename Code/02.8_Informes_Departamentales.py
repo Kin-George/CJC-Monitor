@@ -749,16 +749,20 @@ def draw_single_map(
                 fill = diverging_color(float(row[value_col]), midpoint or 0, limit, "#b2182b", "#f7f7f7", "#2166ac")
             draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=fill, outline="white", width=3)
 
-    legend_y = height - 62
     if category_colors:
-        x = 35
-        for label, color in category_colors.items():
-            draw.rectangle((x, legend_y, x + 22, legend_y + 22), fill=hex_to_rgb(color), outline="#ffffff")
-            draw.text((x + 30, legend_y - 2), label, fill="#333333", font=font(18))
-            x += 225
-        draw.rectangle((35, legend_y + 32, 57, legend_y + 54), fill=(238, 238, 234), outline="#ffffff")
-        draw.text((65, legend_y + 30), "Sin información en el panel", fill="#555555", font=font(17))
+        legend_y = height - 92
+        items = list(category_colors.items())
+        for idx, (label, color) in enumerate(items):
+            col = idx % 2
+            row = idx // 2
+            x = 35 + col * 430
+            y = legend_y + row * 28
+            draw.rectangle((x, y, x + 22, y + 22), fill=hex_to_rgb(color), outline="#ffffff")
+            draw.text((x + 30, y - 2), label, fill="#333333", font=font(16))
+        draw.rectangle((35, legend_y + 58, 57, legend_y + 80), fill=(238, 238, 234), outline="#ffffff")
+        draw.text((65, legend_y + 56), "Sin información en el panel", fill="#555555", font=font(15))
     else:
+        legend_y = height - 62
         bar_x, bar_y, bar_w, bar_h = 35, legend_y + 8, 300, 18
         steps = 80
         for i in range(steps):
@@ -800,27 +804,52 @@ def compose_two_panel(panels: list[Image.Image], out_name: str) -> None:
         canvas.save(directory / out_name)
 
 
+QUADRANT_COLORS = {
+    "Nivel alto, crecimiento alto": "#f28e2b",
+    "Nivel alto, crecimiento bajo": "#9aa7b0",
+    "Nivel bajo, crecimiento alto": "#59a14f",
+    "Nivel bajo, crecimiento bajo": "#4e79a7",
+}
+
+
+def classify_quadrants(
+    data: pd.DataFrame,
+    level_col: str,
+    growth_col: str,
+    level_ref: float,
+    growth_ref: float,
+    out_col: str,
+) -> pd.DataFrame:
+    data[out_col] = np.select(
+        [
+            (data[level_col] >= level_ref) & (data[growth_col] >= growth_ref),
+            (data[level_col] >= level_ref) & (data[growth_col] < growth_ref),
+            (data[level_col] < level_ref) & (data[growth_col] >= growth_ref),
+        ],
+        [
+            "Nivel alto, crecimiento alto",
+            "Nivel alto, crecimiento bajo",
+            "Nivel bajo, crecimiento alto",
+        ],
+        default="Nivel bajo, crecimiento bajo",
+    )
+    return data
+
+
 def draw_remuneration_maps(summary: pd.DataFrame, benchmarks: dict[str, float], suffix: str) -> None:
     data = summary.copy()
     data["rem_trabajador_millones"] = data["rem_trabajador_fin"] / 1e6
     data["rem_hora_miles"] = data["rem_hora_fin"] / 1000
     data["crec_rem_trabajador_pct"] = data["crec_rem_trabajador"] * 100
     data["crec_rem_hora_pct"] = data["crec_rem_hora"] * 100
-    data["cuadrante_rem_hora"] = np.select(
-        [
-            (data["rem_hora_fin"] >= benchmarks["rem_hora_fin"]) & (data["crec_rem_hora"] >= benchmarks["crec_rem_hora"]),
-            (data["rem_hora_fin"] >= benchmarks["rem_hora_fin"]) & (data["crec_rem_hora"] < benchmarks["crec_rem_hora"]),
-            (data["rem_hora_fin"] < benchmarks["rem_hora_fin"]) & (data["crec_rem_hora"] >= benchmarks["crec_rem_hora"]),
-        ],
-        ["Líderes en auge", "Líderes en declive", "Aceleradores"],
-        default="Rezagados",
+    data = classify_quadrants(
+        data,
+        "rem_hora_fin",
+        "crec_rem_hora",
+        benchmarks["rem_hora_fin"],
+        benchmarks["crec_rem_hora"],
+        "cuadrante_rem_hora",
     )
-    quadrant_colors = {
-        "Líderes en auge": "#f28e2b",
-        "Líderes en declive": "#9aa7b0",
-        "Aceleradores": "#59a14f",
-        "Rezagados": "#4e79a7",
-    }
     compose_four_panel(
         [
             draw_single_map(data, "rem_trabajador_millones", "Remuneración por trabajador", "Mapa de calor"),
@@ -841,10 +870,23 @@ def draw_remuneration_maps(summary: pd.DataFrame, benchmarks: dict[str, float], 
     )
     compose_two_panel(
         [
-            draw_single_map(data, "cuadrante_rem_hora", "Cuadrantes de remuneración por hora", "Mapa por departamento", category_colors=quadrant_colors),
-            draw_single_map(data, "cuadrante_rem_hora", "Cuadrantes y tamaño del empleo", "Cada burbuja representa un departamento", category_colors=quadrant_colors, bubble=True),
+            draw_single_map(data, "cuadrante_rem_hora", "Cuadrantes de remuneración por hora", "Mapa por departamento", category_colors=QUADRANT_COLORS),
+            draw_single_map(data, "cuadrante_rem_hora", "Cuadrantes y tamaño del empleo", "Cada burbuja representa un departamento", category_colors=QUADRANT_COLORS, bubble=True),
         ],
         f"fig_dept_remuneracion_mapa_cuadrantes_{suffix}.png",
+    )
+    draw_quadrant_bubble_chart(
+        data,
+        level_col="rem_hora_miles",
+        growth_col="crec_rem_hora",
+        level_ref=benchmarks["rem_hora_fin"] / 1000,
+        growth_ref=benchmarks["crec_rem_hora"],
+        title="Nivel y crecimiento de la remuneración por hora",
+        subtitle="Cada burbuja representa un departamento; el tamaño es proporcional al número de ocupados",
+        x_label="Crecimiento anualizado de la remuneración por hora",
+        y_label="Remuneración por hora, miles de pesos de 2025",
+        out_name=f"fig_dept_remuneracion_cuadrantes_{suffix}.png",
+        source="GEIH",
     )
 
 
@@ -918,6 +960,128 @@ def draw_scatter_panel(
     draw.text((plot_left + 220, plot_bottom + 52), x_label, fill="#333333", font=font(25))
 
 
+def draw_quadrant_bubble_chart(
+    summary: pd.DataFrame,
+    *,
+    level_col: str,
+    growth_col: str,
+    level_ref: float,
+    growth_ref: float,
+    title: str,
+    subtitle: str,
+    x_label: str,
+    y_label: str,
+    out_name: str,
+    source: str = "DANE y GEIH",
+) -> None:
+    data = summary.copy()
+    data["x_value"] = data[growth_col] * 100
+    data["y_value"] = data[level_col]
+    data = classify_quadrants(
+        data,
+        "y_value",
+        "x_value",
+        level_ref,
+        growth_ref * 100,
+        "cuadrante",
+    )
+
+    width, height = 2100, 1450
+    img = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(img)
+    draw.text((80, 45), title, fill="#222222", font=font(46, True))
+    draw.text((80, 105), subtitle, fill="#555555", font=font(27))
+
+    plot_left, plot_top, plot_right, plot_bottom = 240, 230, 1970, 1190
+    x_min = min(data["x_value"].min(), growth_ref * 100)
+    x_max = max(data["x_value"].max(), growth_ref * 100)
+    y_min = min(data["y_value"].min(), level_ref)
+    y_max = max(data["y_value"].max(), level_ref)
+    x_pad = max((x_max - x_min) * 0.12, 0.35)
+    y_pad = max((y_max - y_min) * 0.12, 0.35)
+    x_min, x_max = x_min - x_pad, x_max + x_pad
+    y_min, y_max = y_min - y_pad, y_max + y_pad
+
+    def xp(value: float) -> float:
+        return plot_left + (value - x_min) / (x_max - x_min) * (plot_right - plot_left)
+
+    def yp(value: float) -> float:
+        return plot_bottom - (value - y_min) / (y_max - y_min) * (plot_bottom - plot_top)
+
+    draw.rectangle((plot_left, plot_top, plot_right, plot_bottom), outline="#333333", width=2)
+    for i in range(6):
+        x = plot_left + i / 5 * (plot_right - plot_left)
+        y = plot_top + i / 5 * (plot_bottom - plot_top)
+        draw.line((x, plot_top, x, plot_bottom), fill="#eeeeee", width=1)
+        draw.line((plot_left, y, plot_right, y), fill="#eeeeee", width=1)
+        x_tick = x_min + i / 5 * (x_max - x_min)
+        y_tick = y_min + (5 - i) / 5 * (y_max - y_min)
+        draw.text((x - 28, plot_bottom + 18), f"{fmt_num_es(x_tick, 1)}%", fill="#555555", font=font(21))
+        draw.text((plot_left - 92, y - 13), fmt_num_es(y_tick, 1), fill="#555555", font=font(21))
+
+    x_ref = growth_ref * 100
+    y_ref = level_ref
+    draw.line((xp(x_ref), plot_top, xp(x_ref), plot_bottom), fill="#1f5aa6", width=4)
+    draw.line((plot_left, yp(y_ref), plot_right, yp(y_ref)), fill="#1f5aa6", width=4)
+    x_ref_label = max(plot_left + 20, xp(x_ref) - 260)
+    draw.text((x_ref_label, plot_top + 88), f"Crec. agregado: {fmt_num_es(x_ref, 1)}%", fill="#1f5aa6", font=font(20, True))
+    draw.text((plot_left + 20, yp(y_ref) - 30), f"Nivel agregado: {fmt_num_es(y_ref, 1)}", fill="#1f5aa6", font=font(20, True))
+
+    corner_font = font(24, True)
+    draw.text((plot_left + 20, plot_top + 18), "Nivel alto,\ncrecimiento bajo", fill="#1f5aa6", font=corner_font)
+    draw.text((plot_right - 355, plot_top + 18), "Nivel alto,\ncrecimiento alto", fill="#1f5aa6", font=corner_font)
+    draw.text((plot_left + 20, plot_bottom - 82), "Nivel bajo,\ncrecimiento bajo", fill="#1f5aa6", font=corner_font)
+    draw.text((plot_right - 355, plot_bottom - 82), "Nivel bajo,\ncrecimiento alto", fill="#1f5aa6", font=corner_font)
+
+    max_occ = data["ocupados_fin"].max()
+    min_occ = data["ocupados_fin"].min()
+    label_offsets = {
+        "Bogotá D.C.": (-145, -42),
+        "Antioquia": (-125, -30),
+        "Cundinamarca": (18, -38),
+        "Valle del Cauca": (18, 14),
+        "Santander": (18, 10),
+        "Meta": (18, -34),
+        "Caldas": (-100, -36),
+        "Risaralda": (-120, 12),
+        "Quindío": (18, 10),
+        "Chocó": (18, -8),
+        "Caquetá": (18, 10),
+        "Nariño": (-95, 10),
+        "La Guajira": (18, 8),
+        "Bolívar": (18, 10),
+        "Boyacá": (18, -32),
+        "Norte de Santander": (18, -38),
+    }
+    for _, row in data.sort_values("ocupados_fin", ascending=False).iterrows():
+        x = xp(float(row["x_value"]))
+        y = yp(float(row["y_value"]))
+        radius = 11 + 48 * math.sqrt((row["ocupados_fin"] - min_occ) / max(max_occ - min_occ, 1))
+        fill = hex_to_rgb(QUADRANT_COLORS[str(row["cuadrante"])])
+        draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=fill, outline="white", width=3)
+        dx, dy = label_offsets.get(row["departamento"], (16, -12))
+        draw.text((x + dx, y + dy), row["departamento"], fill="#222222", font=font(21))
+
+    draw.text((plot_left + 520, plot_bottom + 76), x_label, fill="#333333", font=font(27))
+    draw.text((plot_left, plot_top - 42), y_label, fill="#333333", font=font(27))
+
+    legend_x, legend_y = 90, 1280
+    for idx, (label, color) in enumerate(QUADRANT_COLORS.items()):
+        x = legend_x + (idx % 2) * 560
+        y = legend_y + (idx // 2) * 38
+        draw.rectangle((x, y, x + 24, y + 24), fill=hex_to_rgb(color), outline="#ffffff")
+        draw.text((x + 34, y - 1), label, fill="#333333", font=font(22))
+    draw.text(
+        (90, 1390),
+        f"Fuente: cálculos propios con {source}. Líneas azules: agregado de los departamentos comparables; burbuja: número de ocupados.",
+        fill="#555555",
+        font=font(21),
+    )
+
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / out_name)
+
+
 def draw_relation_scatter(table: pd.DataFrame, benchmarks: dict[str, float], suffix: str) -> None:
     data = table.copy()
     data["pib_trabajador_plot"] = data["pib_trabajador_fin"]
@@ -982,6 +1146,18 @@ def draw_productivity_maps(summary: pd.DataFrame, benchmarks: dict[str, float], 
         ],
         f"fig_dept_productividad_mapa_crecimientos_{suffix}.png",
     )
+    draw_quadrant_bubble_chart(
+        data,
+        level_col="pib_hora_fin",
+        growth_col="crec_pib_hora",
+        level_ref=benchmarks["pib_hora_fin"],
+        growth_ref=benchmarks["crec_pib_hora"],
+        title="Nivel y crecimiento del PIB por hora trabajada",
+        subtitle="Cada burbuja representa un departamento; el tamaño es proporcional al número de ocupados",
+        x_label="Crecimiento anualizado del PIB por hora trabajada",
+        y_label="PIB por hora, miles de pesos de 2015",
+        out_name=f"fig_dept_productividad_cuadrantes_{suffix}.png",
+    )
 
 
 def write_remuneration_body(
@@ -1041,7 +1217,17 @@ def write_remuneration_body(
         r"  \caption*{\footnotesize Nota: las escalas de color se centran en el crecimiento agregado del panel de 24 departamentos. Fuente: cálculos propios con GEIH.}",
         r"\end{figure}",
         "",
-        r"\textbf{La clasificación por cuadrantes separa nivel y dinamismo.} Un departamento puede tener una remuneración alta pero crecer por debajo del agregado; también puede partir de niveles bajos y crecer rápido. La Figura \ref{fig:dept_remuneracion_mapa_cuadrantes_24} clasifica los departamentos con base en la remuneración por hora: líderes en auge, líderes en declive, aceleradores y rezagados.",
+        r"\textbf{La clasificación por cuadrantes separa nivel y dinamismo.} Un departamento puede tener una remuneración alta pero crecer por debajo del agregado; también puede partir de niveles bajos y crecer rápido. La Figura \ref{fig:dept_remuneracion_cuadrantes_24} cruza el nivel de remuneración por hora con su crecimiento anualizado. Los cuatro cuadrantes se nombran de forma descriptiva: nivel alto y crecimiento alto; nivel alto y crecimiento bajo; nivel bajo y crecimiento alto; y nivel bajo y crecimiento bajo.",
+        "",
+        r"\begin{figure}[H]",
+        r"  \centering",
+        r"  \includegraphics[width=\textwidth]{Paper/figures/fig_dept_remuneracion_cuadrantes_24.png}",
+        rf"  \caption{{Nivel y crecimiento de la remuneración por hora, {PANEL_24_START}--{REMUNERATION_END}}}",
+        r"  \label{fig:dept_remuneracion_cuadrantes_24}",
+        r"  \caption*{\footnotesize Nota: la línea vertical muestra el crecimiento agregado de la remuneración por hora; la línea horizontal muestra el nivel agregado de remuneración por hora. El tamaño de la burbuja es proporcional al número de ocupados. Fuente: cálculos propios con GEIH.}",
+        r"\end{figure}",
+        "",
+        r"\textbf{El mapa permite ver la misma clasificación en el territorio.} La Figura \ref{fig:dept_remuneracion_mapa_cuadrantes_24} muestra dónde se ubican los departamentos de cada cuadrante y complementa la lectura de la dispersión.",
         "",
         r"\begin{figure}[H]",
         r"  \centering",
@@ -1123,6 +1309,16 @@ def write_productivity_relation_body(
         rf"  \caption{{Mapa de crecimiento de la productividad laboral departamental, {PANEL_24_START}--{PRODUCTIVITY_END}pr}}",
         r"  \label{fig:dept_productividad_mapa_crecimientos_24}",
         r"  \caption*{\footnotesize Nota: las escalas de color se centran en el crecimiento agregado del panel de 24 departamentos. Fuente: cálculos propios con DANE y GEIH.}",
+        r"\end{figure}",
+        "",
+        r"\textbf{También es útil separar el nivel de productividad de su crecimiento.} La Figura \ref{fig:dept_productividad_cuadrantes_24} cruza el nivel de PIB por hora trabajada en 2024pr con su crecimiento anualizado. La línea vertical marca el crecimiento agregado y la línea horizontal marca el nivel agregado. Así se distinguen cuatro situaciones sin convertir la clasificación en un juicio de desempeño: nivel alto y crecimiento alto; nivel alto y crecimiento bajo; nivel bajo y crecimiento alto; y nivel bajo y crecimiento bajo.",
+        "",
+        r"\begin{figure}[H]",
+        r"  \centering",
+        r"  \includegraphics[width=\textwidth]{Paper/figures/fig_dept_productividad_cuadrantes_24.png}",
+        rf"  \caption{{Nivel y crecimiento del PIB por hora trabajada, {PANEL_24_START}--{PRODUCTIVITY_END}pr}}",
+        r"  \label{fig:dept_productividad_cuadrantes_24}",
+        r"  \caption*{\footnotesize Nota: la línea vertical muestra el crecimiento agregado del PIB por hora; la línea horizontal muestra el nivel agregado de PIB por hora. El tamaño de la burbuja es proporcional al número de ocupados. Fuente: cálculos propios con DANE y GEIH.}",
         r"\end{figure}",
         "",
         r"\section{Productividad y remuneración}",
