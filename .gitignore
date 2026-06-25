@@ -7,6 +7,7 @@
 
 # Large data files - not tracked
 Datos/Processed/Paper2-GEIH_base_modelo_personas_2008_2025.dta
+Datos/Processed/Paper-GEIH_base_modelo_personas_2008_2025.dta
 Datos/Processed/EDIT_Panel.dta
 Datos/Processed/EDITS_Panel.dta
 Datos/Raw/EDIT/Estructura_EDIT_IND_II_2003_2004.dta

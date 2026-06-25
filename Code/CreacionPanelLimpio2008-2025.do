@@ -105,17 +105,31 @@ label values area_cod area_lbl
 
 
 *====================================================
-* 1. Filtrar observaciones válidas
+* 1. Marcar observaciones válidas sin eliminarlas
 *====================================================
+* La base final debe conservar las personas ocupadas aunque tengan
+* missings en variables usadas después en modelos o descriptivas.
+* Por eso aquí no se filtra por ingreso, horas, factor ni variables
+* de control. Solo se crean banderas para que R/Python puedan decidir
+* posteriormente qué muestra usar en cada cálculo específico.
 
-keep if ingreso_hora_valido == 1
-keep if !missing(ingreso_laboral_hora)
-keep if ingreso_laboral_hora > 0
-keep if !missing(factor_expansion_anual)
-keep if factor_expansion_anual > 0
+gen byte muestra_ingreso_hora_valida = ///
+    ingreso_hora_valido == 1 & ///
+    !missing(ingreso_laboral_hora) & ///
+    ingreso_laboral_hora > 0
 
-keep if !missing(anio)
-keep if inrange(anio, 2008, 2025)
+gen byte muestra_factor_valido = ///
+    !missing(factor_expansion_anual) & ///
+    factor_expansion_anual > 0
+
+gen byte muestra_anio_valido = ///
+    !missing(anio) & ///
+    inrange(anio, 2008, 2025)
+
+gen byte muestra_productividad_valida = ///
+    muestra_ingreso_hora_valida == 1 & ///
+    muestra_factor_valido == 1 & ///
+    muestra_anio_valido == 1
 
 
 *====================================================
@@ -704,24 +718,32 @@ restore
 
 
 *====================================================
-* 8. Mantener observaciones completas
+* 8. Conservar observaciones con missings de interés
 *====================================================
+* Antes este bloque eliminaba casos con missings en tamaño, educación,
+* formalidad, sexo, sector, edad, departamento o posición ocupacional.
+* Ahora esos casos se conservan y se identifican con banderas para
+* diagnosticar la calidad de la muestra sin perder observaciones.
 
-drop if missing(tamano_hom_cod)
-drop if missing(educ_hom_cod)
-drop if missing(formalidad_cod)
-drop if missing(sexo_hom_cod)
-drop if missing(sector_hom_cod)
-drop if missing(edad)
-drop if missing(depto_cod)
-drop if missing(posicion_ocupacional_cod)
+gen byte muestra_controles_completos = ///
+    !missing(tamano_hom_cod) & ///
+    !missing(educ_hom_cod) & ///
+    !missing(formalidad_cod) & ///
+    !missing(sexo_hom_cod) & ///
+    !missing(sector_hom_cod) & ///
+    !missing(edad) & ///
+    !missing(depto_cod) & ///
+    !missing(posicion_ocupacional_cod)
+
+gen byte muestra_sector_completo = ///
+    !missing(sector_hom_cod) & ///
+    !missing(subrama_det_cod)
 
 count if missing(subrama_det_cod)
 if r(N) > 0 {
-    di as error "Quedan observaciones sin subrama_det_cod despues de la homologacion."
-    di as error "Revisar reglas CIIU Rev. 3 / Rev. 4 antes de guardar la base para productividad."
+    di as error "Advertencia: quedan observaciones sin subrama_det_cod despues de la homologacion."
+    di as error "Se conservan en la base final para no eliminar observaciones con missings."
     tab anio rama4d_div if missing(subrama_det_cod), missing
-    exit 459
 }
 
 *====================================================
@@ -853,6 +875,8 @@ order persona_id anio ///
       fex ///
       horas ///
       ingreso_laboral_hora ingreso_hora_real log_ingreso_hora_real ///
+      muestra_ingreso_hora_valida muestra_factor_valido muestra_anio_valido ///
+      muestra_productividad_valida muestra_controles_completos muestra_sector_completo ///
       ipc_dic factor_precios_2025
 
 keep persona_id anio ///
@@ -869,6 +893,8 @@ keep persona_id anio ///
      fex ///
      horas ///
      ingreso_laboral_hora ingreso_hora_real log_ingreso_hora_real ///
+     muestra_ingreso_hora_valida muestra_factor_valido muestra_anio_valido ///
+     muestra_productividad_valida muestra_controles_completos muestra_sector_completo ///
      ipc_dic factor_precios_2025
 
 sort anio persona_id

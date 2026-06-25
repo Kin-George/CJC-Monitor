@@ -112,7 +112,7 @@ calc_crecimiento_anualizado <- function(data, group_var, value_var, anio_inicio 
 # 2. Cargar base una sola vez y crear etiquetas comunes
 #========================================================
 
-geih <- read_geih_light(path_geih, cols_necesarias) %>%
+geih_base <- read_geih_light(path_geih, cols_necesarias) %>%
   transmute(
     anio = as.integer(anio),
     fex = as.numeric(fex),
@@ -132,7 +132,9 @@ geih <- read_geih_light(path_geih, cols_necesarias) %>%
     ciiu_revision_rama4d = as.character(ciiu_revision_rama4d),
     subrama_det_cod = as.numeric(subrama_det_cod),
     subrama_det = as.character(subrama_det)
-  ) %>%
+  )
+
+geih <- geih_base %>%
   filter(
     anio %in% anios_muestra
   ) %>%
@@ -229,6 +231,42 @@ geih_ingreso <- geih %>%
     !is.na(fex),
     fex > 0
   )
+
+#========================================================
+# TABLA 1. Número total de ocupados por año
+#========================================================
+
+# Esta tabla usa la base completa 2008-2025, no la muestra
+# restringida de los gráficos del informe. El total de ocupados
+# corresponde a la suma del factor de expansión anual y se presenta
+# en millones para facilitar la lectura.
+
+tabla_ocupados_anio <- geih_base %>%
+  filter(
+    !is.na(anio),
+    between(anio, 2008, 2025),
+    !is.na(fex),
+    fex > 0
+  ) %>%
+  group_by(anio) %>%
+  summarise(
+    observaciones = n(),
+    ocupados = sum(fex, na.rm = TRUE),
+    ocupados_millones = ocupados / 1e6,
+    .groups = "drop"
+  ) %>%
+  right_join(
+    tibble(anio = 2008:2025),
+    by = "anio"
+  ) %>%
+  arrange(anio) %>%
+  transmute(
+    anio,
+    observaciones,
+    ocupados_millones = round(ocupados_millones, 3)
+  )
+
+print(tabla_ocupados_anio, n = Inf)
 
 #========================================================
 # GRÁFICO 1. Ingreso laboral por hora promedio
