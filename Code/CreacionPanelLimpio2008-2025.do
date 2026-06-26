@@ -906,7 +906,7 @@ compress
 * 13. Guardar base individual
 *====================================================
 
-save "Outputs/tables/Paper2-GEIH_base_modelo_personas_2008_2025.dta", replace
+save "Outputs/tables/Paper-GEIH_base_modelo_personas_2008_2025.dta", replace
 
 di "===================================================="
 di "BASE INDIVIDUAL PARA MODELOS CREADA CORRECTAMENTE"
