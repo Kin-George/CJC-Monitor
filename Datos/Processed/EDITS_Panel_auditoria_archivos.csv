@@ -1,7 +1,0 @@
-edit_file,edit_period,year_start,year_end,year,ciiu_var_original,ciiu_revision_original,observaciones,variables_archivo,variables_diccionario,dictionary_name_source,variables_con_label_dane,variables_sin_label_dane,variables_no_coinciden_diccionario,ciiu_missing,ciiu4_homologado_missing,ciiu4_homologacion_ambigua
-EDIT_S_I_2004_2005.dta,2004_2005,2004,2005,2005,ACT,3,4234,3606,3606,diccionario_dane_por_orden,3606,0,0,1,1,0
-EDIT_S_II_2008_2009.dta,2008_2009,2008,2009,2009,CIIU3,3,3662,517,517,diccionario_dane_por_orden,517,0,0,0,0,0
-EDIT_S_III_2010_2011.dta,2010_2011,2010,2011,2011,CIIU3,3,5038,580,580,diccionario_dane_por_orden,580,0,0,0,0,0
-EDIT_S_VI_2016_2017.dta,2016_2017,2016,2017,2017,CIIU4,4,8651,638,638,diccionario_dane_por_orden,638,0,0,0,0,0
-EDITS_VII_2018_2019.dta,2018_2019,2018,2019,2019,CIIU4,4,9304,729,729,diccionario_dane_por_orden,729,0,0,0,0,0
-Estructura_EDITS_VIII_2020_2021.dta,2020_2021,2020,2021,2021,CIIU4,4,8812,730,730,diccionario_dane_por_orden,730,0,0,0,0,0
