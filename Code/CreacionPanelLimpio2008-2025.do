@@ -14,6 +14,67 @@ cd "C:/Users/jorge/Documents/Databases/GEIH"
 capture mkdir "Outputs"
 capture mkdir "Outputs/tables"
 
+*====================================================
+* 0a. Puente ocupacional CIUO-08 -> CIUO-88
+*====================================================
+* Desde 2021 la GEIH trae OFICIO_C8, codificado en CIUO-08.
+* Para mantener una serie comparable con el OFICIO usado hasta 2019,
+* se construye un puente a dos dígitos usando la matriz oficial
+* CIUO-88 A.C. vs CIUO-08 A.C. disponible en DocumentacionAuxiliar.
+
+tempfile xwalk_ciuo08_ciuo88_unique xwalk_ciuo08_ciuo88_ambiguous
+
+import excel using ///
+    "C:/Users/jorge/Documents/Trabajo-Profesional/Javeriana/DocumentacionAuxiliar/Correlativa_CIUO_88_A_C_vs_CIUO_08_A_C.xlsx", ///
+    sheet("Matriz 88 A.C. vs 08 A.C.") cellrange(A6:D1590) clear
+
+rename A ciuo88_raw
+rename B ciuo88_desc
+rename C ciuo08_raw
+rename D ciuo08_desc
+
+foreach v in ciuo88_raw ciuo08_raw {
+    capture confirm numeric variable `v'
+    if !_rc {
+        tostring `v', replace force format(%20.0g)
+    }
+    replace `v' = upper(strtrim(`v'))
+    replace `v' = subinstr(`v', "P", "", .)
+    replace `v' = subinstr(`v', " ", "", .)
+    replace `v' = "" if `v' == "."
+}
+
+replace ciuo88_raw = ciuo88_raw[_n-1] if ciuo88_raw == "" & _n > 1
+replace ciuo88_desc = ciuo88_desc[_n-1] if missing(ciuo88_desc) & _n > 1
+
+* La matriz tiene filas jerárquicas de 1, 2, 3 y 4 dígitos.
+* Para mapear OFICIO_C8 usamos únicamente códigos completos de 4 dígitos.
+keep if regexm(ciuo88_raw, "^[0-9][0-9][0-9][0-9]$")
+keep if regexm(ciuo08_raw, "^[0-9][0-9][0-9][0-9]$")
+
+gen long ciuo08_4d_cod = real(ciuo08_raw)
+gen byte oficio_ciuo88_2d_cod = real(substr(ciuo88_raw, 1, 2))
+
+drop if missing(ciuo08_4d_cod)
+drop if missing(oficio_ciuo88_2d_cod)
+
+bysort ciuo08_4d_cod oficio_ciuo88_2d_cod: gen byte tag_destino = _n == 1
+bysort ciuo08_4d_cod: egen oficio_hom_n_destinos = total(tag_destino)
+
+preserve
+    keep if oficio_hom_n_destinos > 1
+    bysort ciuo08_4d_cod: keep if _n == 1
+    gen byte oficio_hom_ambiguo = 1
+    rename oficio_hom_n_destinos oficio_hom_n_destinos_amb
+    keep ciuo08_4d_cod oficio_hom_ambiguo oficio_hom_n_destinos_amb
+    save `xwalk_ciuo08_ciuo88_ambiguous', replace
+restore
+
+keep if oficio_hom_n_destinos == 1
+bysort ciuo08_4d_cod: keep if _n == 1
+keep ciuo08_4d_cod oficio_ciuo88_2d_cod oficio_hom_n_destinos
+save `xwalk_ciuo08_ciuo88_unique', replace
+
 use "Outputs/tables/GEIH_consolidada_variables_interes_2008_2025.dta", clear
 
 
@@ -24,6 +85,13 @@ use "Outputs/tables/GEIH_consolidada_variables_interes_2008_2025.dta", clear
 gen str40 sector_var_u = upper(strtrim(sector_var_original))
 gen str40 tamano_var_u = upper(strtrim(tamano_var_original))
 gen str40 educ_var_u   = upper(strtrim(educ_var_original))
+
+capture confirm variable oficio_var_original
+if _rc {
+    gen str40 oficio_var_original = ""
+}
+
+gen str40 oficio_var_u = upper(strtrim(oficio_var_original))
 
 *====================================================
 * 0b. Verificar y limpiar edad
@@ -75,10 +143,24 @@ foreach v in depto_cod area_cod posicion_ocupacional_cod {
     }
 }
 
+capture confirm variable oficio_cod
+if _rc {
+    gen double oficio_cod = .
+}
+
+capture confirm numeric variable oficio_cod
+if _rc {
+    tempvar oficio_cod_num
+    destring oficio_cod, gen(`oficio_cod_num') force
+    drop oficio_cod
+    rename `oficio_cod_num' oficio_cod
+}
+
 * Limpiar códigos imposibles o vacíos
 replace depto_cod = . if depto_cod <= 0
 replace area_cod = . if area_cod <= 0
 replace posicion_ocupacional_cod = . if !inrange(posicion_ocupacional_cod, 1, 9)
+replace oficio_cod = . if oficio_cod < 0
 
 label define posicion_ocupacional_lbl ///
     1 "Obrero o empleado de empresa particular" ///
@@ -102,6 +184,64 @@ label define area_lbl ///
     8 "Centro poblado y rural disperso", replace
 
 label values area_cod area_lbl
+
+*====================================================
+* 0c. Homologación ocupacional: OFICIO / CNO antiguo
+*====================================================
+* 2008-2019: OFICIO ya viene en la codificación antigua usada por la GEIH.
+* 2021-2025: OFICIO_C8 viene en CIUO-08 a 4 dígitos; se traduce a una
+* categoría de dos dígitos comparable usando la matriz CIUO-08 -> CIUO-88.
+* Si un código CIUO-08 tiene más de un destino de dos dígitos, se marca
+* como ambiguo y no se fuerza una categoría única.
+
+gen double oficio_cod_original = oficio_cod
+label variable oficio_cod_original "Código de oficio original preservado por año"
+
+gen long ciuo08_4d_cod = .
+replace ciuo08_4d_cod = round(oficio_cod_original) ///
+    if inrange(anio, 2021, 2025) & inrange(round(oficio_cod_original), 1000, 9999)
+
+merge m:1 ciuo08_4d_cod using `xwalk_ciuo08_ciuo88_unique', ///
+    keep(master match) nogen
+
+merge m:1 ciuo08_4d_cod using `xwalk_ciuo08_ciuo88_ambiguous', ///
+    keep(master match) nogen
+
+replace oficio_hom_ambiguo = 0 if missing(oficio_hom_ambiguo)
+replace oficio_hom_n_destinos = oficio_hom_n_destinos_amb ///
+    if oficio_hom_ambiguo == 1 & !missing(oficio_hom_n_destinos_amb)
+drop oficio_hom_n_destinos_amb
+replace oficio_hom_n_destinos = 0 if missing(oficio_hom_n_destinos) & !missing(ciuo08_4d_cod)
+
+gen byte oficio_cno70_2d_hom_cod = .
+
+replace oficio_cno70_2d_hom_cod = round(oficio_cod_original) ///
+    if inrange(anio, 2008, 2019) & inrange(round(oficio_cod_original), 0, 99)
+
+replace oficio_cno70_2d_hom_cod = floor(round(oficio_cod_original) / 100) ///
+    if inrange(anio, 2008, 2019) & inrange(round(oficio_cod_original), 100, 9999)
+
+replace oficio_cno70_2d_hom_cod = oficio_ciuo88_2d_cod ///
+    if inrange(anio, 2021, 2025) & oficio_hom_ambiguo == 0
+
+replace oficio_cno70_2d_hom_cod = . if !inrange(oficio_cno70_2d_hom_cod, 0, 99)
+
+gen byte oficio_hom_fuente = .
+replace oficio_hom_fuente = 1 if inrange(anio, 2008, 2019) & !missing(oficio_cno70_2d_hom_cod)
+replace oficio_hom_fuente = 2 if inrange(anio, 2021, 2025) & !missing(oficio_cno70_2d_hom_cod)
+
+label define oficio_hom_fuente_lbl ///
+    1 "OFICIO original 2008-2019" ///
+    2 "OFICIO_C8 homologado 2021-2025", replace
+
+label values oficio_hom_fuente oficio_hom_fuente_lbl
+
+label variable ciuo08_4d_cod "Código CIUO-08 a 4 dígitos original, 2021-2025"
+label variable oficio_ciuo88_2d_cod "Destino CIUO-88 a 2 dígitos desde matriz oficial"
+label variable oficio_hom_ambiguo "CIUO-08 con más de un destino CIUO-88 a 2 dígitos"
+label variable oficio_hom_n_destinos "Número de destinos CIUO-88 a 2 dígitos para CIUO-08"
+label variable oficio_cno70_2d_hom_cod "Oficio/CNO antiguo a 2 dígitos homologado"
+label variable oficio_hom_fuente "Fuente de la homologación ocupacional"
 
 
 *====================================================
@@ -691,6 +831,9 @@ gen byte miss_edad     = missing(edad)
 gen byte miss_depto    = missing(depto_cod)
 gen byte miss_area     = missing(area_cod)
 gen byte miss_posicion = missing(posicion_ocupacional_cod)
+gen byte miss_oficio   = missing(oficio_cno70_2d_hom_cod)
+gen byte amb_oficio    = oficio_hom_ambiguo == 1 if !missing(oficio_hom_ambiguo)
+replace amb_oficio = 0 if missing(amb_oficio)
 gen byte fila_audit    = 1
 
 preserve
@@ -706,7 +849,9 @@ collapse ///
     (sum) miss_edad = miss_edad ///
     (sum) miss_depto = miss_depto ///
     (sum) miss_area = miss_area ///
-    (sum) miss_posicion = miss_posicion, ///
+    (sum) miss_posicion = miss_posicion ///
+    (sum) miss_oficio = miss_oficio ///
+    (sum) amb_oficio = amb_oficio, ///
     by(anio)
 
 export excel using "Outputs/tables/auditoria_base_modelo_personas.xlsx", ///
@@ -733,7 +878,8 @@ gen byte muestra_controles_completos = ///
     !missing(sector_hom_cod) & ///
     !missing(edad) & ///
     !missing(depto_cod) & ///
-    !missing(posicion_ocupacional_cod)
+    !missing(posicion_ocupacional_cod) & ///
+    !missing(oficio_cno70_2d_hom_cod)
 
 gen byte muestra_sector_completo = ///
     !missing(sector_hom_cod) & ///
@@ -819,6 +965,9 @@ decode posicion_ocupacional_cod, gen(ocupacion)
 clonevar posicion_ocupacional = posicion_ocupacional_cod
 decode posicion_ocupacional_cod, gen(posicion_ocupacional_label)
 
+clonevar oficio_cno70_2d = oficio_cno70_2d_hom_cod
+label variable oficio_cno70_2d "Oficio/CNO antiguo a 2 dígitos homologado"
+
 gen byte mujer = sexo_hom_cod == 2 if !missing(sexo_hom_cod)
 
 * Dummy formal:
@@ -867,6 +1016,9 @@ order persona_id anio ///
       sector_hom_cod sector ///
       rama4d rama4d_clase rama3d rama4d_div ciiu_revision_rama4d ///
       subrama_det_cod subrama_det ///
+      oficio_cod_original oficio_cno70_2d_hom_cod oficio_cno70_2d ///
+      ciuo08_4d_cod oficio_ciuo88_2d_cod oficio_hom_ambiguo ///
+      oficio_hom_n_destinos oficio_hom_fuente ///
       posicion_ocupacional posicion_ocupacional_label ocupacion ///
       tamano_hom_cod tamano_empresa ///
       educ_hom_cod educacion ///
@@ -885,6 +1037,9 @@ keep persona_id anio ///
      sector_hom_cod sector ///
      rama4d rama4d_clase rama3d rama4d_div ciiu_revision_rama4d ///
      subrama_det_cod subrama_det ///
+     oficio_cod_original oficio_cno70_2d_hom_cod oficio_cno70_2d ///
+     ciuo08_4d_cod oficio_ciuo88_2d_cod oficio_hom_ambiguo ///
+     oficio_hom_n_destinos oficio_hom_fuente ///
      posicion_ocupacional posicion_ocupacional_label ocupacion ///
      tamano_hom_cod tamano_empresa ///
      educ_hom_cod educacion ///
