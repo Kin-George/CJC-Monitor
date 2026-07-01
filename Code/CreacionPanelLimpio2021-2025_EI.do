@@ -14,6 +14,47 @@ cd "C:/Users/jorge/Documents/Databases/GEIH"
 capture mkdir "Outputs"
 capture mkdir "Outputs/tables"
 
+*====================================================
+* 0a. Labels ocupacionales CIUO-08 A.C.
+*====================================================
+* La GEIH 2021-2025 trae OFICIO_C8 y OFICIO_C8_2D en CIUO-08 A.C.
+* Este bloque no homologa ocupaciones; solo trae la descripción oficial
+* de cada código desde la estructura CIUO-08 A.C. del DANE.
+
+tempfile ciuo08_4d_labels ciuo08_2d_labels
+
+import excel using ///
+    "C:/Users/jorge/Documents/Trabajo-Profesional/Javeriana/DocumentacionAuxiliar/Correlativa_CIUO_88_A_C_vs_CIUO_08_A_C.xlsx", ///
+    sheet("Estructura CIUO-08 A.C.") cellrange(A5:B975) clear
+
+rename A ciuo08_raw
+rename B ciuo08_desc
+
+foreach v in ciuo08_raw ciuo08_desc {
+    capture confirm numeric variable `v'
+    if !_rc {
+        tostring `v', replace force format(%20.0g)
+    }
+    replace `v' = strtrim(`v')
+    replace `v' = "" if `v' == "."
+}
+
+preserve
+    keep if regexm(ciuo08_raw, "^[0-9][0-9][0-9][0-9]$")
+    gen double oficio_cod = real(ciuo08_raw)
+    gen str240 oficio_c8_label = ciuo08_desc
+    keep oficio_cod oficio_c8_label
+    duplicates drop oficio_cod, force
+    save `ciuo08_4d_labels', replace
+restore
+
+keep if regexm(ciuo08_raw, "^[0-9][0-9]$")
+gen double oficio_c8_2d_cod = real(ciuo08_raw)
+gen str240 oficio_c8_2d_label = ciuo08_desc
+keep oficio_c8_2d_cod oficio_c8_2d_label
+duplicates drop oficio_c8_2d_cod, force
+save `ciuo08_2d_labels', replace
+
 use "Outputs/tables/GEIH_consolidada_variables_interes_2021_2025.dta", clear
 
 
@@ -100,10 +141,40 @@ foreach v in depto_cod area_cod posicion_ocupacional_cod {
     }
 }
 
+foreach v in oficio_cod oficio_c8_2d_cod {
+
+    capture confirm variable `v'
+
+    if _rc {
+        di as error "No se encontró la variable `v' en la base consolidada."
+        di as error "Vuelve a ejecutar baseConsolidada2021-2025.do para conservar OFICIO_C8 y OFICIO_C8_2D."
+        exit 111
+    }
+
+    capture confirm numeric variable `v'
+
+    if _rc {
+        tempvar tmp_oficio
+        destring `v', gen(`tmp_oficio') force
+        drop `v'
+        rename `tmp_oficio' `v'
+    }
+}
+
 * Limpiar códigos imposibles o vacíos
 replace depto_cod = . if depto_cod <= 0
 replace area_cod = . if area_cod <= 0
 replace posicion_ocupacional_cod = . if !inrange(posicion_ocupacional_cod, 1, 9)
+replace oficio_cod = . if !inrange(oficio_cod, 0, 9999)
+replace oficio_c8_2d_cod = . if !inrange(oficio_c8_2d_cod, 0, 99)
+
+merge m:1 oficio_cod using `ciuo08_4d_labels', keep(master match) nogen
+merge m:1 oficio_c8_2d_cod using `ciuo08_2d_labels', keep(master match) nogen
+
+label variable oficio_cod "Código ocupacional OFICIO_C8, CIUO-08 A.C. a 4 dígitos"
+label variable oficio_c8_label "Descripción OFICIO_C8, CIUO-08 A.C. a 4 dígitos"
+label variable oficio_c8_2d_cod "Código ocupacional OFICIO_C8_2D, CIUO-08 A.C. a 2 dígitos"
+label variable oficio_c8_2d_label "Descripción OFICIO_C8_2D, CIUO-08 A.C. a 2 dígitos"
 
 label define posicion_ocupacional_lbl ///
     1 "Obrero o empleado de empresa particular" ///
@@ -701,6 +772,12 @@ gen byte miss_edad     = missing(edad)
 gen byte miss_depto    = missing(depto_cod)
 gen byte miss_area     = missing(area_cod)
 gen byte miss_posicion = missing(posicion_ocupacional_cod)
+gen byte miss_oficio4d = missing(oficio_cod)
+gen byte miss_oficio2d = missing(oficio_c8_2d_cod)
+gen byte miss_label_oficio4d = missing(oficio_c8_label) if !missing(oficio_cod)
+gen byte miss_label_oficio2d = missing(oficio_c8_2d_label) if !missing(oficio_c8_2d_cod)
+replace miss_label_oficio4d = 0 if missing(miss_label_oficio4d)
+replace miss_label_oficio2d = 0 if missing(miss_label_oficio2d)
 gen byte miss_ei       = missing(EI)
 gen byte fila_audit    = 1
 
@@ -717,6 +794,10 @@ collapse ///
     (sum) miss_depto = miss_depto ///
     (sum) miss_area = miss_area ///
     (sum) miss_posicion = miss_posicion ///
+    (sum) miss_oficio4d = miss_oficio4d ///
+    (sum) miss_oficio2d = miss_oficio2d ///
+    (sum) miss_label_oficio4d = miss_label_oficio4d ///
+    (sum) miss_label_oficio2d = miss_label_oficio2d ///
     (sum) miss_ei = miss_ei, ///
     by(anio)
 
@@ -815,6 +896,9 @@ decode posicion_ocupacional_cod, gen(ocupacion)
 clonevar posicion_ocupacional = posicion_ocupacional_cod
 decode posicion_ocupacional_cod, gen(posicion_ocupacional_label)
 
+clonevar oficio_c8_4d = oficio_cod
+label variable oficio_c8_4d "Código ocupacional OFICIO_C8, CIUO-08 A.C. a 4 dígitos"
+
 gen byte mujer = sexo_hom_cod == 2 if !missing(sexo_hom_cod)
 
 * Dummy formal:
@@ -863,6 +947,7 @@ order persona_id anio ///
       sector_hom_cod sector ///
       rama4d rama4d_clase rama3d rama4d_div ciiu_revision_rama4d ///
       subrama_det_cod subrama_det ///
+      oficio_c8_4d oficio_c8_label oficio_c8_2d_cod oficio_c8_2d_label ///
       posicion_ocupacional posicion_ocupacional_label ocupacion ///
       tamano_hom_cod tamano_empresa ///
       educ_hom_cod educacion ///
@@ -880,6 +965,7 @@ keep persona_id anio ///
      sector_hom_cod sector ///
      rama4d rama4d_clase rama3d rama4d_div ciiu_revision_rama4d ///
      subrama_det_cod subrama_det ///
+     oficio_c8_4d oficio_c8_label oficio_c8_2d_cod oficio_c8_2d_label ///
      posicion_ocupacional posicion_ocupacional_label ocupacion ///
      tamano_hom_cod tamano_empresa ///
      educ_hom_cod educacion ///
