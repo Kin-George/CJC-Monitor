@@ -12,7 +12,7 @@
 
 \textbf{Se construyen dos indicadores de remuneración laboral.} La remuneración por trabajador divide la remuneración laboral mensual total entre el número anual promedio de ocupados del departamento. La remuneración por hora divide esa misma remuneración total entre el número mensual de horas trabajadas. Para evitar que los trabajadores sin reporte de horas sean tratados como trabajadores con cero horas, las horas totales se construyen multiplicando el número de ocupados por el promedio ponderado de horas semanales de quienes reportan horas válidas.
 
-\textbf{El informe trabaja con dos paneles departamentales.} El panel principal cubre los 24 departamentos comparables de la GEIH entre 2009 y 2025. La base procesada contiene observaciones para 2008, pero ese año no se usa porque el total expandido de ocupados es aproximadamente la mitad del observado en 2009, lo que sugiere una cobertura no comparable. San Andrés aparece de manera separada desde 2010 y los departamentos de la Amazonía y la Orinoquía aparecen desde 2014. Por eso, el informe también presenta una lectura complementaria para los 33 departamentos desde 2014. En ambos casos se excluye 2020 para mantener la comparabilidad con los demás informes de la serie.
+\textbf{El informe trabaja con dos paneles departamentales.} El panel principal cubre los 24 departamentos comparables de la GEIH entre 2009 y 2025. La base procesada contiene observaciones para 2008, pero ese año no se usa porque el total expandido de ocupados es sustancialmente menor que el observado en 2009, lo que sugiere una cobertura no comparable. San Andrés aparece de manera separada desde 2010 y los departamentos de la Amazonía y la Orinoquía aparecen desde 2014. Por eso, el informe también presenta una lectura complementaria para los 33 departamentos desde 2014. En ambos casos se excluye 2020 para mantener la comparabilidad con los demás informes de la serie.
 
 \section{Niveles de remuneración por departamento}
 
@@ -63,6 +63,24 @@
   \label{fig:dept_remuneracion_mapa_cuadrantes_24}
   \caption*{\footnotesize Nota: los cuadrantes se construyen con el nivel de remuneración por hora en 2025 y su crecimiento anualizado desde 2009. Fuente: cálculos propios con GEIH.}
 \end{figure}
+
+\section{Convergencia de la remuneración departamental}
+
+\textbf{La pregunta de convergencia es si los departamentos inicialmente rezagados crecieron más rápido que los departamentos con mayor remuneración inicial.} Para responderla se estima una regresión de convergencia beta: el crecimiento anualizado de la remuneración entre 2009 y 2025 se relaciona con el logaritmo del nivel inicial de remuneración en 2009. Un coeficiente negativo indicaría convergencia; un coeficiente positivo indicaría que los departamentos con mayor remuneración inicial crecieron más rápido.
+
+\input{Paper/sections/dept_remuneracion_convergencia_24}
+
+\textbf{Los resultados no muestran convergencia en el panel largo de 24 departamentos.} El coeficiente beta es positivo tanto para la remuneración por trabajador (0,0125) como para la remuneración por hora (0,0076). Esto significa que, en promedio, los departamentos que partían de mayores niveles de remuneración en 2009 no crecieron menos que los rezagados. Por el contrario, la pendiente estimada apunta a persistencia o divergencia débil de las brechas territoriales.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Paper/figures/fig_dept_remuneracion_convergencia_24.png}
+  \caption{Nivel inicial y crecimiento posterior de la remuneración departamental, 2009--2025}
+  \label{fig:dept_remuneracion_convergencia_24}
+  \caption*{\footnotesize Nota: cada punto representa un departamento del panel comparable de 24 departamentos. La pendiente negativa indicaría convergencia beta. Fuente: cálculos propios con GEIH.}
+\end{figure}
+
+\textbf{La implicación es importante: las brechas territoriales de remuneración no se cerraron automáticamente durante el periodo.} Aunque algunos departamentos de menor remuneración inicial crecieron por encima del promedio, el patrón conjunto no es suficientemente fuerte para hablar de convergencia. Esto refuerza la idea de que las diferencias territoriales requieren una agenda explícita y no pueden dejarse solo a la dinámica agregada del mercado laboral.
 
 \section{Lectura complementaria con 33 departamentos}
 

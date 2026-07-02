@@ -19,7 +19,13 @@ PIB_DEP_XLSX = Path(
         r"C:\Users\olive\Downloads\anex-PIBDep-departamento-2024pr.xlsx",
     )
 )
-GEIH_DTA = PROJECT_ROOT / "Datos" / "Processed" / "Paper-GEIH_base_modelo_personas_2008_2025.dta"
+GEIH_DTA_CANDIDATES = [
+    PROJECT_ROOT / "Datos" / "Processed" / "Paper-GEIH_base_modelo_personas_2008_2025.dta",
+    PROJECT_ROOT / "Datos" / "Processed" / "GEIH_base_modelo_personas_2008_2025.dta",
+    PROJECT_ROOT / "Outputs" / "tables" / "Paper-GEIH_base_modelo_personas_2008_2025.dta",
+    PROJECT_ROOT / "Outputs" / "tables" / "GEIH_base_modelo_personas_2008_2025.dta",
+]
+GEIH_DTA = next((path for path in GEIH_DTA_CANDIDATES if path.exists()), GEIH_DTA_CANDIDATES[0])
 GEOMETRY_CSV = PROJECT_ROOT / "DocumentacionAuxiliar" / "Geometria" / "gadm41_COL_1_polygons.csv"
 
 TABLE_DIR = PROJECT_ROOT / "Paper" / "tables"
@@ -204,7 +210,22 @@ def load_pib_departamental(departments: dict[int, str], start_year: int, end_yea
 
 def load_geih_base() -> pd.DataFrame:
     columns = ["anio", "depto", "fex", "horas", "ingreso_hora_real"]
-    geih = pd.read_stata(GEIH_DTA, columns=columns, convert_categoricals=False)
+    data_path = None
+    for candidate in GEIH_DTA_CANDIDATES:
+        if not candidate.exists():
+            continue
+        try:
+            pd.read_stata(candidate, columns=columns, convert_categoricals=False, iterator=True).close()
+            data_path = candidate
+            break
+        except ValueError:
+            continue
+    if data_path is None:
+        raise FileNotFoundError(
+            "No se encontró una base GEIH de personas con las columnas requeridas: "
+            + ", ".join(columns)
+        )
+    geih = pd.read_stata(data_path, columns=columns, convert_categoricals=False)
     for col in columns:
         geih[col] = pd.to_numeric(geih[col], errors="coerce")
     geih = geih[(geih["fex"] > 0) & geih["anio"].notna() & geih["depto"].notna()].copy()
@@ -535,6 +556,190 @@ def write_remuneration_growth_table(summary: pd.DataFrame, start_year: int, end_
         ]
     )
     (SECTION_DIR / f"dept_remuneracion_crecimientos_{suffix}.tex").write_text("\n".join(lines), encoding="utf-8")
+
+
+def convergence_stats(
+    summary: pd.DataFrame,
+    *,
+    start_col: str,
+    end_col: str,
+    start_year: int,
+    end_year: int,
+) -> dict[str, float]:
+    data = summary[["departamento", start_col, end_col]].dropna().copy()
+    data = data[(data[start_col] > 0) & (data[end_col] > 0)]
+    years = end_year - start_year
+    x = np.log(data[start_col].astype(float).to_numpy())
+    y = (np.log(data[end_col].astype(float).to_numpy()) - x) / years
+    x_design = np.column_stack([np.ones(len(x)), x])
+    alpha, beta = np.linalg.lstsq(x_design, y, rcond=None)[0]
+    y_hat = x_design @ np.array([alpha, beta])
+    resid = y - y_hat
+    n, k = len(y), 2
+    sigma2 = float((resid @ resid) / max(n - k, 1))
+    vcov = sigma2 * np.linalg.inv(x_design.T @ x_design)
+    beta_se = float(np.sqrt(vcov[1, 1]))
+    t_stat = float(beta / beta_se) if beta_se > 0 else np.nan
+    ss_total = float(((y - y.mean()) @ (y - y.mean())))
+    r2 = 1 - float(resid @ resid) / ss_total if ss_total > 0 else np.nan
+    lambda_speed = np.nan
+    half_life = np.nan
+    if beta < 0 and 1 + beta * years > 0:
+        lambda_speed = -math.log(1 + beta * years) / years
+        half_life = math.log(2) / lambda_speed
+    return {
+        "n": n,
+        "alpha": float(alpha),
+        "beta": float(beta),
+        "beta_se": beta_se,
+        "t_stat": t_stat,
+        "r2": float(r2),
+        "lambda": float(lambda_speed) if not pd.isna(lambda_speed) else np.nan,
+        "vida_media_anios": float(half_life) if not pd.isna(half_life) else np.nan,
+    }
+
+
+def build_remuneration_convergence(summary: pd.DataFrame, start_year: int, end_year: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+    specs = [
+        ("Remuneración por trabajador", "rem_trabajador_inicio", "rem_trabajador_fin"),
+        ("Remuneración por hora", "rem_hora_inicio", "rem_hora_fin"),
+    ]
+    rows = []
+    panel_rows = []
+    years = end_year - start_year
+    for label, start_col, end_col in specs:
+        stats = convergence_stats(summary, start_col=start_col, end_col=end_col, start_year=start_year, end_year=end_year)
+        direction = "Convergencia" if stats["beta"] < 0 else "Divergencia"
+        rows.append(
+            {
+                "indicador": label,
+                **stats,
+                "lectura": direction,
+            }
+        )
+        for _, row in summary.iterrows():
+            if row[start_col] > 0 and row[end_col] > 0:
+                panel_rows.append(
+                    {
+                        "indicador": label,
+                        "depto": row["depto"],
+                        "departamento": row["departamento"],
+                        "nivel_inicial_log": math.log(float(row[start_col])),
+                        "crecimiento_anualizado": (math.log(float(row[end_col])) - math.log(float(row[start_col]))) / years,
+                        "nivel_inicial": float(row[start_col]),
+                        "nivel_final": float(row[end_col]),
+                        "ocupados_fin": float(row["ocupados_fin"]),
+                    }
+                )
+    return pd.DataFrame(rows), pd.DataFrame(panel_rows)
+
+
+def write_remuneration_convergence_table(convergence: pd.DataFrame, start_year: int, end_year: int) -> None:
+    lines = [
+        r"\begin{table}[H]",
+        r"\centering",
+        rf"\caption{{Convergencia beta de la remuneraciÃ³n laboral departamental, {start_year}--{end_year}}}",
+        r"\label{tab:dept_remuneracion_convergencia_24}",
+        r"\small",
+        r"\begin{tabular}{lrrrrl}",
+        r"\toprule",
+        r"Indicador & $\beta$ & Error est. & Estad. $t$ & $R^2$ & Lectura \\",
+        r"\midrule",
+    ]
+    for _, row in convergence.iterrows():
+        lines.append(
+            f"{escape_latex(row['indicador'])} & "
+            f"{fmt_num_es(row['beta'], 4)} & "
+            f"{fmt_num_es(row['beta_se'], 4)} & "
+            f"{fmt_num_es(row['t_stat'], 2)} & "
+            f"{fmt_num_es(row['r2'], 3)} & "
+            f"{escape_latex(row['lectura'])} \\\\"
+        )
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption*{\footnotesize Nota: la variable dependiente es el crecimiento anualizado del indicador y la variable explicativa es el logaritmo del nivel inicial del mismo indicador. Un coeficiente $\beta<0$ indica convergencia beta; un coeficiente $\beta>0$ indica que los departamentos con mayor remuneraciÃ³n inicial crecieron mÃ¡s rÃ¡pido. Fuente: cÃ¡lculos propios con GEIH.}",
+            r"\end{table}",
+        ]
+    )
+    (SECTION_DIR / "dept_remuneracion_convergencia_24.tex").write_text("\n".join(lines), encoding="utf-8")
+
+
+def draw_remuneration_convergence(convergence_points: pd.DataFrame, convergence: pd.DataFrame) -> None:
+    data = convergence_points.copy()
+    width, height = 2300, 1250
+    img = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(img)
+    draw.text((80, 42), "Convergencia de la remuneraciÃ³n laboral departamental, 2009--2025", fill="#222222", font=font(48, True))
+    draw.text((80, 98), "Panel de 24 departamentos; eje horizontal en logaritmo del nivel inicial", fill="#555555", font=font(30))
+
+    panels = [
+        ((80, 185, 1115, 1045), "RemuneraciÃ³n por trabajador"),
+        ((1235, 185, 2270, 1045), "RemuneraciÃ³n por hora"),
+    ]
+    for box, indicator in panels:
+        part = data[data["indicador"] == indicator].copy()
+        stats = convergence[convergence["indicador"] == indicator].iloc[0]
+        left, top, right, bottom = box
+        plot_left, plot_top = left + 115, top + 95
+        plot_right, plot_bottom = right - 55, bottom - 105
+        x = part["nivel_inicial_log"].astype(float).to_numpy()
+        y = part["crecimiento_anualizado"].astype(float).to_numpy() * 100
+        x_min, x_max = x.min(), x.max()
+        y_min, y_max = y.min(), y.max()
+        x_pad = (x_max - x_min) * 0.08
+        y_pad = (y_max - y_min) * 0.16
+        x_min, x_max = x_min - x_pad, x_max + x_pad
+        y_min, y_max = y_min - y_pad, y_max + y_pad
+
+        def xp(value: float) -> float:
+            return plot_left + (value - x_min) / (x_max - x_min) * (plot_right - plot_left)
+
+        def yp(value: float) -> float:
+            return plot_bottom - (value - y_min) / (y_max - y_min) * (plot_bottom - plot_top)
+
+        draw.text((left + 15, top + 18), indicator, fill="#222222", font=font(34, True))
+        draw.rectangle((plot_left, plot_top, plot_right, plot_bottom), outline="#333333", width=2)
+        for i in range(6):
+            xg = plot_left + i / 5 * (plot_right - plot_left)
+            yg = plot_top + i / 5 * (plot_bottom - plot_top)
+            draw.line((xg, plot_top, xg, plot_bottom), fill="#eeeeee", width=1)
+            draw.line((plot_left, yg, plot_right, yg), fill="#eeeeee", width=1)
+        slope = float(stats["beta"]) * 100
+        intercept = float(stats["alpha"]) * 100
+        draw.line((xp(x_min), yp(intercept + slope * x_min), xp(x_max), yp(intercept + slope * x_max)), fill="#b44b3f", width=5)
+        draw.text(
+            (plot_left + 18, plot_top + 18),
+            rf"$\beta$ = {fmt_num_es(float(stats['beta']), 4)}",
+            fill="#b44b3f",
+            font=font(27, True),
+        )
+        max_occ, min_occ = part["ocupados_fin"].max(), part["ocupados_fin"].min()
+        label_offsets = {
+            "BogotÃ¡ D.C.": (-135, -34),
+            "Antioquia": (-120, 12),
+            "Cundinamarca": (18, -34),
+            "La Guajira": (18, -10),
+            "Caldas": (18, -32),
+            "ChocÃ³": (18, -10),
+            "Sucre": (16, 8),
+            "Risaralda": (18, -30),
+            "QuindÃ­o": (18, 8),
+        }
+        for _, row in part.iterrows():
+            radius = 7 + 27 * math.sqrt((row["ocupados_fin"] - min_occ) / max(max_occ - min_occ, 1))
+            px, py = xp(float(row["nivel_inicial_log"])), yp(float(row["crecimiento_anualizado"]) * 100)
+            draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill="#4e79a7", outline="white", width=2)
+            if row["departamento"] in label_offsets:
+                dx, dy = label_offsets[row["departamento"]]
+                draw.text((px + dx, py + dy), row["departamento"], fill="#222222", font=font(18))
+        draw.text((plot_left + 180, plot_bottom + 52), "Log nivel inicial, 2009", fill="#333333", font=font(22))
+        draw.text((plot_left, plot_top - 34), "Crecimiento anualizado (%)", fill="#333333", font=font(22))
+
+    draw.text((80, 1148), "Nota: una pendiente negativa indicarÃ­a convergencia. En ambos paneles la pendiente estimada es positiva.", fill="#555555", font=font(24))
+    for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
+        img.save(directory / "fig_dept_remuneracion_convergencia_24.png")
 
 
 def write_productivity_summary_table(summary: pd.DataFrame, start_year: int, end_year: int, suffix: str) -> None:
@@ -1165,11 +1370,14 @@ def write_remuneration_body(
     bench24: dict[str, float],
     summary33: pd.DataFrame,
     bench33: dict[str, float],
+    convergence24: pd.DataFrame,
 ) -> None:
     leader = summary24.sort_values("ranking_rem_trabajador").iloc[0]
     low = summary24.sort_values("ranking_rem_trabajador").tail(1).iloc[0]
     fastest = summary24.sort_values("ranking_crec_rem_trabajador").iloc[0]
     slowest = summary24.sort_values("ranking_crec_rem_trabajador").tail(1).iloc[0]
+    conv_worker = convergence24[convergence24["indicador"] == "Remuneración por trabajador"].iloc[0]
+    conv_hour = convergence24[convergence24["indicador"] == "Remuneración por hora"].iloc[0]
     lines = [
         r"\section{Introducción}",
         "",
@@ -1185,7 +1393,7 @@ def write_remuneration_body(
         "",
         r"\textbf{Se construyen dos indicadores de remuneración laboral.} La remuneración por trabajador divide la remuneración laboral mensual total entre el número anual promedio de ocupados del departamento. La remuneración por hora divide esa misma remuneración total entre el número mensual de horas trabajadas. Para evitar que los trabajadores sin reporte de horas sean tratados como trabajadores con cero horas, las horas totales se construyen multiplicando el número de ocupados por el promedio ponderado de horas semanales de quienes reportan horas válidas.",
         "",
-        r"\textbf{El informe trabaja con dos paneles departamentales.} El panel principal cubre los 24 departamentos comparables de la GEIH entre 2009 y 2025. La base procesada contiene observaciones para 2008, pero ese año no se usa porque el total expandido de ocupados es aproximadamente la mitad del observado en 2009, lo que sugiere una cobertura no comparable. San Andrés aparece de manera separada desde 2010 y los departamentos de la Amazonía y la Orinoquía aparecen desde 2014. Por eso, el informe también presenta una lectura complementaria para los 33 departamentos desde 2014. En ambos casos se excluye 2020 para mantener la comparabilidad con los demás informes de la serie.",
+        r"\textbf{El informe trabaja con dos paneles departamentales.} El panel principal cubre los 24 departamentos comparables de la GEIH entre 2009 y 2025. La base procesada contiene observaciones para 2008, pero ese año no se usa porque el total expandido de ocupados es sustancialmente menor que el observado en 2009, lo que sugiere una cobertura no comparable. San Andrés aparece de manera separada desde 2010 y los departamentos de la Amazonía y la Orinoquía aparecen desde 2014. Por eso, el informe también presenta una lectura complementaria para los 33 departamentos desde 2014. En ambos casos se excluye 2020 para mantener la comparabilidad con los demás informes de la serie.",
         "",
         r"\section{Niveles de remuneración por departamento}",
         "",
@@ -1236,6 +1444,24 @@ def write_remuneration_body(
         r"  \label{fig:dept_remuneracion_mapa_cuadrantes_24}",
         r"  \caption*{\footnotesize Nota: los cuadrantes se construyen con el nivel de remuneración por hora en 2025 y su crecimiento anualizado desde 2009. Fuente: cálculos propios con GEIH.}",
         r"\end{figure}",
+        "",
+        r"\section{Convergencia de la remuneración departamental}",
+        "",
+        r"\textbf{La pregunta de convergencia es si los departamentos inicialmente rezagados crecieron más rápido que los departamentos con mayor remuneración inicial.} Para responderla se estima una regresión de convergencia beta: el crecimiento anualizado de la remuneración entre 2009 y 2025 se relaciona con el logaritmo del nivel inicial de remuneración en 2009. Un coeficiente negativo indicaría convergencia; un coeficiente positivo indicaría que los departamentos con mayor remuneración inicial crecieron más rápido.",
+        "",
+        r"\input{Paper/sections/dept_remuneracion_convergencia_24}",
+        "",
+        rf"\textbf{{Los resultados no muestran convergencia en el panel largo de 24 departamentos.}} El coeficiente beta es positivo tanto para la remuneración por trabajador ({fmt_num_es(conv_worker['beta'], 4)}) como para la remuneración por hora ({fmt_num_es(conv_hour['beta'], 4)}). Esto significa que, en promedio, los departamentos que partían de mayores niveles de remuneración en 2009 no crecieron menos que los rezagados. Por el contrario, la pendiente estimada apunta a persistencia o divergencia débil de las brechas territoriales.",
+        "",
+        r"\begin{figure}[H]",
+        r"  \centering",
+        r"  \includegraphics[width=\textwidth]{Paper/figures/fig_dept_remuneracion_convergencia_24.png}",
+        rf"  \caption{{Nivel inicial y crecimiento posterior de la remuneración departamental, {PANEL_24_START}--{REMUNERATION_END}}}",
+        r"  \label{fig:dept_remuneracion_convergencia_24}",
+        r"  \caption*{\footnotesize Nota: cada punto representa un departamento del panel comparable de 24 departamentos. La pendiente negativa indicaría convergencia beta. Fuente: cálculos propios con GEIH.}",
+        r"\end{figure}",
+        "",
+        r"\textbf{La implicación es importante: las brechas territoriales de remuneración no se cerraron automáticamente durante el periodo.} Aunque algunos departamentos de menor remuneración inicial crecieron por encima del promedio, el patrón conjunto no es suficientemente fuerte para hablar de convergencia. Esto refuerza la idea de que las diferencias territoriales requieren una agenda explícita y no pueden dejarse solo a la dinámica agregada del mercado laboral.",
         "",
         r"\section{Lectura complementaria con 33 departamentos}",
         "",
@@ -1478,6 +1704,9 @@ def main() -> None:
     relation33, relation_bench33 = build_relation_table(
         prod_summary33, rem_series33_to_2024, PANEL_33_START, PRODUCTIVITY_END
     )
+    convergence24, convergence_points24 = build_remuneration_convergence(
+        rem_summary24, PANEL_24_START, REMUNERATION_END
+    )
 
     write_csv(rem_series24, "dept_remuneracion_series_24_2009_2025.csv")
     write_csv(rem_summary24, "dept_remuneracion_summary_24_2009_2025.csv")
@@ -1489,6 +1718,8 @@ def main() -> None:
     write_csv(prod_summary33, "dept_productividad_summary_33_2014_2024.csv")
     write_csv(relation24, "dept_productividad_remuneracion_24_2009_2024.csv")
     write_csv(relation33, "dept_productividad_remuneracion_33_2014_2024.csv")
+    write_csv(convergence24, "dept_remuneracion_convergencia_24_2009_2025.csv")
+    write_csv(convergence_points24, "dept_remuneracion_convergencia_puntos_24_2009_2025.csv")
     write_benchmarks(rem_bench24, "dept_remuneracion_benchmarks_24_2009_2025.csv")
     write_benchmarks(rem_bench33, "dept_remuneracion_benchmarks_33_2014_2025.csv")
     write_benchmarks(prod_bench24, "dept_productividad_benchmarks_24_2009_2024.csv")
@@ -1500,6 +1731,7 @@ def main() -> None:
     write_remuneration_growth_table(rem_summary24, PANEL_24_START, REMUNERATION_END, "24")
     write_remuneration_level_table(rem_summary33, REMUNERATION_END, "33")
     write_remuneration_growth_table(rem_summary33, PANEL_33_START, REMUNERATION_END, "33")
+    write_remuneration_convergence_table(convergence24, PANEL_24_START, REMUNERATION_END)
     write_productivity_summary_table(prod_summary24, PANEL_24_START, PRODUCTIVITY_END, "24")
     write_productivity_summary_table(prod_summary33, PANEL_33_START, PRODUCTIVITY_END, "33")
     write_relation_table(relation24, PRODUCTIVITY_END, "24")
@@ -1507,12 +1739,13 @@ def main() -> None:
 
     draw_remuneration_maps(rem_summary24, rem_bench24, "24")
     draw_remuneration_maps(rem_summary33, rem_bench33, "33")
+    draw_remuneration_convergence(convergence_points24, convergence24)
     draw_productivity_maps(prod_summary24, prod_bench24, "24")
     draw_productivity_maps(prod_summary33, prod_bench33, "33")
     draw_relation_scatter(relation24, relation_bench24, "24")
     draw_relation_scatter(relation33, relation_bench33, "33")
 
-    write_remuneration_body(rem_summary24, rem_bench24, rem_summary33, rem_bench33)
+    write_remuneration_body(rem_summary24, rem_bench24, rem_summary33, rem_bench33, convergence24)
     write_productivity_relation_body(
         prod_summary24, prod_bench24, relation24, relation_bench24, prod_summary33, relation33
     )
