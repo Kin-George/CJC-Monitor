@@ -85,6 +85,33 @@ DEPARTMENTS_33 = {
     99: "Vichada",
 }
 
+DEPARTMENT_ACRONYMS = {
+    "Antioquia": "ANT",
+    "Atlántico": "ATL",
+    "Bogotá D.C.": "BOG",
+    "Bolívar": "BOL",
+    "Boyacá": "BOY",
+    "Caldas": "CAL",
+    "Caquetá": "CAQ",
+    "Cauca": "CAU",
+    "Cesar": "CES",
+    "Córdoba": "COR",
+    "Cundinamarca": "CUN",
+    "Chocó": "CHO",
+    "Huila": "HUI",
+    "La Guajira": "LAG",
+    "Magdalena": "MAG",
+    "Meta": "MET",
+    "Nariño": "NAR",
+    "Norte de Santander": "NSA",
+    "Quindío": "QUI",
+    "Risaralda": "RIS",
+    "Santander": "SAN",
+    "Sucre": "SUC",
+    "Tolima": "TOL",
+    "Valle del Cauca": "VAC",
+}
+
 
 def normalize_name(value: object) -> str:
     text = str(value).split(":")[0].strip().upper()
@@ -1116,6 +1143,7 @@ def draw_remuneration_maps(summary: pd.DataFrame, benchmarks: dict[str, float], 
         y_label="Remuneración por hora, miles de pesos de 2025",
         out_name=f"fig_dept_remuneracion_cuadrantes_{suffix}.png",
         source="GEIH",
+        label_map=DEPARTMENT_ACRONYMS,
     )
 
 
@@ -1202,6 +1230,7 @@ def draw_quadrant_bubble_chart(
     y_label: str,
     out_name: str,
     source: str = "DANE y GEIH",
+    label_map: dict[str, str] | None = None,
 ) -> None:
     data = summary.copy()
     data["x_value"] = data[growth_col] * 100
@@ -1290,12 +1319,12 @@ def draw_quadrant_bubble_chart(
         "Córdoba": (24, 26),
         "Sucre": (24, 14),
     }
-    display_labels = {
+    display_labels = label_map or {
         "Bogotá D.C.": "Bogotá D.C.",
         "Norte de Santander": "N. Santander",
         "Valle del Cauca": "Valle",
     }
-    label_font = font(23)
+    label_font = font(25 if label_map else 23)
 
     def draw_label(x_pos: float, y_pos: float, text: str) -> None:
         for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
@@ -1324,7 +1353,8 @@ def draw_quadrant_bubble_chart(
         draw.text((x + 40, y - 2), label, fill="#333333", font=font(25))
     draw.text(
         (90, 1610),
-        f"Fuente: cálculos propios con {source}. Líneas azules: agregado de los departamentos comparables; burbuja: número de ocupados.",
+        f"Fuente: cálculos propios con {source}. Líneas azules: agregado de los departamentos comparables; burbuja: número de ocupados."
+        + (" Las etiquetas son abreviaturas departamentales." if label_map else ""),
         fill="#555555",
         font=font(24),
     )
