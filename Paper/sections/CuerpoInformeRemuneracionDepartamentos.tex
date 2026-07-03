@@ -1,24 +1,30 @@
 \section{Introducción}
 
-\textbf{La remuneración laboral también tiene una geografía.} Las diferencias de ingreso entre trabajadores no dependen únicamente de su educación, ocupación o actividad económica. También dependen del territorio donde trabajan, de la estructura productiva local, de la informalidad, de la conectividad con mercados y de la densidad empresarial de cada departamento.
+\textbf{La remuneración laboral es una forma de aproximarse a la productividad del trabajo.} En una economía, la remuneración de los trabajadores debe guardar alguna correspondencia con el valor agregado que esos trabajadores ayudan a generar. Esa relación no es perfecta ni automática, pero sí permite usar la remuneración como una ventana para estudiar dónde el trabajo está asociado con actividades de mayor valor y dónde persisten rezagos.
 
-\textbf{Este informe estudia la remuneración laboral departamental entre 2009 y 2025.} El ejercicio se concentra primero en los 24 departamentos que pueden seguirse de manera comparable en la GEIH desde 2009. Luego presenta una lectura complementaria para los 33 departamentos, disponible desde 2014. La pregunta central es sencilla: en qué departamentos se remunera más el trabajo y en cuáles ha crecido más la remuneración real.
+\textbf{Este informe analiza esa relación desde una perspectiva territorial.} La remuneración también refleja formalidad, sector económico, ocupación, capital disponible por trabajador, poder de negociación, salario mínimo y fricciones de movilidad. Por eso no debe leerse como una medida directa de productividad. Aun así, si las diferencias territoriales de remuneración son amplias, persistentes y no convergen, esas diferencias son relevantes para entender dónde los trabajadores acceden a empleos de mayor valor y dónde la estructura productiva local limita la capacidad de remunerarlos mejor.
 
-\textbf{La lectura territorial de la remuneración es importante para la agenda de productividad.} Un aumento de la productividad solo mejora de manera amplia el bienestar si se traduce, al menos parcialmente, en mejores ingresos laborales. Antes de estudiar esa relación de manera directa, conviene entender primero la geografía propia de la remuneración.
+\textbf{La pregunta departamental es importante para la agenda del Centro Javeriano de Competitividad.} Una agenda de productividad para Colombia debe preguntar dónde el trabajo está asociado con actividades de mayor valor agregado, dónde se traduce en mejores remuneraciones y dónde persisten rezagos. Por eso, este informe estudia la evolución de la remuneración laboral departamental entre 2010 y 2025.
 
 \section{Metodología}
 
-\textbf{La medición utiliza los microdatos armonizados de la GEIH.} Para cada departamento y año se calcula la remuneración laboral mensual total a partir del ingreso laboral por hora, las horas semanales trabajadas y el factor de expansión de la encuesta. La remuneración se expresa en pesos constantes de 2025.
+\textbf{La medición utiliza los microdatos armonizados de la GEIH.} Para cada departamento y año se calcula la remuneración laboral mensual total a partir del ingreso laboral por hora, las horas semanales trabajadas y el factor de expansión de la encuesta. El ingreso laboral horario se toma de la base armonizada en pesos constantes de 2025. En esa base, el ingreso corriente por hora se deflacta con el IPC nacional de diciembre de cada año y se lleva a precios de 2025 mediante el factor \(IPC_{2025}/IPC_t\). En la práctica, el código usa \(IPC_{2025}=152{,}27\), de modo que \(ingreso\_hora\_real = ingreso\_laboral\_hora \times 152{,}27/IPC_t\).
 
-\textbf{Se construyen dos indicadores de remuneración laboral.} La remuneración por trabajador divide la remuneración laboral mensual total entre el número anual promedio de ocupados del departamento. La remuneración por hora divide esa misma remuneración total entre el número mensual de horas trabajadas. Para evitar que los trabajadores sin reporte de horas sean tratados como trabajadores con cero horas, las horas totales se construyen multiplicando el número de ocupados por el promedio ponderado de horas semanales de quienes reportan horas válidas.
+\textbf{El informe no utiliza un IPC departamental porque la pregunta principal no es el poder adquisitivo local.} La pregunta es cuánto se remunera una hora adicional o un trabajador adicional en una unidad común de precios nacionales, y cómo esa remuneración ha evolucionado entre departamentos. Usar un IPC territorial respondería una pregunta distinta: cuánto poder de compra tiene esa remuneración dentro de cada territorio. Esa lectura es útil para estudiar bienestar local, pero mezclaría la remuneración del trabajo con diferencias territoriales en precios de consumo. Por esa razón, la especificación principal usa el IPC nacional; una versión posterior podría contrastar los resultados con una deflactación territorial cuando la correspondencia entre índices de precios y departamentos sea suficientemente homogénea.
 
-\textbf{El informe trabaja con dos paneles departamentales.} El panel principal cubre los 24 departamentos comparables de la GEIH entre 2009 y 2025. La base procesada contiene observaciones para 2008, pero ese año no se usa porque el total expandido de ocupados es sustancialmente menor que el observado en 2009, lo que sugiere una cobertura no comparable. San Andrés aparece de manera separada desde 2010 y los departamentos de la Amazonía y la Orinoquía aparecen desde 2014. Por eso, el informe también presenta una lectura complementaria para los 33 departamentos desde 2014. En ambos casos se excluye 2020 para mantener la comparabilidad con los demás informes de la serie.
+\textbf{Se construyen dos indicadores de remuneración laboral con un universo consistente entre numerador y denominador.} La remuneración por trabajador divide la remuneración laboral mensual total observada entre ocupados con ingreso horario positivo y horas válidas entre el número de ocupados de ese mismo universo. La remuneración por hora divide esa misma remuneración total entre las horas mensuales trabajadas por esos ocupados. Esta definición evita que los trabajadores sin ingreso u horas válidas sean tratados implícitamente como trabajadores con remuneración cero.
+
+\textbf{La distinción entre trabajador y hora es central para interpretar los resultados.} La remuneración por trabajador resume el ingreso mensual equivalente de un ocupado con remuneración observable. La remuneración por hora, en cambio, se acerca más a una unidad homogénea de trabajo y ayuda a separar el valor remunerado de cada hora de las diferencias en intensidad laboral. Aun así, ambas medidas son descriptivas: capturan remuneración observada, no una estimación estructural de productividad.
+
+\textbf{El informe se concentra en el panel departamental comparable desde 2010.} El panel principal cubre 24 departamentos de la GEIH entre 2010 y 2025. Aunque la base permite observar esos departamentos desde 2009, el análisis principal empieza en 2010 para mantener consistencia con los demás informes de la serie. San Andrés aparece de manera separada desde 2010 y los departamentos de la Amazonía y la Orinoquía aparecen desde 2014; por esa razón, esas observaciones no hacen parte del panel largo principal. También se excluye 2020.
 
 \section{Niveles de remuneración por departamento}
 
-\textbf{El ranking de niveles confirma la centralidad de Bogotá D.C., pero también muestra brechas amplias entre departamentos.} El Cuadro \ref{tab:dept_remuneracion_niveles_24} ordena los 24 departamentos comparables por remuneración mensual por trabajador en 2025. Bogotá D.C. ocupa el primer lugar, con 2,89 millones de pesos de 2025 al mes por trabajador. En el extremo inferior aparece Sucre, con 1,01 millones.
+\textbf{El Cuadro \ref{tab:dept_remuneracion_niveles_24} muestra diferencias amplias en los niveles de remuneración departamental.} En 2025, Bogotá D.C. registra 2,89 millones al mes por trabajador entre los 24 departamentos comparables. En el extremo inferior aparece Sucre, con 1,01 millones. El cuadro también reporta el número de ocupados y las horas semanales promedio por trabajador, dos variables necesarias para distinguir entre brechas asociadas al valor remunerado de cada hora y brechas asociadas a la intensidad laboral.
 
 \input{Paper/sections/dept_remuneracion_niveles_24}
+
+\textbf{La brecha es algo menor cuando se mira la remuneración por hora, pero no desaparece.} En remuneración mensual por trabajador, Sucre está 65,2\% por debajo de Bogotá D.C.; dicho de otra manera, Bogotá casi triplica su nivel. En remuneración por hora, la brecha de Sucre frente a Bogotá D.C. es 59,8\%, mientras que La Guajira, el departamento con menor remuneración horaria, registra una brecha de 64,1\%. La diferencia entre ambas comparaciones es consistente con las horas trabajadas. Sucre, Nariño y Cauca están entre los departamentos con menores horas semanales promedio. Aun así, las diferencias en el valor remunerado de cada hora siguen siendo amplias.
 
 \begin{figure}[H]
   \centering
@@ -28,78 +34,70 @@
   \caption*{\footnotesize Nota: los paneles superiores muestran la remuneración por trabajador; los inferiores, la remuneración por hora. En los paneles de la derecha, el tamaño de la burbuja es proporcional al número de ocupados. Fuente: cálculos propios con GEIH.}
 \end{figure}
 
-\textbf{Los mapas muestran que la geografía de la remuneración tiene un patrón territorial claro.} Los mayores niveles se concentran en Bogotá D.C. y en algunos departamentos del centro del país. En contraste, varios departamentos de la periferia norte, pacífica y sur registran remuneraciones menores. La lectura por hora confirma que estas diferencias no se explican únicamente por el número de horas trabajadas.
+\textbf{La Figura \ref{fig:dept_remuneracion_mapa_niveles_24} muestra que los mayores niveles de remuneración se concentran en pocos departamentos.} Bogotá D.C. y algunos departamentos del centro del país registran los niveles más altos, mientras varios departamentos de la periferia norte, pacífica y sur presentan remuneraciones menores. La lectura por hora confirma que estas diferencias no se explican únicamente por el número de horas trabajadas.
 
 \section{Crecimiento y cuadrantes de remuneración}
 
-\textbf{El crecimiento de la remuneración también fue desigual.} Entre 2009 y 2025, Cundinamarca tuvo el mayor crecimiento anual de la remuneración por trabajador (2,9\%). En el otro extremo, La Guajira registró el desempeño más débil (-1,3\%).
+\textbf{El crecimiento de la remuneración también fue heterogéneo entre departamentos.} Entre 2010 y 2025, Cundinamarca registró el mayor crecimiento anual de la remuneración por trabajador (2,9\%). En el otro extremo, La Guajira presentó el crecimiento más bajo (-0,9\%). Esta diferencia indica que los departamentos no solo partieron de niveles distintos, sino que siguieron trayectorias de remuneración real muy diferentes.
 
 \input{Paper/sections/dept_remuneracion_crecimientos_24}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{Paper/figures/fig_dept_remuneracion_mapa_crecimientos_24.png}
-  \caption{Mapa de crecimiento de la remuneración laboral departamental, 2009--2025}
+  \caption{Mapa de crecimiento de la remuneración laboral departamental, 2010--2025}
   \label{fig:dept_remuneracion_mapa_crecimientos_24}
   \caption*{\footnotesize Nota: las escalas de color se centran en el crecimiento agregado del panel de 24 departamentos. Fuente: cálculos propios con GEIH.}
 \end{figure}
 
-\textbf{La clasificación por cuadrantes separa nivel y dinamismo.} Un departamento puede tener una remuneración alta pero crecer por debajo del agregado; también puede partir de niveles bajos y crecer rápido. La Figura \ref{fig:dept_remuneracion_cuadrantes_24} cruza el nivel de remuneración por hora con su crecimiento anualizado. Los cuatro cuadrantes se nombran de forma descriptiva: nivel alto y crecimiento alto; nivel alto y crecimiento bajo; nivel bajo y crecimiento alto; y nivel bajo y crecimiento bajo.
+\textbf{La Figura \ref{fig:dept_remuneracion_mapa_crecimientos_24} sugiere que el crecimiento de la remuneración se concentró en el interior del país.} Cundinamarca, Risaralda, Caldas, Boyacá, Tolima, Valle del Cauca y Antioquia aparecen entre los mayores crecimientos de la remuneración por trabajador, y el patrón es similar cuando se mira la remuneración por hora. En cambio, varios departamentos de la periferia norte, pacífica y sur registraron crecimientos bajos o negativos, como La Guajira, Nariño, Sucre, Chocó, Magdalena y Cesar. Esta geografía del crecimiento es relevante porque implica que las brechas territoriales no solo reflejan niveles iniciales distintos, sino también una dinámica reciente que favoreció más al centro del país que a varias zonas periféricas.
+
+\textbf{La Figura \ref{fig:dept_remuneracion_cuadrantes_24} separa el nivel de remuneración y su crecimiento posterior.} Un departamento puede tener una remuneración alta y crecer por debajo del agregado; también puede partir de niveles bajos y crecer por encima del agregado. Los cuatro cuadrantes se nombran de forma descriptiva: nivel alto y crecimiento alto; nivel alto y crecimiento bajo; nivel bajo y crecimiento alto; y nivel bajo y crecimiento bajo.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{Paper/figures/fig_dept_remuneracion_cuadrantes_24.png}
-  \caption{Nivel y crecimiento de la remuneración por hora, 2009--2025}
+  \caption{Nivel y crecimiento de la remuneración por hora, 2010--2025}
   \label{fig:dept_remuneracion_cuadrantes_24}
   \caption*{\footnotesize Nota: la línea vertical muestra el crecimiento agregado de la remuneración por hora; la línea horizontal muestra el nivel agregado de remuneración por hora. El tamaño de la burbuja es proporcional al número de ocupados. Fuente: cálculos propios con GEIH.}
 \end{figure}
 
-\textbf{El mapa permite ver la misma clasificación en el territorio.} La Figura \ref{fig:dept_remuneracion_mapa_cuadrantes_24} muestra dónde se ubican los departamentos de cada cuadrante y complementa la lectura de la dispersión.
+\textbf{La Figura \ref{fig:dept_remuneracion_mapa_cuadrantes_24} presenta la misma clasificación en el territorio.} Esta lectura permite identificar si los departamentos con mayores niveles y mayores crecimientos se concentran espacialmente, y si los rezagos combinan bajos niveles con bajo dinamismo.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{Paper/figures/fig_dept_remuneracion_mapa_cuadrantes_24.png}
-  \caption{Mapa de cuadrantes de remuneración por hora, 2009--2025}
+  \caption{Mapa de cuadrantes de remuneración por hora, 2010--2025}
   \label{fig:dept_remuneracion_mapa_cuadrantes_24}
-  \caption*{\footnotesize Nota: los cuadrantes se construyen con el nivel de remuneración por hora en 2025 y su crecimiento anualizado desde 2009. Fuente: cálculos propios con GEIH.}
+  \caption*{\footnotesize Nota: los cuadrantes se construyen con el nivel de remuneración por hora en 2025 y su crecimiento anualizado desde 2010. Fuente: cálculos propios con GEIH.}
 \end{figure}
+
+\textbf{La Figura \ref{fig:dept_remuneracion_mapa_cuadrantes_24} revela un corredor de crecimiento de la remuneración por hora.} Los departamentos con crecimiento superior al agregado forman una franja que va de Valle del Cauca a Boyacá, pasando por Antioquia, el Eje Cafetero, Tolima, Cundinamarca y Bogotá D.C. El resto del mapa muestra una señal de rezago relativo: muchos departamentos de la periferia norte, pacífica, oriental y sur crecieron por debajo del agregado, incluso cuando algunos tenían niveles iniciales bajos.
 
 \section{Convergencia de la remuneración departamental}
 
-\textbf{La pregunta de convergencia es si los departamentos inicialmente rezagados crecieron más rápido que los departamentos con mayor remuneración inicial.} Para responderla se estima una regresión de convergencia beta: el crecimiento anualizado de la remuneración entre 2009 y 2025 se relaciona con el logaritmo del nivel inicial de remuneración en 2009. Un coeficiente negativo indicaría convergencia; un coeficiente positivo indicaría que los departamentos con mayor remuneración inicial crecieron más rápido.
+\textbf{Después de revisar niveles y crecimientos, conviene evaluar si hubo convergencia departamental en la remuneración laboral.} Para hacerlo se estima una regresión de convergencia beta, en la que el crecimiento anualizado de la remuneración entre 2010 y 2025 se relaciona con el logaritmo del nivel inicial de remuneración en 2010. Un coeficiente negativo indicaría que los departamentos con menor remuneración inicial crecieron más rápido y, por tanto, que hubo convergencia. Un coeficiente positivo indicaría que los departamentos con mayor remuneración inicial tendieron a crecer más rápido.
 
 \input{Paper/sections/dept_remuneracion_convergencia_24}
 
-\textbf{Los resultados no muestran convergencia en el panel largo de 24 departamentos.} El coeficiente beta es positivo tanto para la remuneración por trabajador (0,0125) como para la remuneración por hora (0,0076). Esto significa que, en promedio, los departamentos que partían de mayores niveles de remuneración en 2009 no crecieron menos que los rezagados. Por el contrario, la pendiente estimada apunta a persistencia o divergencia débil de las brechas territoriales.
+\textbf{Los resultados no muestran convergencia en el panel largo de 24 departamentos.} El coeficiente beta es positivo tanto para la remuneración por trabajador (0,0089) como para la remuneración por hora (0,0060). Esto significa que, en promedio, los departamentos que partían de mayores niveles de remuneración en 2010 no crecieron menos que los departamentos inicialmente rezagados. La pendiente estimada apunta, más bien, a una persistencia de las brechas territoriales de remuneración.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{Paper/figures/fig_dept_remuneracion_convergencia_24.png}
-  \caption{Nivel inicial y crecimiento posterior de la remuneración departamental, 2009--2025}
+  \caption{Nivel inicial y crecimiento posterior de la remuneración departamental, 2010--2025}
   \label{fig:dept_remuneracion_convergencia_24}
   \caption*{\footnotesize Nota: cada punto representa un departamento del panel comparable de 24 departamentos. La pendiente negativa indicaría convergencia beta. Fuente: cálculos propios con GEIH.}
 \end{figure}
 
-\textbf{La implicación es importante: las brechas territoriales de remuneración no se cerraron automáticamente durante el periodo.} Aunque algunos departamentos de menor remuneración inicial crecieron por encima del promedio, el patrón conjunto no es suficientemente fuerte para hablar de convergencia. Esto refuerza la idea de que las diferencias territoriales requieren una agenda explícita y no pueden dejarse solo a la dinámica agregada del mercado laboral.
-
-\section{Lectura complementaria con 33 departamentos}
-
-\textbf{La GEIH permite observar los 33 departamentos desde 2014.} Esta apertura no reemplaza el panel largo de 24 departamentos, pero permite incluir a San Andrés y Providencia y a los departamentos de la Amazonía y la Orinoquía. En este panel ampliado, la comparación cubre 2014--2025 y también excluye 2020.
-
-\input{Paper/sections/dept_remuneracion_niveles_33}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{Paper/figures/fig_dept_remuneracion_mapa_cuadrantes_33.png}
-  \caption{Mapa de cuadrantes de remuneración por hora, 33 departamentos, 2014--2025}
-  \label{fig:dept_remuneracion_mapa_cuadrantes_33}
-  \caption*{\footnotesize Nota: la figura usa el panel ampliado de 33 departamentos disponible desde 2014. Fuente: cálculos propios con GEIH.}
-\end{figure}
+\textbf{La Figura \ref{fig:dept_remuneracion_convergencia_24} confirma que las brechas territoriales de remuneración no se cerraron automáticamente durante el periodo.} Aunque algunos departamentos de menor remuneración inicial crecieron por encima del promedio, el patrón conjunto no es consistente con una reducción generalizada de las diferencias iniciales. Por tanto, no hay evidencia de que la dinámica agregada del mercado laboral haya producido convergencia departamental en remuneración.
 
 \section{Conclusiones}
 
-\textbf{La remuneración laboral en Colombia presenta brechas territoriales profundas.} Incluso al limitar el análisis al panel comparable de 24 departamentos, la diferencia entre los departamentos de mayor y menor remuneración es amplia. Esta brecha no desaparece cuando se mira la remuneración por hora trabajada.
+\textbf{La remuneración laboral en Colombia presenta diferencias territoriales amplias.} Incluso al limitar el análisis al panel comparable de 24 departamentos, la distancia entre los departamentos de mayor y menor remuneración es elevada. La brecha es algo menor cuando se mira la remuneración por hora, lo que indica que las diferencias de intensidad laboral también importan, pero las diferencias horarias siguen siendo sustanciales.
 
-\textbf{El crecimiento de la remuneración no ha sido homogéneo.} Algunos departamentos lograron aumentos importantes de remuneración real, mientras otros se rezagaron. Esto implica que las brechas territoriales no dependen solo de los niveles iniciales, sino también de trayectorias recientes muy distintas.
+\textbf{El crecimiento de la remuneración no fue homogéneo y tuvo una geografía marcada.} La remuneración por hora creció por encima del agregado en un corredor que conecta Valle del Cauca, Antioquia, el Eje Cafetero, Tolima, Cundinamarca, Bogotá D.C. y Boyacá. Los departamentos verdes de la Figura \ref{fig:dept_remuneracion_mapa_cuadrantes_24} son especialmente importantes porque combinan niveles relativamente bajos con crecimientos superiores al agregado: allí sí aparece una señal de convergencia. En contraste, los departamentos azules son preocupantes porque combinan niveles bajos con bajo crecimiento, es decir, una dinámica de divergencia relativa.
 
-\textbf{La geografía de la remuneración debe ser parte de la agenda económica nacional.} Mejorar los ingresos laborales no depende únicamente de reglas salariales nacionales. También requiere mejorar las condiciones que permiten a los territorios conectar trabajadores y empresas con actividades de mayor valor agregado.
+\textbf{La existencia del corredor difícilmente debe leerse como una coincidencia.} Una hipótesis plausible es que allí operan ventajas de conectividad, infraestructura, cercanía a mercados grandes, mayor densidad empresarial y encadenamientos entre actividades económicas. También pueden importar la movilidad laboral, la presencia de servicios especializados, instituciones educativas y redes logísticas que facilitan que una mejora productiva en un territorio se transmita a otros.
+
+\textbf{La agenda de política debería estudiar qué está funcionando en el corredor verde y cómo otras regiones pueden sumarse a esa dinámica.} El resultado central no es solo que algunos departamentos avanzan más rápido, sino que esos avances parecen estar espacialmente articulados. Por eso, una tarea prioritaria es entender por qué el corredor Valle del Cauca--Antioquia--Eje Cafetero--Tolima--Cundinamarca--Bogotá D.C.--Boyacá muestra avances más acelerados, y por qué buena parte del resto del país se está quedando rezagada. Una estrategia razonable es comenzar por territorios cercanos al corredor verde o con posibilidades claras de articulación productiva, como Santander, Norte de Santander, Meta, Huila y Cauca, y estudiar en el Caribe qué barreras impiden conectar a Atlántico, Magdalena, Cesar, Córdoba, Sucre y La Guajira con esa dinámica. Mejorar los ingresos laborales requiere que más regiones puedan conectarse con mercados, infraestructura, formación pertinente, servicios empresariales y actividades de mayor valor agregado.

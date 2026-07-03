@@ -40,7 +40,7 @@ for directory in [TABLE_DIR, SECTION_DIR, FIGURE_DIR, OUTPUT_TABLE_DIR, OUTPUT_F
 EXCLUDED_YEARS = {2020}
 MONTHS_PER_WEEK = 52.0 / 12.0
 
-PANEL_24_START = 2009
+PANEL_24_START = 2010
 PANEL_33_START = 2014
 PRODUCTIVITY_END = 2024
 REMUNERATION_END = 2025
@@ -695,7 +695,7 @@ def draw_remuneration_convergence(convergence_points: pd.DataFrame, convergence:
     width, height = 2300, 1250
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
-    draw.text((80, 42), "Convergencia de la remuneración laboral departamental, 2009--2025", fill="#222222", font=font(48, True))
+    draw.text((80, 42), "Convergencia de la remuneración laboral departamental, 2010--2025", fill="#222222", font=font(48, True))
     draw.text((80, 98), "Panel de 24 departamentos; eje horizontal en logaritmo del nivel inicial", fill="#555555", font=font(30))
 
     panels = [
@@ -758,7 +758,7 @@ def draw_remuneration_convergence(convergence_points: pd.DataFrame, convergence:
             if row["departamento"] in label_offsets:
                 dx, dy = label_offsets[row["departamento"]]
                 draw.text((px + dx, py + dy), row["departamento"], fill="#222222", font=font(18))
-        draw.text((plot_left + 180, plot_bottom + 52), "Log nivel inicial, 2009", fill="#333333", font=font(22))
+        draw.text((plot_left + 180, plot_bottom + 52), "Log nivel inicial, 2010", fill="#333333", font=font(22))
         draw.text((plot_left, plot_top - 34), "Crecimiento anualizado (%)", fill="#333333", font=font(22))
 
     draw.text((80, 1148), "Nota: una pendiente negativa indicaría convergencia. En ambos paneles la pendiente estimada es positiva.", fill="#555555", font=font(24))
@@ -1407,7 +1407,7 @@ def write_remuneration_body(
         "",
         r"\textbf{La remuneración laboral también tiene una geografía.} Las diferencias de ingreso entre trabajadores no dependen únicamente de su educación, ocupación o actividad económica. También dependen del territorio donde trabajan, de la estructura productiva local, de la informalidad, de la conectividad con mercados y de la densidad empresarial de cada departamento.",
         "",
-        rf"\textbf{{Este informe estudia la remuneración laboral departamental entre {PANEL_24_START} y {REMUNERATION_END}.}} El ejercicio se concentra primero en los 24 departamentos que pueden seguirse de manera comparable en la GEIH desde 2009. Luego presenta una lectura complementaria para los 33 departamentos, disponible desde 2014. La pregunta central es sencilla: en qué departamentos se remunera más el trabajo y en cuáles ha crecido más la remuneración real.",
+        rf"\textbf{{Este informe estudia la remuneración laboral departamental entre {PANEL_24_START} y {REMUNERATION_END}.}} El ejercicio se concentra primero en los 24 departamentos que pueden seguirse de manera comparable en la GEIH desde 2010. Luego presenta una lectura complementaria para los 33 departamentos, disponible desde 2014. La pregunta central es sencilla: en qué departamentos se remunera más el trabajo y en cuáles ha crecido más la remuneración real.",
         "",
         r"\textbf{La lectura territorial de la remuneración es importante para la agenda de productividad.} Un aumento de la productividad solo mejora de manera amplia el bienestar si se traduce, al menos parcialmente, en mejores ingresos laborales. Antes de estudiar esa relación de manera directa, conviene entender primero la geografía propia de la remuneración.",
         "",
@@ -1417,7 +1417,7 @@ def write_remuneration_body(
         "",
         r"\textbf{Se construyen dos indicadores de remuneración laboral.} La remuneración por trabajador divide la remuneración laboral mensual total observada entre ocupados con ingreso horario positivo y horas válidas entre el número de ocupados de ese mismo universo. La remuneración por hora divide esa misma remuneración total entre las horas mensuales trabajadas por esos ocupados. Esta definición evita que los trabajadores sin ingreso u horas válidas sean tratados implícitamente como trabajadores con remuneración cero.",
         "",
-        r"\textbf{El informe trabaja con dos paneles departamentales.} El panel principal cubre los 24 departamentos comparables de la GEIH entre 2009 y 2025. La base procesada contiene observaciones para 2008, pero ese año no se usa porque el total expandido de ocupados es sustancialmente menor que el observado en 2009, lo que sugiere una cobertura no comparable. San Andrés aparece de manera separada desde 2010 y los departamentos de la Amazonía y la Orinoquía aparecen desde 2014. Por eso, el informe también presenta una lectura complementaria para los 33 departamentos desde 2014. En ambos casos se excluye 2020 para mantener la comparabilidad con los demás informes de la serie.",
+        r"\textbf{El informe trabaja con dos paneles departamentales.} El panel principal cubre los 24 departamentos comparables de la GEIH entre 2010 y 2025. Aunque la base permite observar esos departamentos desde 2009, el análisis principal empieza en 2010 para mantener consistencia con los demás informes de la serie. San Andrés aparece de manera separada desde 2010 y los departamentos de la Amazonía y la Orinoquía aparecen desde 2014. Por eso, el informe también presenta una lectura complementaria para los 33 departamentos desde 2014. En ambos casos se excluye 2020.",
         "",
         r"\section{Niveles de remuneración por departamento}",
         "",
@@ -1466,16 +1466,16 @@ def write_remuneration_body(
         r"  \includegraphics[width=\textwidth]{Paper/figures/fig_dept_remuneracion_mapa_cuadrantes_24.png}",
         rf"  \caption{{Mapa de cuadrantes de remuneración por hora, {PANEL_24_START}--{REMUNERATION_END}}}",
         r"  \label{fig:dept_remuneracion_mapa_cuadrantes_24}",
-        r"  \caption*{\footnotesize Nota: los cuadrantes se construyen con el nivel de remuneración por hora en 2025 y su crecimiento anualizado desde 2009. Fuente: cálculos propios con GEIH.}",
+        rf"  \caption*{{\footnotesize Nota: los cuadrantes se construyen con el nivel de remuneración por hora en 2025 y su crecimiento anualizado desde {PANEL_24_START}. Fuente: cálculos propios con GEIH.}}",
         r"\end{figure}",
         "",
         r"\section{Convergencia de la remuneración departamental}",
         "",
-        r"\textbf{La pregunta de convergencia es si los departamentos inicialmente rezagados crecieron más rápido que los departamentos con mayor remuneración inicial.} Para responderla se estima una regresión de convergencia beta: el crecimiento anualizado de la remuneración entre 2009 y 2025 se relaciona con el logaritmo del nivel inicial de remuneración en 2009. Un coeficiente negativo indicaría convergencia; un coeficiente positivo indicaría que los departamentos con mayor remuneración inicial crecieron más rápido.",
+        rf"\textbf{{La pregunta de convergencia es si los departamentos inicialmente rezagados crecieron más rápido que los departamentos con mayor remuneración inicial.}} Para responderla se estima una regresión de convergencia beta, en la que el crecimiento anualizado de la remuneración entre {PANEL_24_START} y {REMUNERATION_END} se relaciona con el logaritmo del nivel inicial de remuneración en {PANEL_24_START}. Un coeficiente negativo indicaría convergencia; un coeficiente positivo indicaría que los departamentos con mayor remuneración inicial crecieron más rápido.",
         "",
         r"\input{Paper/sections/dept_remuneracion_convergencia_24}",
         "",
-        rf"\textbf{{Los resultados no muestran convergencia en el panel largo de 24 departamentos.}} El coeficiente beta es positivo tanto para la remuneración por trabajador ({fmt_num_es(conv_worker['beta'], 4)}) como para la remuneración por hora ({fmt_num_es(conv_hour['beta'], 4)}). Esto significa que, en promedio, los departamentos que partían de mayores niveles de remuneración en 2009 no crecieron menos que los rezagados. Por el contrario, la pendiente estimada apunta a persistencia o divergencia débil de las brechas territoriales.",
+        rf"\textbf{{Los resultados no muestran convergencia en el panel largo de 24 departamentos.}} El coeficiente beta es positivo tanto para la remuneración por trabajador ({fmt_num_es(conv_worker['beta'], 4)}) como para la remuneración por hora ({fmt_num_es(conv_hour['beta'], 4)}). Esto significa que, en promedio, los departamentos que partían de mayores niveles de remuneración en {PANEL_24_START} no crecieron menos que los rezagados. Por el contrario, la pendiente estimada apunta a persistencia o divergencia débil de las brechas territoriales.",
         "",
         r"\begin{figure}[H]",
         r"  \centering",
@@ -1531,7 +1531,7 @@ def write_productivity_relation_body(
         "",
         rf"\textbf{{Este informe estudia la productividad laboral departamental y su relación con la remuneración.}} La productividad se mide con el PIB departamental por trabajador y por hora trabajada entre {PANEL_24_START} y {PRODUCTIVITY_END}pr. La relación con la remuneración se analiza usando la remuneración por trabajador y por hora de la GEIH. Como el PIB departamental más reciente llega a {PRODUCTIVITY_END}pr, este informe cierra en ese año.",
         "",
-        r"\textbf{La lectura principal se hace con los 24 departamentos comparables desde 2009.} Al final se presenta una lectura complementaria con los 33 departamentos disponibles desde 2014. Esta separación evita imputar ocupados u horas en departamentos que no estaban cubiertos por la GEIH al inicio del periodo largo.",
+        r"\textbf{La lectura principal se hace con los 24 departamentos comparables desde 2010.} Al final se presenta una lectura complementaria con los 33 departamentos disponibles desde 2014. Esta separación evita imputar ocupados u horas en departamentos que no estaban cubiertos por la GEIH al inicio del periodo largo.",
         "",
         r"\section{Metodología}",
         "",
@@ -1610,7 +1610,7 @@ def write_main_tex_files() -> None:
 
 \renewcommand{\reportnumber}{Informe 02}
 \renewcommand{\reporttitle}{La Geografía de la Remuneración Laboral en Colombia}
-\renewcommand{\reportsubtitle}{Diferencias departamentales, 2009--2025}
+\renewcommand{\reportsubtitle}{Diferencias departamentales, 2010--2025}
 
 \title{\reporttitle\\\reportsubtitle}
 \author{\reportauthorone \and \reportauthortwo}
@@ -1632,7 +1632,7 @@ def write_main_tex_files() -> None:
 \section*{Resumen ejecutivo}
 \addcontentsline{toc}{section}{Resumen ejecutivo}
 
-\textbf{Este informe analiza la remuneración laboral por trabajador y por hora en los departamentos de Colombia.} El ejercicio usa la GEIH para construir indicadores de remuneración real en pesos constantes de 2025. El panel principal cubre 24 departamentos entre 2009 y 2025; una lectura complementaria cubre los 33 departamentos desde 2014.
+\textbf{Este informe analiza la remuneración laboral por trabajador y por hora en los departamentos de Colombia.} El ejercicio usa la GEIH para construir indicadores de remuneración real en pesos constantes de 2025. El panel principal cubre 24 departamentos entre 2010 y 2025; una lectura complementaria cubre los 33 departamentos desde 2014.
 
 \textbf{La remuneración laboral presenta brechas territoriales profundas.} Bogotá D.C. ocupa una posición dominante en niveles, mientras varios departamentos de la periferia registran remuneraciones mucho menores. La brecha aparece tanto por trabajador como por hora trabajada.
 
@@ -1655,7 +1655,7 @@ def write_main_tex_files() -> None:
 
 \renewcommand{\reportnumber}{Informe 03}
 \renewcommand{\reporttitle}{Productividad y Remuneración Laboral en los Departamentos de Colombia}
-\renewcommand{\reportsubtitle}{Una lectura conjunta, 2009--2024pr}
+\renewcommand{\reportsubtitle}{Una lectura conjunta, 2010--2024pr}
 
 \title{\reporttitle\\\reportsubtitle}
 \author{\reportauthorone \and \reportauthortwo}
@@ -1732,23 +1732,23 @@ def main() -> None:
         rem_summary24, PANEL_24_START, REMUNERATION_END
     )
 
-    write_csv(rem_series24, "dept_remuneracion_series_24_2009_2025.csv")
-    write_csv(rem_summary24, "dept_remuneracion_summary_24_2009_2025.csv")
+    write_csv(rem_series24, "dept_remuneracion_series_24_2010_2025.csv")
+    write_csv(rem_summary24, "dept_remuneracion_summary_24_2010_2025.csv")
     write_csv(rem_series33, "dept_remuneracion_series_33_2014_2025.csv")
     write_csv(rem_summary33, "dept_remuneracion_summary_33_2014_2025.csv")
-    write_csv(prod_series24, "dept_productividad_series_24_2009_2024.csv")
-    write_csv(prod_summary24, "dept_productividad_summary_24_2009_2024.csv")
+    write_csv(prod_series24, "dept_productividad_series_24_2010_2024.csv")
+    write_csv(prod_summary24, "dept_productividad_summary_24_2010_2024.csv")
     write_csv(prod_series33, "dept_productividad_series_33_2014_2024.csv")
     write_csv(prod_summary33, "dept_productividad_summary_33_2014_2024.csv")
-    write_csv(relation24, "dept_productividad_remuneracion_24_2009_2024.csv")
+    write_csv(relation24, "dept_productividad_remuneracion_24_2010_2024.csv")
     write_csv(relation33, "dept_productividad_remuneracion_33_2014_2024.csv")
-    write_csv(convergence24, "dept_remuneracion_convergencia_24_2009_2025.csv")
-    write_csv(convergence_points24, "dept_remuneracion_convergencia_puntos_24_2009_2025.csv")
-    write_benchmarks(rem_bench24, "dept_remuneracion_benchmarks_24_2009_2025.csv")
+    write_csv(convergence24, "dept_remuneracion_convergencia_24_2010_2025.csv")
+    write_csv(convergence_points24, "dept_remuneracion_convergencia_puntos_24_2010_2025.csv")
+    write_benchmarks(rem_bench24, "dept_remuneracion_benchmarks_24_2010_2025.csv")
     write_benchmarks(rem_bench33, "dept_remuneracion_benchmarks_33_2014_2025.csv")
-    write_benchmarks(prod_bench24, "dept_productividad_benchmarks_24_2009_2024.csv")
+    write_benchmarks(prod_bench24, "dept_productividad_benchmarks_24_2010_2024.csv")
     write_benchmarks(prod_bench33, "dept_productividad_benchmarks_33_2014_2024.csv")
-    write_benchmarks(relation_bench24, "dept_productividad_remuneracion_benchmarks_24_2009_2024.csv")
+    write_benchmarks(relation_bench24, "dept_productividad_remuneracion_benchmarks_24_2010_2024.csv")
     write_benchmarks(relation_bench33, "dept_productividad_remuneracion_benchmarks_33_2014_2024.csv")
 
     write_remuneration_level_table(rem_summary24, REMUNERATION_END, "24")
@@ -1776,7 +1776,7 @@ def main() -> None:
     write_main_tex_files()
 
     print("Cobertura confirmada:")
-    print("24 departamentos: remuneración 2009-2025; productividad 2009-2024pr.")
+    print("24 departamentos: remuneración 2010-2025; productividad 2010-2024pr.")
     print("33 departamentos: remuneración 2014-2025; productividad 2014-2024pr.")
     print("Panel 24:", ", ".join(DEPARTMENTS_24.values()))
     print("Panel 33 incluye además:", ", ".join(DEPARTMENTS_33[k] for k in sorted(set(DEPARTMENTS_33) - set(DEPARTMENTS_24))))
