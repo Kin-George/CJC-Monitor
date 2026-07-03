@@ -340,6 +340,8 @@ def build_remuneration_panel(
     summary["ranking_crec_rem_hora"] = summary["crec_rem_hora"].rank(ascending=False, method="min").astype(int)
     summary["rem_trabajador_rel_lider"] = summary["rem_trabajador_fin"] / summary["rem_trabajador_fin"].max()
     summary["rem_hora_rel_lider"] = summary["rem_hora_fin"] / summary["rem_hora_fin"].max()
+    summary["rem_trabajador_brecha_lider"] = 1 - summary["rem_trabajador_rel_lider"]
+    summary["rem_hora_brecha_lider"] = 1 - summary["rem_hora_rel_lider"]
 
     start_agg = series[series["anio"] == start_year]
     end_agg = series[series["anio"] == end_year]
@@ -524,16 +526,16 @@ def write_remuneration_level_table(summary: pd.DataFrame, end_year: int, suffix:
         r"\scriptsize",
         r"\begin{tabular}{lrrrrrr}",
         r"\toprule",
-        r"Departamento & Rem./trab. & Rel. líder & Rem./hora & Rel. líder & Ocupados & Horas/trab. \\",
+        r"Departamento & Rem./trab. & Brecha & Rem./hora & Brecha & Ocupados & Horas/trab. \\",
         r"\midrule",
     ]
     for _, row in ranked.iterrows():
         lines.append(
             f"{escape_latex(row['departamento'])} & "
             f"{fmt_num_es(row['rem_trabajador_fin'] / 1e6, 2)} & "
-            f"{fmt_pct_es(row['rem_trabajador_rel_lider'], 1)} & "
+            f"{fmt_pct_es(row['rem_trabajador_brecha_lider'], 1)} & "
             f"{fmt_num_es(row['rem_hora_fin'] / 1000, 1)} & "
-            f"{fmt_pct_es(row['rem_hora_rel_lider'], 1)} & "
+            f"{fmt_pct_es(row['rem_hora_brecha_lider'], 1)} & "
             f"{fmt_num_es(row['ocupados_fin'] / 1e6, 2)} & "
             f"{fmt_num_es(row['horas_sem_fin'], 1)} \\\\"
         )
@@ -541,7 +543,7 @@ def write_remuneration_level_table(summary: pd.DataFrame, end_year: int, suffix:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos al mes entre ocupados con ingreso horario positivo y horas válidas; remuneración por hora en miles de pesos para ese mismo universo. Ocupados en millones. Horas/trab. corresponde a horas semanales promedio por ocupado. Las columnas relativas comparan cada indicador con el departamento líder correspondiente (=100\%). Fuente: cálculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos al mes entre ocupados con ingreso horario positivo y horas válidas; remuneración por hora en miles de pesos para ese mismo universo. Ocupados en millones. Horas/trab. corresponde a horas semanales promedio por ocupado. La brecha se calcula como la distancia porcentual frente al departamento líder en cada indicador. Un valor de 0\% corresponde al líder; un valor de 30\% indica que el departamento está 30\% por debajo del líder. Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
