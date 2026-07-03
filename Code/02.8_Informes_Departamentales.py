@@ -522,25 +522,26 @@ def write_remuneration_level_table(summary: pd.DataFrame, end_year: int, suffix:
         rf"\caption{{Niveles de remuneración laboral por departamento, {end_year}}}",
         rf"\label{{tab:dept_remuneracion_niveles_{suffix}}}",
         r"\scriptsize",
-        r"\begin{tabular}{lrrrrr}",
+        r"\begin{tabular}{lrrrrrr}",
         r"\toprule",
-        rf"Departamento & Rem./trab. {end_year} & Puesto & Rem./hora {end_year} & Puesto & Rel. líder \\",
+        r"Departamento & Rem./trab. & Rel. líder & Rem./hora & Rel. líder & Ocupados & Horas/trab. \\",
         r"\midrule",
     ]
     for _, row in ranked.iterrows():
         lines.append(
             f"{escape_latex(row['departamento'])} & "
             f"{fmt_num_es(row['rem_trabajador_fin'] / 1e6, 2)} & "
-            f"{int(row['ranking_rem_trabajador'])} & "
+            f"{fmt_pct_es(row['rem_trabajador_rel_lider'], 1)} & "
             f"{fmt_num_es(row['rem_hora_fin'] / 1000, 1)} & "
-            f"{int(row['ranking_rem_hora'])} & "
-            f"{fmt_pct_es(row['rem_trabajador_rel_lider'], 1)} \\\\"
+            f"{fmt_pct_es(row['rem_hora_rel_lider'], 1)} & "
+            f"{fmt_num_es(row['ocupados_fin'] / 1e6, 2)} & "
+            f"{fmt_num_es(row['horas_sem_fin'], 1)} \\\\"
         )
     lines.extend(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos constantes de 2025 al mes entre ocupados con ingreso horario positivo y horas válidas; remuneración por hora en miles de pesos constantes de 2025 para ese mismo universo. La columna relativa compara la remuneración por trabajador de cada departamento con la del departamento líder (=100\%). Fuente: cálculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos al mes entre ocupados con ingreso horario positivo y horas válidas; remuneración por hora en miles de pesos para ese mismo universo. Ocupados en millones. Horas/trab. corresponde a horas semanales promedio por ocupado. Las columnas relativas comparan cada indicador con el departamento líder correspondiente (=100\%). Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
