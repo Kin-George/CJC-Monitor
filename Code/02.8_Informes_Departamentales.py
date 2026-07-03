@@ -1215,13 +1215,13 @@ def draw_quadrant_bubble_chart(
         "cuadrante",
     )
 
-    width, height = 2100, 1450
+    width, height = 2100, 1680
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
-    draw.text((80, 45), title, fill="#222222", font=font(46, True))
-    draw.text((80, 105), subtitle, fill="#555555", font=font(27))
+    draw.text((80, 45), title, fill="#222222", font=font(54, True))
+    draw.text((80, 115), subtitle, fill="#555555", font=font(31))
 
-    plot_left, plot_top, plot_right, plot_bottom = 240, 230, 1970, 1190
+    plot_left, plot_top, plot_right, plot_bottom = 245, 245, 1985, 1195
     x_min = min(data["x_value"].min(), growth_ref * 100)
     x_max = max(data["x_value"].max(), growth_ref * 100)
     y_min = min(data["y_value"].min(), level_ref)
@@ -1245,66 +1245,88 @@ def draw_quadrant_bubble_chart(
         draw.line((plot_left, y, plot_right, y), fill="#eeeeee", width=1)
         x_tick = x_min + i / 5 * (x_max - x_min)
         y_tick = y_min + (5 - i) / 5 * (y_max - y_min)
-        draw.text((x - 28, plot_bottom + 18), f"{fmt_num_es(x_tick, 1)}%", fill="#555555", font=font(21))
-        draw.text((plot_left - 92, y - 13), fmt_num_es(y_tick, 1), fill="#555555", font=font(21))
+        draw.text((x - 31, plot_bottom + 20), f"{fmt_num_es(x_tick, 1)}%", fill="#555555", font=font(24))
+        draw.text((plot_left - 100, y - 15), fmt_num_es(y_tick, 1), fill="#555555", font=font(24))
 
     x_ref = growth_ref * 100
     y_ref = level_ref
     draw.line((xp(x_ref), plot_top, xp(x_ref), plot_bottom), fill="#1f5aa6", width=4)
     draw.line((plot_left, yp(y_ref), plot_right, yp(y_ref)), fill="#1f5aa6", width=4)
     x_ref_label = max(plot_left + 20, xp(x_ref) - 260)
-    draw.text((x_ref_label, plot_top + 88), f"Crec. agregado: {fmt_num_es(x_ref, 1)}%", fill="#1f5aa6", font=font(20, True))
-    draw.text((plot_left + 20, yp(y_ref) - 30), f"Nivel agregado: {fmt_num_es(y_ref, 1)}", fill="#1f5aa6", font=font(20, True))
+    draw.text((x_ref_label, plot_top + 92), f"Crec. agregado: {fmt_num_es(x_ref, 1)}%", fill="#1f5aa6", font=font(23, True))
+    draw.text((plot_left + 20, yp(y_ref) - 34), f"Nivel agregado: {fmt_num_es(y_ref, 1)}", fill="#1f5aa6", font=font(23, True))
 
-    corner_font = font(24, True)
+    corner_font = font(28, True)
     draw.text((plot_left + 20, plot_top + 18), "Nivel alto,\ncrecimiento bajo", fill="#1f5aa6", font=corner_font)
-    draw.text((plot_right - 355, plot_top + 18), "Nivel alto,\ncrecimiento alto", fill="#1f5aa6", font=corner_font)
+    draw.text((plot_right - 390, plot_top + 18), "Nivel alto,\ncrecimiento alto", fill="#1f5aa6", font=corner_font)
     draw.text((plot_left + 20, plot_bottom - 82), "Nivel bajo,\ncrecimiento bajo", fill="#1f5aa6", font=corner_font)
-    draw.text((plot_right - 355, plot_bottom - 82), "Nivel bajo,\ncrecimiento alto", fill="#1f5aa6", font=corner_font)
+    draw.text((plot_right - 390, plot_bottom - 92), "Nivel bajo,\ncrecimiento alto", fill="#1f5aa6", font=corner_font)
 
     max_occ = data["ocupados_fin"].max()
     min_occ = data["ocupados_fin"].min()
     label_offsets = {
-        "Bogotá D.C.": (-145, -42),
-        "Antioquia": (-125, -30),
-        "Cundinamarca": (18, -38),
-        "Valle del Cauca": (18, 14),
-        "Santander": (18, 10),
-        "Meta": (18, -34),
-        "Caldas": (-100, -36),
-        "Risaralda": (-120, 12),
-        "Quindío": (18, 10),
-        "Chocó": (18, -8),
-        "Caquetá": (18, 10),
-        "Nariño": (-95, 10),
-        "La Guajira": (18, 8),
-        "Bolívar": (18, 10),
-        "Boyacá": (18, -32),
-        "Norte de Santander": (18, -38),
+        "Bogotá D.C.": (-142, -52),
+        "Antioquia": (-155, -36),
+        "Cundinamarca": (22, -44),
+        "Valle del Cauca": (-70, -54),
+        "Santander": (22, 16),
+        "Meta": (24, -44),
+        "Caldas": (52, -76),
+        "Risaralda": (-138, 14),
+        "Quindío": (24, 24),
+        "Chocó": (24, -2),
+        "Caquetá": (-126, -44),
+        "Nariño": (-112, -32),
+        "La Guajira": (24, 8),
+        "Bolívar": (24, -26),
+        "Boyacá": (28, -24),
+        "Norte de Santander": (-150, -48),
+        "Cauca": (24, -10),
+        "Tolima": (28, 18),
+        "Atlántico": (24, 12),
+        "Huila": (-86, -10),
+        "Cesar": (24, 20),
+        "Magdalena": (-140, -10),
+        "Córdoba": (24, 26),
+        "Sucre": (24, 14),
     }
+    display_labels = {
+        "Bogotá D.C.": "Bogotá D.C.",
+        "Norte de Santander": "N. Santander",
+        "Valle del Cauca": "Valle",
+    }
+    label_font = font(23)
+
+    def draw_label(x_pos: float, y_pos: float, text: str) -> None:
+        for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
+            draw.text((x_pos + ox, y_pos + oy), text, fill="white", font=label_font)
+        draw.text((x_pos, y_pos), text, fill="#222222", font=label_font)
+
     for _, row in data.sort_values("ocupados_fin", ascending=False).iterrows():
         x = xp(float(row["x_value"]))
         y = yp(float(row["y_value"]))
-        radius = 11 + 48 * math.sqrt((row["ocupados_fin"] - min_occ) / max(max_occ - min_occ, 1))
+        radius = 10 + 42 * math.sqrt((row["ocupados_fin"] - min_occ) / max(max_occ - min_occ, 1))
         fill = hex_to_rgb(QUADRANT_COLORS[str(row["cuadrante"])])
         draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=fill, outline="white", width=3)
         dx, dy = label_offsets.get(row["departamento"], (16, -12))
-        draw.text((x + dx, y + dy), row["departamento"], fill="#222222", font=font(21))
+        draw_label(x + dx, y + dy, display_labels.get(row["departamento"], row["departamento"]))
 
-    draw.text((plot_left + 520, plot_bottom + 76), x_label, fill="#333333", font=font(27))
-    draw.text((plot_left, plot_top - 42), y_label, fill="#333333", font=font(27))
+    x_label_font = font(31)
+    x_label_width = draw.textlength(x_label, font=x_label_font)
+    draw.text((plot_left + (plot_right - plot_left - x_label_width) / 2, plot_bottom + 90), x_label, fill="#333333", font=x_label_font)
+    draw.text((plot_left, plot_top - 48), y_label, fill="#333333", font=font(31))
 
-    legend_x, legend_y = 90, 1280
+    legend_x, legend_y = 140, 1415
     for idx, (label, color) in enumerate(QUADRANT_COLORS.items()):
-        x = legend_x + (idx % 2) * 560
-        y = legend_y + (idx // 2) * 38
-        draw.rectangle((x, y, x + 24, y + 24), fill=hex_to_rgb(color), outline="#ffffff")
-        draw.text((x + 34, y - 1), label, fill="#333333", font=font(22))
+        x = legend_x + (idx % 2) * 630
+        y = legend_y + (idx // 2) * 46
+        draw.rectangle((x, y, x + 28, y + 28), fill=hex_to_rgb(color), outline="#ffffff")
+        draw.text((x + 40, y - 2), label, fill="#333333", font=font(25))
     draw.text(
-        (90, 1390),
+        (90, 1610),
         f"Fuente: cálculos propios con {source}. Líneas azules: agregado de los departamentos comparables; burbuja: número de ocupados.",
         fill="#555555",
-        font=font(21),
+        font=font(24),
     )
 
     for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
