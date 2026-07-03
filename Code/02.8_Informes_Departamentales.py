@@ -110,6 +110,15 @@ DEPARTMENT_ACRONYMS = {
     "Sucre": "SUC",
     "Tolima": "TOL",
     "Valle del Cauca": "VAC",
+    "Arauca": "ARA",
+    "Casanare": "CAS",
+    "Putumayo": "PUT",
+    "San Andrés y Providencia": "SAP",
+    "Amazonas": "AMA",
+    "Guainía": "GUA",
+    "Guaviare": "GUV",
+    "Vaupés": "VAU",
+    "Vichada": "VIC",
 }
 
 
@@ -551,13 +560,14 @@ def write_remuneration_level_table(summary: pd.DataFrame, end_year: int, suffix:
         rf"\caption{{Niveles de remuneración laboral por departamento, {end_year}}}",
         rf"\label{{tab:dept_remuneracion_niveles_{suffix}}}",
         r"\scriptsize",
-        r"\begin{tabular}{lrrrrrr}",
+        r"\begin{tabular}{@{}llrrrrrr@{}}",
         r"\toprule",
-        r"Departamento & Rem./trab. & Brecha & Rem./hora & Brecha & Ocupados & Horas/trab. \\",
+        r"Sigla & Departamento & Rem./trab. & Brecha & Rem./hora & Brecha & Ocupados & Horas/trab. \\",
         r"\midrule",
     ]
     for _, row in ranked.iterrows():
         lines.append(
+            f"{escape_latex(DEPARTMENT_ACRONYMS.get(row['departamento'], ''))} & "
             f"{escape_latex(row['departamento'])} & "
             f"{fmt_num_es(row['rem_trabajador_fin'] / 1e6, 2)} & "
             f"{fmt_pct_es(row['rem_trabajador_brecha_lider'], 1)} & "
@@ -585,13 +595,14 @@ def write_remuneration_growth_table(summary: pd.DataFrame, start_year: int, end_
         rf"\caption{{Crecimiento de la remuneración laboral por departamento, {start_year}--{end_year}}}",
         rf"\label{{tab:dept_remuneracion_crecimientos_{suffix}}}",
         r"\scriptsize",
-        r"\begin{tabular}{lrrrr}",
+        r"\begin{tabular}{@{}llrrrr@{}}",
         r"\toprule",
-        r"Departamento & Crec. rem./trab. & Puesto & Crec. rem./hora & Puesto \\",
+        r"Sigla & Departamento & Crec. rem./trab. & Puesto & Crec. rem./hora & Puesto \\",
         r"\midrule",
     ]
     for _, row in ranked.iterrows():
         lines.append(
+            f"{escape_latex(DEPARTMENT_ACRONYMS.get(row['departamento'], ''))} & "
             f"{escape_latex(row['departamento'])} & "
             f"{fmt_pct_es(row['crec_rem_trabajador'], 1)} & "
             f"{int(row['ranking_crec_rem_trabajador'])} & "
