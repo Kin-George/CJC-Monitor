@@ -215,7 +215,10 @@ def load_geih_base() -> pd.DataFrame:
         if not candidate.exists():
             continue
         try:
-            pd.read_stata(candidate, columns=columns, convert_categoricals=False, iterator=True).close()
+            reader = pd.read_stata(candidate, columns=columns, convert_categoricals=False, iterator=True)
+            close = getattr(reader, "close", None)
+            if close is not None:
+                close()
             data_path = candidate
             break
         except ValueError:
@@ -294,14 +297,16 @@ def build_remuneration_panel(
         & panel["ingreso_hora_real"].notna()
         & (panel["ingreso_hora_real"] > 0)
     ].copy()
-    valid["rem_total_mensual"] = valid["fex"] * valid["ingreso_hora_real"] * valid["horas"] * MONTHS_PER_WEEK
+    valid["horas_mensuales_remuneracion_valida"] = valid["fex"] * valid["horas"] * MONTHS_PER_WEEK
+    valid["rem_total_mensual"] = valid["ingreso_hora_real"] * valid["horas_mensuales_remuneracion_valida"]
     rem = valid.groupby(["anio", "depto"], as_index=False).agg(
         ocupados_remuneracion_valida=("fex", "sum"),
+        horas_mensuales_remuneracion_valida=("horas_mensuales_remuneracion_valida", "sum"),
         rem_total_mensual=("rem_total_mensual", "sum"),
     )
     series = labor.merge(rem, on=["anio", "depto"], how="inner")
-    series["rem_por_trabajador"] = series["rem_total_mensual"] / series["ocupados"]
-    series["rem_por_hora"] = series["rem_total_mensual"] / series["horas_mensuales"]
+    series["rem_por_trabajador"] = series["rem_total_mensual"] / series["ocupados_remuneracion_valida"]
+    series["rem_por_hora"] = series["rem_total_mensual"] / series["horas_mensuales_remuneracion_valida"]
     series["share_ocupados_remuneracion_valida"] = (
         series["ocupados_remuneracion_valida"] / series["ocupados"]
     )
@@ -338,10 +343,12 @@ def build_remuneration_panel(
 
     start_agg = series[series["anio"] == start_year]
     end_agg = series[series["anio"] == end_year]
-    rem_trab_start = start_agg["rem_total_mensual"].sum() / start_agg["ocupados"].sum()
-    rem_trab_end = end_agg["rem_total_mensual"].sum() / end_agg["ocupados"].sum()
-    rem_hora_start = start_agg["rem_total_mensual"].sum() / start_agg["horas_mensuales"].sum()
-    rem_hora_end = end_agg["rem_total_mensual"].sum() / end_agg["horas_mensuales"].sum()
+    rem_trab_start = start_agg["rem_total_mensual"].sum() / start_agg["ocupados_remuneracion_valida"].sum()
+    rem_trab_end = end_agg["rem_total_mensual"].sum() / end_agg["ocupados_remuneracion_valida"].sum()
+    rem_hora_start = (
+        start_agg["rem_total_mensual"].sum() / start_agg["horas_mensuales_remuneracion_valida"].sum()
+    )
+    rem_hora_end = end_agg["rem_total_mensual"].sum() / end_agg["horas_mensuales_remuneracion_valida"].sum()
     benchmarks = {
         "start_year": start_year,
         "end_year": end_year,
@@ -432,25 +439,39 @@ def build_relation_table(
     end_year: int,
 ) -> tuple[pd.DataFrame, dict[str, float]]:
     rem_start = remuneration_series[remuneration_series["anio"] == start_year][
-        ["depto", "rem_por_trabajador", "rem_por_hora", "rem_total_mensual", "ocupados", "horas_mensuales"]
+        [
+            "depto",
+            "rem_por_trabajador",
+            "rem_por_hora",
+            "rem_total_mensual",
+            "ocupados_remuneracion_valida",
+            "horas_mensuales_remuneracion_valida",
+        ]
     ].rename(
         columns={
             "rem_por_trabajador": "rem_trabajador_inicio",
             "rem_por_hora": "rem_hora_inicio",
             "rem_total_mensual": "rem_total_mensual_inicio",
-            "ocupados": "ocupados_rem_inicio",
-            "horas_mensuales": "horas_mensuales_inicio",
+            "ocupados_remuneracion_valida": "ocupados_rem_inicio",
+            "horas_mensuales_remuneracion_valida": "horas_mensuales_inicio",
         }
     )
     rem_end = remuneration_series[remuneration_series["anio"] == end_year][
-        ["depto", "rem_por_trabajador", "rem_por_hora", "rem_total_mensual", "ocupados", "horas_mensuales"]
+        [
+            "depto",
+            "rem_por_trabajador",
+            "rem_por_hora",
+            "rem_total_mensual",
+            "ocupados_remuneracion_valida",
+            "horas_mensuales_remuneracion_valida",
+        ]
     ].rename(
         columns={
             "rem_por_trabajador": "rem_trabajador_fin",
             "rem_por_hora": "rem_hora_fin",
             "rem_total_mensual": "rem_total_mensual_fin",
-            "ocupados": "ocupados_rem_fin",
-            "horas_mensuales": "horas_mensuales_fin",
+            "ocupados_remuneracion_valida": "ocupados_rem_fin",
+            "horas_mensuales_remuneracion_valida": "horas_mensuales_fin",
         }
     )
     table = productivity_summary.merge(rem_start, on="depto", how="inner").merge(rem_end, on="depto", how="inner")
@@ -519,7 +540,7 @@ def write_remuneration_level_table(summary: pd.DataFrame, end_year: int, suffix:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos constantes de 2025 al mes; remuneración por hora en miles de pesos constantes de 2025. La columna relativa compara la remuneración por trabajador de cada departamento con la del departamento líder (=100\%). Fuente: cálculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos constantes de 2025 al mes entre ocupados con ingreso horario positivo y horas válidas; remuneración por hora en miles de pesos constantes de 2025 para ese mismo universo. La columna relativa compara la remuneración por trabajador de cada departamento con la del departamento líder (=100\%). Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
@@ -551,7 +572,7 @@ def write_remuneration_growth_table(summary: pd.DataFrame, start_year: int, end_
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: tasas de crecimiento anualizadas. Fuente: cálculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: tasas de crecimiento anualizadas. Los indicadores de remuneración se calculan entre ocupados con ingreso horario positivo y horas válidas. Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
@@ -638,7 +659,7 @@ def write_remuneration_convergence_table(convergence: pd.DataFrame, start_year: 
     lines = [
         r"\begin{table}[H]",
         r"\centering",
-        rf"\caption{{Convergencia beta de la remuneraciÃ³n laboral departamental, {start_year}--{end_year}}}",
+        rf"\caption{{Convergencia beta de la remuneración laboral departamental, {start_year}--{end_year}}}",
         r"\label{tab:dept_remuneracion_convergencia_24}",
         r"\small",
         r"\begin{tabular}{lrrrrl}",
@@ -659,7 +680,7 @@ def write_remuneration_convergence_table(convergence: pd.DataFrame, start_year: 
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: la variable dependiente es el crecimiento anualizado del indicador y la variable explicativa es el logaritmo del nivel inicial del mismo indicador. Un coeficiente $\beta<0$ indica convergencia beta; un coeficiente $\beta>0$ indica que los departamentos con mayor remuneraciÃ³n inicial crecieron mÃ¡s rÃ¡pido. Fuente: cÃ¡lculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: la variable dependiente es el crecimiento anualizado del indicador y la variable explicativa es el logaritmo del nivel inicial del mismo indicador. Un coeficiente $\beta<0$ indica convergencia beta; un coeficiente $\beta>0$ indica que los departamentos con mayor remuneración inicial crecieron más rápido. Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
@@ -671,12 +692,12 @@ def draw_remuneration_convergence(convergence_points: pd.DataFrame, convergence:
     width, height = 2300, 1250
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
-    draw.text((80, 42), "Convergencia de la remuneraciÃ³n laboral departamental, 2009--2025", fill="#222222", font=font(48, True))
+    draw.text((80, 42), "Convergencia de la remuneración laboral departamental, 2009--2025", fill="#222222", font=font(48, True))
     draw.text((80, 98), "Panel de 24 departamentos; eje horizontal en logaritmo del nivel inicial", fill="#555555", font=font(30))
 
     panels = [
-        ((80, 185, 1115, 1045), "RemuneraciÃ³n por trabajador"),
-        ((1235, 185, 2270, 1045), "RemuneraciÃ³n por hora"),
+        ((80, 185, 1115, 1045), "Remuneración por trabajador"),
+        ((1235, 185, 2270, 1045), "Remuneración por hora"),
     ]
     for box, indicator in panels:
         part = data[data["indicador"] == indicator].copy()
@@ -717,15 +738,15 @@ def draw_remuneration_convergence(convergence_points: pd.DataFrame, convergence:
         )
         max_occ, min_occ = part["ocupados_fin"].max(), part["ocupados_fin"].min()
         label_offsets = {
-            "BogotÃ¡ D.C.": (-135, -34),
+            "Bogotá D.C.": (-135, -34),
             "Antioquia": (-120, 12),
             "Cundinamarca": (18, -34),
             "La Guajira": (18, -10),
             "Caldas": (18, -32),
-            "ChocÃ³": (18, -10),
+            "Chocó": (18, -10),
             "Sucre": (16, 8),
             "Risaralda": (18, -30),
-            "QuindÃ­o": (18, 8),
+            "Quindío": (18, 8),
         }
         for _, row in part.iterrows():
             radius = 7 + 27 * math.sqrt((row["ocupados_fin"] - min_occ) / max(max_occ - min_occ, 1))
@@ -737,7 +758,7 @@ def draw_remuneration_convergence(convergence_points: pd.DataFrame, convergence:
         draw.text((plot_left + 180, plot_bottom + 52), "Log nivel inicial, 2009", fill="#333333", font=font(22))
         draw.text((plot_left, plot_top - 34), "Crecimiento anualizado (%)", fill="#333333", font=font(22))
 
-    draw.text((80, 1148), "Nota: una pendiente negativa indicarÃ­a convergencia. En ambos paneles la pendiente estimada es positiva.", fill="#555555", font=font(24))
+    draw.text((80, 1148), "Nota: una pendiente negativa indicaría convergencia. En ambos paneles la pendiente estimada es positiva.", fill="#555555", font=font(24))
     for directory in [FIGURE_DIR, OUTPUT_FIGURE_DIR]:
         img.save(directory / "fig_dept_remuneracion_convergencia_24.png")
 
@@ -800,7 +821,7 @@ def write_relation_table(table: pd.DataFrame, end_year: int, suffix: str) -> Non
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB por hora en miles de pesos constantes de 2015; remuneración por hora en miles de pesos constantes de 2025; PIB por trabajador en millones de pesos constantes de 2015; remuneración por trabajador en millones de pesos constantes de 2025 al mes. El residuo mide la distancia porcentual frente a la tendencia lineal entre PIB por hora y remuneración por hora. Fuente: cálculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: PIB por hora en miles de pesos constantes de 2015; remuneración por hora en miles de pesos constantes de 2025; PIB por trabajador en millones de pesos constantes de 2015; remuneración por trabajador en millones de pesos constantes de 2025 al mes. Los indicadores de remuneración se calculan entre ocupados con ingreso horario positivo y horas válidas. El residuo mide la distancia porcentual frente a la tendencia lineal entre PIB por hora y remuneración por hora. Fuente: cálculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -1391,7 +1412,7 @@ def write_remuneration_body(
         "",
         r"\textbf{La medición utiliza los microdatos armonizados de la GEIH.} Para cada departamento y año se calcula la remuneración laboral mensual total a partir del ingreso laboral por hora, las horas semanales trabajadas y el factor de expansión de la encuesta. La remuneración se expresa en pesos constantes de 2025.",
         "",
-        r"\textbf{Se construyen dos indicadores de remuneración laboral.} La remuneración por trabajador divide la remuneración laboral mensual total entre el número anual promedio de ocupados del departamento. La remuneración por hora divide esa misma remuneración total entre el número mensual de horas trabajadas. Para evitar que los trabajadores sin reporte de horas sean tratados como trabajadores con cero horas, las horas totales se construyen multiplicando el número de ocupados por el promedio ponderado de horas semanales de quienes reportan horas válidas.",
+        r"\textbf{Se construyen dos indicadores de remuneración laboral.} La remuneración por trabajador divide la remuneración laboral mensual total observada entre ocupados con ingreso horario positivo y horas válidas entre el número de ocupados de ese mismo universo. La remuneración por hora divide esa misma remuneración total entre las horas mensuales trabajadas por esos ocupados. Esta definición evita que los trabajadores sin ingreso u horas válidas sean tratados implícitamente como trabajadores con remuneración cero.",
         "",
         r"\textbf{El informe trabaja con dos paneles departamentales.} El panel principal cubre los 24 departamentos comparables de la GEIH entre 2009 y 2025. La base procesada contiene observaciones para 2008, pero ese año no se usa porque el total expandido de ocupados es sustancialmente menor que el observado en 2009, lo que sugiere una cobertura no comparable. San Andrés aparece de manera separada desde 2010 y los departamentos de la Amazonía y la Orinoquía aparecen desde 2014. Por eso, el informe también presenta una lectura complementaria para los 33 departamentos desde 2014. En ambos casos se excluye 2020 para mantener la comparabilidad con los demás informes de la serie.",
         "",
@@ -1513,7 +1534,7 @@ def write_productivity_relation_body(
         "",
         r"\textbf{La medición combina cuentas nacionales departamentales y microdatos de la GEIH.} El numerador de productividad corresponde al PIB departamental real del DANE, expresado en pesos constantes de 2015. Los denominadores se construyen con el número anual promedio de ocupados y el total anual de horas trabajadas de la GEIH.",
         "",
-        r"\textbf{Se comparan indicadores por trabajador y por hora.} El PIB por trabajador y la remuneración por trabajador usan como denominador el número anual promedio de ocupados. El PIB por hora y la remuneración por hora usan como denominador las horas trabajadas. Esta doble lectura es importante porque los departamentos pueden diferir tanto en productividad como en intensidad horaria.",
+        r"\textbf{Se comparan indicadores por trabajador y por hora.} El PIB por trabajador usa como denominador el número anual promedio de ocupados, mientras que la remuneración por trabajador se calcula entre ocupados con ingreso horario positivo y horas válidas. El PIB por hora usa el total de horas trabajadas del departamento, mientras que la remuneración por hora usa las horas observadas de ese mismo universo con remuneración válida. Esta doble lectura es importante porque los departamentos pueden diferir tanto en productividad como en intensidad horaria.",
         "",
         r"\section{Productividad laboral departamental}",
         "",

@@ -434,19 +434,20 @@ def build_remuneration_departamental_series(data: pd.DataFrame) -> pd.DataFrame:
         ].copy()
         if valid.empty:
             continue
-        valid["rem_total_mensual"] = (
-            valid["fex"] * valid["ingreso_hora_real"] * valid["horas"] * MONTHS_PER_WEEK
-        )
+        valid["horas_mensuales_remuneracion_valida"] = valid["fex"] * valid["horas"] * MONTHS_PER_WEEK
+        valid["rem_total_mensual"] = valid["ingreso_hora_real"] * valid["horas_mensuales_remuneracion_valida"]
         grouped = valid.groupby(["anio", "depto"], as_index=False).agg(
             ocupados_remuneracion_valida=("fex", "sum"),
+            horas_mensuales_remuneracion_valida=("horas_mensuales_remuneracion_valida", "sum"),
             rem_total_mensual=("rem_total_mensual", "sum"),
         )
         for row in grouped.itertuples(index=False):
             key = (int(row.anio), int(row.depto))
             if key not in totals:
-                totals[key] = [0.0, 0.0]
+                totals[key] = [0.0, 0.0, 0.0]
             totals[key][0] += float(row.ocupados_remuneracion_valida)
-            totals[key][1] += float(row.rem_total_mensual)
+            totals[key][1] += float(row.horas_mensuales_remuneracion_valida)
+            totals[key][2] += float(row.rem_total_mensual)
 
     rem = pd.DataFrame(
         [
@@ -454,7 +455,8 @@ def build_remuneration_departamental_series(data: pd.DataFrame) -> pd.DataFrame:
                 "anio": anio,
                 "depto": depto,
                 "ocupados_remuneracion_valida": values[0],
-                "rem_total_mensual": values[1],
+                "horas_mensuales_remuneracion_valida": values[1],
+                "rem_total_mensual": values[2],
             }
             for (anio, depto), values in totals.items()
         ]
@@ -469,7 +471,7 @@ def build_remuneration_departamental_series(data: pd.DataFrame) -> pd.DataFrame:
         raise ValueError(
             f"Se esperaban {expected_rows} observaciones de remuneracion departamental y se obtuvieron {len(series)}"
         )
-    series["rem_por_trabajador"] = series["rem_total_mensual"] / series["ocupados"]
+    series["rem_por_trabajador"] = series["rem_total_mensual"] / series["ocupados_remuneracion_valida"]
     series["share_ocupados_remuneracion_valida"] = (
         series["ocupados_remuneracion_valida"] / series["ocupados"]
     )
@@ -561,11 +563,15 @@ def build_productivity_remuneration_table(
     table = table.sort_values("ranking_pib_trabajador")
 
     benchmarks = {
-        "rem_por_trabajador_2010": table["rem_total_mensual_2010"].sum() / table["ocupados_2010"].sum(),
-        "rem_por_trabajador_2024": table["rem_total_mensual_2024"].sum() / table["ocupados_2024"].sum(),
+        "rem_por_trabajador_2010": (
+            table["rem_total_mensual_2010"].sum() / table["ocupados_remuneracion_valida_2010"].sum()
+        ),
+        "rem_por_trabajador_2024": (
+            table["rem_total_mensual_2024"].sum() / table["ocupados_remuneracion_valida_2024"].sum()
+        ),
         "crec_rem_trabajador": cagr(
-            table["rem_total_mensual_2010"].sum() / table["ocupados_2010"].sum(),
-            table["rem_total_mensual_2024"].sum() / table["ocupados_2024"].sum(),
+            table["rem_total_mensual_2010"].sum() / table["ocupados_remuneracion_valida_2010"].sum(),
+            table["rem_total_mensual_2024"].sum() / table["ocupados_remuneracion_valida_2024"].sum(),
         ),
         "pib_trabajador_2024": summary["pib_2024"].sum() * 1e9 / summary["ocupados_2024"].sum() / 1e6,
         "corr_pib_remuneracion": table[["pib_trabajador_2024", "rem_por_trabajador_2024"]]
@@ -611,7 +617,7 @@ def write_productivity_remuneration_table(table: pd.DataFrame) -> None:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; remuneraci\'on por trabajador en millones de pesos constantes de 2025 al mes. La remuneraci\'on por trabajador se calcula como la remuneraci\'on laboral mensual total observada entre ocupados con ingreso horario positivo y horas v\'alidas, dividida por el n\'umero total de ocupados del departamento. La diferencia de puestos corresponde al puesto en remuneraci\'on menos el puesto en PIB por trabajador; un valor positivo indica que el departamento ocupa una posici\'on m\'as baja en remuneraci\'on que en productividad. Fuente: c\'alculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: PIB por trabajador en millones de pesos constantes de 2015; remuneraci\'on por trabajador en millones de pesos constantes de 2025 al mes. La remuneraci\'on por trabajador se calcula como la remuneraci\'on laboral mensual total observada entre ocupados con ingreso horario positivo y horas v\'alidas, dividida por el n\'umero de ocupados de ese mismo universo. La diferencia de puestos corresponde al puesto en remuneraci\'on menos el puesto en PIB por trabajador; un valor positivo indica que el departamento ocupa una posici\'on m\'as baja en remuneraci\'on que en productividad. Fuente: c\'alculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -672,7 +678,7 @@ def write_remuneration_level_ranking_table(table: pd.DataFrame) -> None:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: remuneraci\'on por trabajador en millones de pesos constantes de 2025 al mes; PIB por trabajador en millones de pesos constantes de 2015. La tabla est\'a ordenada por el nivel de remuneraci\'on por trabajador. Fuente: c\'alculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: remuneraci\'on por trabajador en millones de pesos constantes de 2025 al mes entre ocupados con ingreso horario positivo y horas v\'alidas; PIB por trabajador en millones de pesos constantes de 2015. La tabla est\'a ordenada por el nivel de remuneraci\'on por trabajador. Fuente: c\'alculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
@@ -707,7 +713,7 @@ def write_remuneration_growth_ranking_table(table: pd.DataFrame) -> None:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: tasas de crecimiento anualizadas. La diferencia de puestos corresponde al puesto en crecimiento de la remuneraci\'on por trabajador menos el puesto en crecimiento del PIB por trabajador; un valor positivo indica que el departamento ocupa una posici\'on m\'as baja en crecimiento de remuneraci\'on que en crecimiento de productividad. Fuente: c\'alculos propios con DANE y GEIH.}",
+            r"\caption*{\footnotesize Nota: tasas de crecimiento anualizadas. La remuneraci\'on por trabajador se calcula entre ocupados con ingreso horario positivo y horas v\'alidas. La diferencia de puestos corresponde al puesto en crecimiento de la remuneraci\'on por trabajador menos el puesto en crecimiento del PIB por trabajador; un valor positivo indica que el departamento ocupa una posici\'on m\'as baja en crecimiento de remuneraci\'on que en crecimiento de productividad. Fuente: c\'alculos propios con DANE y GEIH.}",
             r"\end{table}",
         ]
     )
