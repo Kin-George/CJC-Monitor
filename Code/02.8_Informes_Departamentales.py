@@ -1081,8 +1081,8 @@ def draw_remuneration_maps(summary: pd.DataFrame, benchmarks: dict[str, float], 
         [
             draw_single_map(data, "rem_trabajador_millones", "Remuneración por trabajador", "Mapa de calor"),
             draw_single_map(data, "rem_trabajador_millones", "Remuneración por trabajador", "Burbuja: ocupados", bubble=True),
-            draw_single_map(data, "rem_hora_miles", "Remuneración por hora", "Mapa de calor", palette=["#fff5eb", "#fdd0a2", "#fdae6b", "#e6550d", "#7f2704"]),
-            draw_single_map(data, "rem_hora_miles", "Remuneración por hora", "Burbuja: ocupados", palette=["#fff5eb", "#fdd0a2", "#fdae6b", "#e6550d", "#7f2704"], bubble=True),
+            draw_single_map(data, "rem_hora_miles", "Remuneración por hora", "Mapa de calor"),
+            draw_single_map(data, "rem_hora_miles", "Remuneración por hora", "Burbuja: ocupados", bubble=True),
         ],
         f"fig_dept_remuneracion_mapa_niveles_{suffix}.png",
     )
