@@ -569,14 +569,6 @@ def write_remuneration_level_table(
         r"\toprule",
         r"Sigla & Departamento & Rem./trab. & Brecha & Rem./hora & Brecha & Ocupados & Horas/trab. \\",
         r"\midrule",
-        r"\textbf{NAC} & \textbf{Nacional (24 deptos.)} & "
-        f"{fmt_num_es(benchmarks['rem_trabajador_fin'] / 1e6, 2)} & "
-        f"{fmt_pct_es(national_worker_gap, 1)} & "
-        f"{fmt_num_es(benchmarks['rem_hora_fin'] / 1000, 1)} & "
-        f"{fmt_pct_es(national_hour_gap, 1)} & "
-        f"{fmt_num_es(benchmarks['ocupados_fin'] / 1e6, 2)} & "
-        f"{fmt_num_es(national_hours_week, 1)} \\\\",
-        r"\midrule",
     ]
     for _, row in ranked.iterrows():
         lines.append(
@@ -589,6 +581,16 @@ def write_remuneration_level_table(
             f"{fmt_num_es(row['ocupados_fin'] / 1e6, 2)} & "
             f"{fmt_num_es(row['horas_sem_fin'], 1)} \\\\"
         )
+    lines.append(r"\midrule")
+    lines.append(
+        r"\textbf{NAC} & \textbf{Nacional} & "
+        + rf"\textbf{{{fmt_num_es(benchmarks['rem_trabajador_fin'] / 1e6, 2)}}} & "
+        + rf"\textbf{{{fmt_pct_es(national_worker_gap, 1)}}} & "
+        + rf"\textbf{{{fmt_num_es(benchmarks['rem_hora_fin'] / 1000, 1)}}} & "
+        + rf"\textbf{{{fmt_pct_es(national_hour_gap, 1)}}} & "
+        + rf"\textbf{{{fmt_num_es(benchmarks['ocupados_fin'] / 1e6, 2)}}} & "
+        + rf"\textbf{{{fmt_num_es(national_hours_week, 1)}}} \\"
+    )
     lines.extend(
         [
             r"\bottomrule",
@@ -614,10 +616,6 @@ def write_remuneration_growth_table(
         r"\toprule",
         r"Sigla & Departamento & Crec. rem./trab. & Puesto & Crec. rem./hora & Puesto \\",
         r"\midrule",
-        r"\textbf{NAC} & \textbf{Nacional (24 deptos.)} & "
-        f"{fmt_pct_es(benchmarks['crec_rem_trabajador'], 1)} & -- & "
-        f"{fmt_pct_es(benchmarks['crec_rem_hora'], 1)} & -- \\\\",
-        r"\midrule",
     ]
     for _, row in ranked.iterrows():
         lines.append(
@@ -628,6 +626,14 @@ def write_remuneration_growth_table(
             f"{fmt_pct_es(row['crec_rem_hora'], 1)} & "
             f"{int(row['ranking_crec_rem_hora'])} \\\\"
         )
+    lines.append(r"\midrule")
+    lines.append(
+        r"\textbf{NAC} & \textbf{Nacional} & "
+        + rf"\textbf{{{fmt_pct_es(benchmarks['crec_rem_trabajador'], 1)}}} & "
+        + r"\textbf{--} & "
+        + rf"\textbf{{{fmt_pct_es(benchmarks['crec_rem_hora'], 1)}}} & "
+        + r"\textbf{--} \\"
+    )
     lines.extend(
         [
             r"\bottomrule",
