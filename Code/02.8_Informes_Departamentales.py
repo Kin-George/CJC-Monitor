@@ -552,8 +552,13 @@ def write_benchmarks(benchmarks: dict[str, float], name: str) -> None:
     write_csv(pd.DataFrame([benchmarks]), name)
 
 
-def write_remuneration_level_table(summary: pd.DataFrame, end_year: int, suffix: str) -> None:
+def write_remuneration_level_table(
+    summary: pd.DataFrame, benchmarks: dict[str, float], end_year: int, suffix: str
+) -> None:
     ranked = summary.sort_values("ranking_rem_trabajador")
+    national_hours_week = (benchmarks["rem_trabajador_fin"] / benchmarks["rem_hora_fin"]) / MONTHS_PER_WEEK
+    national_worker_gap = 1 - benchmarks["rem_trabajador_fin"] / summary["rem_trabajador_fin"].max()
+    national_hour_gap = 1 - benchmarks["rem_hora_fin"] / summary["rem_hora_fin"].max()
     lines = [
         r"\begin{table}[H]",
         r"\centering",
@@ -563,6 +568,14 @@ def write_remuneration_level_table(summary: pd.DataFrame, end_year: int, suffix:
         r"\begin{tabular}{@{}llrrrrrr@{}}",
         r"\toprule",
         r"Sigla & Departamento & Rem./trab. & Brecha & Rem./hora & Brecha & Ocupados & Horas/trab. \\",
+        r"\midrule",
+        "NAC & Nacional & "
+        f"{fmt_num_es(benchmarks['rem_trabajador_fin'] / 1e6, 2)} & "
+        f"{fmt_pct_es(national_worker_gap, 1)} & "
+        f"{fmt_num_es(benchmarks['rem_hora_fin'] / 1000, 1)} & "
+        f"{fmt_pct_es(national_hour_gap, 1)} & "
+        f"{fmt_num_es(benchmarks['ocupados_fin'] / 1e6, 2)} & "
+        f"{fmt_num_es(national_hours_week, 1)} \\\\",
         r"\midrule",
     ]
     for _, row in ranked.iterrows():
@@ -580,14 +593,16 @@ def write_remuneration_level_table(summary: pd.DataFrame, end_year: int, suffix:
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos al mes entre ocupados con ingreso horario positivo y horas válidas; remuneración por hora en miles de pesos para ese mismo universo. Ocupados en millones. Horas/trab. corresponde a horas semanales promedio por ocupado. La brecha se calcula como la distancia porcentual frente al departamento líder en cada indicador. Un valor de 0\% corresponde al líder; un valor de 30\% indica que el departamento está 30\% por debajo del líder. Fuente: cálculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos al mes entre ocupados con ingreso horario positivo y horas válidas; remuneración por hora en miles de pesos para ese mismo universo. Nacional corresponde al agregado de los 24 departamentos comparables. Ocupados en millones. Horas/trab. corresponde a horas semanales promedio por ocupado. La brecha se calcula como la distancia porcentual frente al departamento líder en cada indicador. Un valor de 0\% corresponde al líder; un valor de 30\% indica que el departamento está 30\% por debajo del líder. Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
     (SECTION_DIR / f"dept_remuneracion_niveles_{suffix}.tex").write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_remuneration_growth_table(summary: pd.DataFrame, start_year: int, end_year: int, suffix: str) -> None:
+def write_remuneration_growth_table(
+    summary: pd.DataFrame, benchmarks: dict[str, float], start_year: int, end_year: int, suffix: str
+) -> None:
     ranked = summary.sort_values("ranking_crec_rem_trabajador")
     lines = [
         r"\begin{table}[H]",
@@ -598,6 +613,10 @@ def write_remuneration_growth_table(summary: pd.DataFrame, start_year: int, end_
         r"\begin{tabular}{@{}llrrrr@{}}",
         r"\toprule",
         r"Sigla & Departamento & Crec. rem./trab. & Puesto & Crec. rem./hora & Puesto \\",
+        r"\midrule",
+        "NAC & Nacional & "
+        f"{fmt_pct_es(benchmarks['crec_rem_trabajador'], 1)} & -- & "
+        f"{fmt_pct_es(benchmarks['crec_rem_hora'], 1)} & -- \\\\",
         r"\midrule",
     ]
     for _, row in ranked.iterrows():
@@ -613,7 +632,7 @@ def write_remuneration_growth_table(summary: pd.DataFrame, start_year: int, end_
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: tasas de crecimiento anualizadas. Los indicadores de remuneración se calculan entre ocupados con ingreso horario positivo y horas válidas. Fuente: cálculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: tasas de crecimiento anualizadas. Nacional corresponde al agregado de los 24 departamentos comparables. Los indicadores de remuneración se calculan entre ocupados con ingreso horario positivo y horas válidas. Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
@@ -1814,10 +1833,10 @@ def main() -> None:
     write_benchmarks(relation_bench24, "dept_productividad_remuneracion_benchmarks_24_2010_2024.csv")
     write_benchmarks(relation_bench33, "dept_productividad_remuneracion_benchmarks_33_2014_2024.csv")
 
-    write_remuneration_level_table(rem_summary24, REMUNERATION_END, "24")
-    write_remuneration_growth_table(rem_summary24, PANEL_24_START, REMUNERATION_END, "24")
-    write_remuneration_level_table(rem_summary33, REMUNERATION_END, "33")
-    write_remuneration_growth_table(rem_summary33, PANEL_33_START, REMUNERATION_END, "33")
+    write_remuneration_level_table(rem_summary24, rem_bench24, REMUNERATION_END, "24")
+    write_remuneration_growth_table(rem_summary24, rem_bench24, PANEL_24_START, REMUNERATION_END, "24")
+    write_remuneration_level_table(rem_summary33, rem_bench33, REMUNERATION_END, "33")
+    write_remuneration_growth_table(rem_summary33, rem_bench33, PANEL_33_START, REMUNERATION_END, "33")
     write_remuneration_convergence_table(convergence24, PANEL_24_START, REMUNERATION_END)
     write_productivity_summary_table(prod_summary24, PANEL_24_START, PRODUCTIVITY_END, "24")
     write_productivity_summary_table(prod_summary33, PANEL_33_START, PRODUCTIVITY_END, "33")
