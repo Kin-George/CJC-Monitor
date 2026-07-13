@@ -595,7 +595,7 @@ def write_remuneration_level_table(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos al mes entre ocupados con ingreso horario positivo y horas válidas; remuneración por hora en miles de pesos para ese mismo universo. Nacional corresponde al agregado de los 24 departamentos comparables. Ocupados en millones. Horas/trab. corresponde a horas semanales promedio por ocupado. La brecha se calcula como la distancia porcentual frente al departamento líder en cada indicador. Un valor de 0\% corresponde al líder; un valor de 30\% indica que el departamento está 30\% por debajo del líder. Fuente: cálculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: remuneración por trabajador en millones de pesos al mes entre ocupados con ingreso horario positivo y horas válidas; remuneración por hora en miles de pesos para ese mismo universo. Nacional se calcula con las observaciones de los 24 departamentos comparables. Ocupados en millones. Horas/trab. corresponde a horas semanales promedio por ocupado. La brecha se calcula como la distancia porcentual frente al departamento líder en cada indicador. Un valor de 0\% corresponde al líder; un valor de 30\% indica que el departamento está 30\% por debajo del líder. Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
@@ -638,7 +638,7 @@ def write_remuneration_growth_table(
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: tasas de crecimiento anualizadas. Nacional corresponde al agregado de los 24 departamentos comparables. Los indicadores de remuneración se calculan entre ocupados con ingreso horario positivo y horas válidas. Fuente: cálculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: tasas de crecimiento anualizadas. Nacional se calcula con las observaciones de los 24 departamentos comparables. Los indicadores de remuneración se calculan entre ocupados con ingreso horario positivo y horas válidas. Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
@@ -696,7 +696,12 @@ def build_remuneration_convergence(summary: pd.DataFrame, start_year: int, end_y
     years = end_year - start_year
     for label, start_col, end_col in specs:
         stats = convergence_stats(summary, start_col=start_col, end_col=end_col, start_year=start_year, end_year=end_year)
-        direction = "Convergencia" if stats["beta"] < 0 else "Divergencia"
+        if stats["beta"] < 0 and stats["t_stat"] <= -1.96:
+            direction = "Convergencia"
+        elif stats["beta"] > 0 and stats["t_stat"] >= 1.96:
+            direction = "Divergencia"
+        else:
+            direction = "No concluyente"
         rows.append(
             {
                 "indicador": label,
@@ -746,7 +751,7 @@ def write_remuneration_convergence_table(convergence: pd.DataFrame, start_year: 
         [
             r"\bottomrule",
             r"\end{tabular}",
-            r"\caption*{\footnotesize Nota: la variable dependiente es el crecimiento anualizado del indicador y la variable explicativa es el logaritmo del nivel inicial del mismo indicador. Un coeficiente $\beta<0$ indica convergencia beta; un coeficiente $\beta>0$ indica que los departamentos con mayor remuneración inicial crecieron más rápido. Fuente: cálculos propios con GEIH.}",
+            r"\caption*{\footnotesize Nota: la variable dependiente es el crecimiento anualizado del indicador y la variable explicativa es el logaritmo del nivel inicial del mismo indicador. Un coeficiente $\beta<0$ indica convergencia beta; un coeficiente $\beta>0$ indica que los departamentos con mayor remuneración inicial crecieron más rápido. La lectura exige que el coeficiente sea estadísticamente distinto de cero al 5\%. Fuente: cálculos propios con GEIH.}",
             r"\end{table}",
         ]
     )
