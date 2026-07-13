@@ -569,7 +569,7 @@ def write_remuneration_level_table(
         r"\toprule",
         r"Sigla & Departamento & Rem./trab. & Brecha & Rem./hora & Brecha & Ocupados & Horas/trab. \\",
         r"\midrule",
-        "NAC & Nacional & "
+        r"\textbf{NAC} & \textbf{Nacional (24 deptos.)} & "
         f"{fmt_num_es(benchmarks['rem_trabajador_fin'] / 1e6, 2)} & "
         f"{fmt_pct_es(national_worker_gap, 1)} & "
         f"{fmt_num_es(benchmarks['rem_hora_fin'] / 1000, 1)} & "
@@ -614,7 +614,7 @@ def write_remuneration_growth_table(
         r"\toprule",
         r"Sigla & Departamento & Crec. rem./trab. & Puesto & Crec. rem./hora & Puesto \\",
         r"\midrule",
-        "NAC & Nacional & "
+        r"\textbf{NAC} & \textbf{Nacional (24 deptos.)} & "
         f"{fmt_pct_es(benchmarks['crec_rem_trabajador'], 1)} & -- & "
         f"{fmt_pct_es(benchmarks['crec_rem_hora'], 1)} & -- \\\\",
         r"\midrule",
