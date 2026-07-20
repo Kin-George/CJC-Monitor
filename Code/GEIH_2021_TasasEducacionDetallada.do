@@ -131,12 +131,32 @@ else {
     destring `educ_var', gen(`educ_num') force
 }
 
-* Codificacion esperada P3042/P6210:
-* 1 preescolar o ninguno, 2 basica primaria, 3 basica secundaria,
-* 4 media academica, 5 media tecnica, 6 normalista,
-* 7 tecnica profesional, 8 tecnologica, 9 universitaria,
-* 10 especializacion, 11 maestria, 12 doctorado.
-replace educ_det = `educ_num' if inrange(`educ_num', 1, 12)
+* Codificacion oficial de P3042 (diccionario DANE, modulo F1 GEIH,
+* https://microdatos.dane.gov.co/index.php/catalog/853/data-dictionary/F1):
+*   1 Ninguno, 2 Preescolar, 3 Basica primaria, 4 Basica secundaria,
+*   5 Media academica, 6 Media tecnica, 7 Normalista,
+*   8 Tecnica profesional, 9 Tecnologica, 10 Universitaria,
+*   11 Especializacion, 12 Maestria, 13 Doctorado, 99 No sabe/no informa.
+* OJO: si `educ_var' termino siendo P6210 (no P3042), esta codificacion NO
+* aplica - P6210 solo tiene 6 niveles (1 ninguno...6 superior) + 9 NS/NR;
+* revisar el "Educacion: `educ_var'" que imprime el diagnostico antes de
+* confiar en esta tabla.
+* Ninguno y Preescolar se agrupan en una sola categoria (poblaciones chicas,
+* ambas sin escolaridad relevante); el resto de niveles queda 1 a 1, corridos
+* una posicion para dejar espacio a Doctorado (codigo 13), que antes quedaba
+* excluido por el rango inrange(1,12).
+replace educ_det = 1  if inlist(`educ_num', 1, 2)
+replace educ_det = 2  if `educ_num' == 3
+replace educ_det = 3  if `educ_num' == 4
+replace educ_det = 4  if `educ_num' == 5
+replace educ_det = 5  if `educ_num' == 6
+replace educ_det = 6  if `educ_num' == 7
+replace educ_det = 7  if `educ_num' == 8
+replace educ_det = 8  if `educ_num' == 9
+replace educ_det = 9  if `educ_num' == 10
+replace educ_det = 10 if `educ_num' == 11
+replace educ_det = 11 if `educ_num' == 12
+replace educ_det = 12 if `educ_num' == 13
 
 label define educ_det_lbl ///
     1  "Preescolar o ninguno" ///

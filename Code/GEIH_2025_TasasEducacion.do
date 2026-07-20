@@ -110,13 +110,30 @@ else {
     destring `educ_var', gen(`educ_num') force
 }
 
-* Codificacion usual GEIH P6210/P3042:
-* 1 ninguno, 2 preescolar, 3 basica primaria,
-* 4 basica secundaria, 5 media, 6 superior/universitaria,
-* 9 no sabe/no informa.
-replace educ_3niv = 1 if inlist(`educ_num', 1, 2, 3)
-replace educ_3niv = 2 if inlist(`educ_num', 4, 5)
-replace educ_3niv = 3 if `educ_num' == 6
+* Codificacion GEIH P6210 (usada hasta 2019/2020):
+*   1 ninguno, 2 preescolar, 3 basica primaria,
+*   4 basica secundaria, 5 media, 6 superior/universitaria,
+*   9 no sabe/no informa.
+* Codificacion GEIH P3042 (cuestionario rediseñado, en uso desde 2021,
+* confirmada contra el diccionario oficial DANE - modulo F1,
+* https://microdatos.dane.gov.co/index.php/catalog/853/data-dictionary/F1):
+*   1 ninguno, 2 preescolar, 3 basica primaria, 4 basica secundaria,
+*   5 media academica, 6 media tecnica, 7 normalista,
+*   8 tecnica profesional, 9 tecnologica, 10 universitaria,
+*   11 especializacion, 12 maestria, 13 doctorado, 99 no sabe/no informa.
+* OJO: P3042 NO tiene la misma codificacion que P6210 a partir del codigo 6
+* (6 es "media tecnica" en P3042, no "superior" como en P6210), asi que el
+* agrupamiento a 3 niveles debe distinguir cual de las dos variables se uso.
+if "`educ_var'" == "P6210" {
+    replace educ_3niv = 1 if inlist(`educ_num', 1, 2, 3)
+    replace educ_3niv = 2 if inlist(`educ_num', 4, 5)
+    replace educ_3niv = 3 if `educ_num' == 6
+}
+else {
+    replace educ_3niv = 1 if inlist(`educ_num', 1, 2, 3)
+    replace educ_3niv = 2 if inlist(`educ_num', 4, 5, 6)
+    replace educ_3niv = 3 if inrange(`educ_num', 7, 13)
+}
 
 label define educ3_lbl 1 "Primaria o menos" 2 "Secundaria" 3 "Universitaria o superior", replace
 label values educ_3niv educ3_lbl
