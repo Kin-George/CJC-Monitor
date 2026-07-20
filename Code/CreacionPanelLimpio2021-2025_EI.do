@@ -203,10 +203,23 @@ label values area_cod area_lbl
 *====================================================
 * 1. Filtrar observaciones válidas
 *====================================================
+* OJO: antes esta seccion tambien exigia ingreso_hora_valido==1,
+* ingreso_laboral_hora no missing y > 0. Eso descartaba de la base a
+* cualquier persona ocupada (ya viene de baseConsolidada con
+* ocupado_cod==1) que no tuviera un ingreso por hora valido -por ejemplo
+* trabajador familiar sin remuneracion, o item-missing en el ingreso-,
+* aunque para contar "numero de ocupados" no se necesita el ingreso.
+* Se quita ese filtro aqui para conservar la base lo mas completa posible;
+* el indicador ingreso_hora_valido queda intacto para que cualquier
+* analisis que si necesite ingreso por hora (ej. brecha salarial) filtre
+* por su cuenta en el momento de usarlo, sin tener que rehacer la base.
+*
+* Se mantienen unicamente los filtros que son indispensables para
+* cualquier conteo expandido: anio valido en el rango del panel, y un
+* factor de expansion valido y positivo (sin fex no hay como expandir esa
+* fila a poblacion, expandida o no expandida esa fila no aporta a ningun
+* total).
 
-keep if ingreso_hora_valido == 1
-keep if !missing(ingreso_laboral_hora)
-keep if ingreso_laboral_hora > 0
 keep if !missing(factor_expansion_anual)
 keep if factor_expansion_anual > 0
 
@@ -810,18 +823,22 @@ restore
 
 
 *====================================================
-* 8. Mantener observaciones completas
+* 8. Ya NO se eliminan observaciones por variables incompletas
 *====================================================
-
-drop if missing(tamano_hom_cod)
-drop if missing(educ_hom_cod)
-drop if missing(formalidad_cod)
-drop if missing(sexo_hom_cod)
-drop if missing(sector_hom_cod)
-drop if missing(edad)
-drop if missing(depto_cod)
-drop if missing(posicion_ocupacional_cod)
-drop if missing(EI)
+* Antes esta seccion eliminaba cualquier fila (persona ocupada) que
+* tuviera missing en tamano de empresa, educacion, formalidad, sexo,
+* sector, edad, departamento, posicion ocupacional o EI. Cada uno de esos
+* missing por separado le quitaba gente genuinamente ocupada al conteo
+* total, sin que esa informacion faltante tuviera nada que ver con si la
+* persona esta o no ocupada.
+*
+* La base ahora conserva a todo ocupado (ocupado_cod==1, ya filtrado en
+* baseConsolidada2021-2025.do) con fex valido, sin importar que le falten
+* estas variables. Los indicadores miss_* generados en la seccion 7 siguen
+* disponibles para que cualquier analisis que sí necesite, por ejemplo,
+* sector_hom_cod completo, filtre por su cuenta con
+* "keep if !missing(sector_hom_cod)" en ese momento, en vez de perder esas
+* observaciones para todo el mundo desde la base madre.
 
 *====================================================
 * 9. IPC y salario real

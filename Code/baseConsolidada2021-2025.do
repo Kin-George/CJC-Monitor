@@ -18,7 +18,7 @@ capture mkdir "Outputs/tables"
 
 local solo_ocupados 1
 
-local anios 2024 2025
+local anios 2021 2022 2023 2024 2025
 
 
 *====================================================
@@ -177,7 +177,15 @@ foreach year of local anios {
         continue
     }
 
-    use "`archivo_base'", clear
+    * Los archivos GEIH_<year>_TOTAL.dta crudos pesan varios GB (hasta 4+ GB
+    * para un solo año) con cientos de columnas, y esta maquina tiene poca
+    * RAM disponible. Para detectar los nombres reales de las variables no
+    * hace falta cargar todas las filas: "in 1" trae solo la primera
+    * observacion (todas las columnas, una sola fila), que alcanza para que
+    * find_first_var (basado en "ds") encuentre los nombres. La carga
+    * completa, ya filtrada a las columnas que realmente se usan, se hace
+    * mas abajo en 4.1.5, despues de saber cuales son esas columnas.
+    use "`archivo_base'" in 1, clear
 
 
     *================================================
@@ -289,6 +297,24 @@ foreach year of local anios {
         di as error "Se omite `year': `observacion'"
         continue
     }
+
+
+    *================================================
+    * 4.1.5. Recargar el archivo completo, solo con las columnas
+    *        que en realidad se van a usar (evita cargar a memoria
+    *        las cientos de columnas restantes del archivo crudo)
+    *================================================
+
+    local vars_a_cargar ""
+    foreach v in `var_factor' `var_ingreso' `var_sector' `var_rama4d' `var_ocupado' ///
+                 `var_pension' `var_tamano' `var_horas' `var_sexo' `var_salud' ///
+                 `var_educ' `var_edad' `var_depto' `var_area' `var_posicion' ///
+                 `var_oficio' `var_oficio2d' `var_ei' {
+        if "`v'" != "" local vars_a_cargar "`vars_a_cargar' `v'"
+    }
+
+    di as text "Cargando `year' solo con: `vars_a_cargar'"
+    use `vars_a_cargar' using "`archivo_base'", clear
 
 
     * Variables no esenciales, pero se registran en auditoría
