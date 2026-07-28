@@ -39,6 +39,16 @@ local cand_horas    "P6800 p6800"
 local cand_sexo     "P6020 SEXO sexo p6020 P3271 p3271"
 local cand_salud    "P6090 p6090"
 local cand_educ     "P6210 P3042 p6210 p3042 NIVEL_MAS_ALTO"
+* Complementos de la pregunta de educacion, necesarios para construir
+* CINE 11 (ver Codigo_SAS de DocumentacionAuxiliar/anex-GEIHFLE-2024.xlsx):
+* P6210S1/P3042S1 = ultimo grado o semestre aprobado dentro del nivel;
+* P6220/P3043 = tipo de programa (tecnica, tecnologica, universitaria...).
+* Estas dos NO cambian de nombre a "NIVEL_MAS_ALTO" en los anios donde el
+* nivel principal si se renombro (se verifico para 2022: la base trae
+* NIVEL_MAS_ALTO pero P3042S1 y P3043 siguen existiendo con su nombre de
+* siempre), asi que no hace falta un candidato tipo NIVEL_MAS_ALTO_S1.
+local cand_educ_grado "P6210S1 P3042S1 p6210s1 p3042s1"
+local cand_educ_tipo  "P6220 P3043 p6220 p3043"
 local cand_edad     "P6040 EDAD p6040 edad"
 local cand_depto      "DPTO dpto"
 local cand_area       "AREA area"
@@ -124,6 +134,8 @@ postfile `postaudit' ///
     str40 var_sexo ///
     str40 var_salud ///
     str40 var_educ ///
+    str40 var_educ_grado ///
+    str40 var_educ_tipo ///
 	str40 var_edad ///
 	str40 var_depto ///
     str40 var_area ///
@@ -152,13 +164,19 @@ foreach year of local anios {
     post `postaudit' ///
         (`year') ///
         ("") ("") ("") ("") ("") ("") ("") ("") ("") ("") ///
-        ("") ("") ("") ("") ("") ("") ///
+        ("") ("") ("") ("") ("") ("") ("") ("") ///
         (0) ///
         ("No existe el archivo")
     continue
 }
 
-    use "`archivo_base'", clear
+    * Los archivos GEIH_<year>_TOTAL.dta crudos pesan varios GB (hasta 4+ GB
+    * para un solo año) con cientos de columnas, y esta maquina tiene poca
+    * RAM disponible. "in 1" trae solo la primera observacion (todas las
+    * columnas) para detectar nombres de variables sin cargar toda la base;
+    * la carga completa, ya filtrada a las columnas que realmente se usan,
+    * se hace mas abajo en 4.1.5.
+    use "`archivo_base'" in 1, clear
 
 
     *================================================
@@ -197,7 +215,13 @@ foreach year of local anios {
 
     find_first_var, candidates("`cand_educ'")
     local var_educ "`r(var)'"
-	
+
+    find_first_var, candidates("`cand_educ_grado'")
+    local var_educ_grado "`r(var)'"
+
+    find_first_var, candidates("`cand_educ_tipo'")
+    local var_educ_tipo "`r(var)'"
+
 	local cand_edad_year ""
 
 	if inrange(`year', 2008, 2014) | inlist(`year', 2021, 2023, 2024, 2025) {
@@ -265,6 +289,8 @@ foreach year of local anios {
     ("`var_sexo'") ///
     ("`var_salud'") ///
     ("`var_educ'") ///
+    ("`var_educ_grado'") ///
+    ("`var_educ_tipo'") ///
     ("`var_edad'") ///
     ("`var_depto'") ///
     ("`var_area'") ///
@@ -276,6 +302,24 @@ foreach year of local anios {
         di as error "Se omite `year': `observacion'"
         continue
     }
+
+
+    *================================================
+    * 4.1.5. Recargar el archivo completo, solo con las columnas
+    *        que en realidad se van a usar (evita cargar a memoria
+    *        las cientos de columnas restantes del archivo crudo)
+    *================================================
+
+    local vars_a_cargar ""
+    foreach v in `var_factor' `var_ingreso' `var_sector' `var_rama4d' `var_ocupado' ///
+                 `var_pension' `var_tamano' `var_horas' `var_sexo' `var_salud' ///
+                 `var_educ' `var_educ_grado' `var_educ_tipo' `var_edad' `var_depto' ///
+                 `var_area' `var_posicion' `var_oficio' {
+        if "`v'" != "" local vars_a_cargar "`vars_a_cargar' `v'"
+    }
+
+    di as text "Cargando `year' solo con: `vars_a_cargar'"
+    use `vars_a_cargar' using "`archivo_base'", clear
 
     if "`var_sector'" == "" {
         local observacion "`observacion' Falta sector;"
@@ -308,7 +352,15 @@ foreach year of local anios {
     if "`var_educ'" == "" {
         local observacion "`observacion' Falta educación;"
     }
-	
+
+    if "`var_educ_grado'" == "" {
+        local observacion "`observacion' Falta grado educación;"
+    }
+
+    if "`var_educ_tipo'" == "" {
+        local observacion "`observacion' Falta tipo educación;"
+    }
+
 	if "`var_edad'" == "" {
     local observacion "`observacion' Falta edad;"
 	}
@@ -347,6 +399,8 @@ foreach year of local anios {
         ("`var_sexo'") ///
         ("`var_salud'") ///
         ("`var_educ'") ///
+        ("`var_educ_grado'") ///
+        ("`var_educ_tipo'") ///
 		("`var_edad'") ///
 		("`var_depto'") ///
 		("`var_area'") ///
@@ -367,6 +421,8 @@ foreach year of local anios {
     di as result "Sexo:      `var_sexo'"
     di as result "Salud:     `var_salud'"
     di as result "Educación: `var_educ'"
+    di as result "Educ.grado:`var_educ_grado'"
+    di as result "Educ.tipo: `var_educ_tipo'"
 	di as result "Edad:     `var_edad'"
 	di as result "Depto:    `var_depto'"
 	di as result "Área:     `var_area'"
@@ -391,6 +447,8 @@ foreach year of local anios {
     gen str40 sexo_var_original    = "`var_sexo'"
     gen str40 salud_var_original   = "`var_salud'"
     gen str40 educ_var_original    = "`var_educ'"
+    gen str40 educ_grado_var_original = "`var_educ_grado'"
+    gen str40 educ_tipo_var_original  = "`var_educ_tipo'"
 	gen str40 edad_var_original    = "`var_edad'"
 	gen str40 depto_var_original    = "`var_depto'"
 	gen str40 area_var_original     = "`var_area'"
@@ -413,6 +471,8 @@ foreach year of local anios {
     make_double_from_var, newname(sexo_cod) varname("`var_sexo'")
     make_double_from_var, newname(cotiza_salud_cod) varname("`var_salud'")
     make_double_from_var, newname(educacion_cod) varname("`var_educ'")
+    make_double_from_var, newname(educacion_grado_cod) varname("`var_educ_grado'")
+    make_double_from_var, newname(educacion_tipo_cod) varname("`var_educ_tipo'")
 	make_double_from_var, newname(edad_tmp) varname("`var_edad'")
 	make_double_from_var, newname(depto_cod) varname("`var_depto'")
 	make_double_from_var, newname(area_cod) varname("`var_area'")
@@ -493,6 +553,7 @@ foreach year of local anios {
         factor_var_original ingreso_var_original sector_var_original rama4d_var_original ///
         ocupado_var_original pension_var_original tamano_var_original ///
         horas_var_original sexo_var_original salud_var_original educ_var_original ///
+        educ_grado_var_original educ_tipo_var_original ///
         oficio_var_original ///
         factor_expansion_original factor_expansion_anual ///
         ocupado_cod ///
@@ -506,6 +567,8 @@ foreach year of local anios {
         sexo_cod ///
         cotiza_salud_cod ///
         educacion_cod ///
+        educacion_grado_cod ///
+        educacion_tipo_cod ///
 		edad ///
 		depto_cod ///
 		area_cod ///

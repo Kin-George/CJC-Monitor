@@ -75,7 +75,26 @@ bysort ciuo08_4d_cod: keep if _n == 1
 keep ciuo08_4d_cod oficio_ciuo88_2d_cod oficio_hom_n_destinos
 save `xwalk_ciuo08_ciuo88_unique', replace
 
-use "Outputs/tables/GEIH_consolidada_variables_interes_2008_2025.dta", clear
+* Para armar BaseconCINE11.dta (2010-2025) mas rapido: se carga solo con
+* las columnas que este script realmente usa mas adelante (se verifico
+* una por una contra el codigo; las que no se usan, como
+* factor_expansion_original, ingresos_laborales o ciiu_revision_rama4d
+* -esta ultima se re-genera igual desde cero en la seccion 6b-, se dejan
+* afuera), y se filtra de una vez a 2010-2025 para que todos los replace
+* que vienen despues corran sobre menos filas.
+local vars_a_cargar ///
+    anio ///
+    sector_var_original rama4d_var_original tamano_var_original ///
+    educ_var_original oficio_var_original ///
+    factor_expansion_anual horas_semana ///
+    ingreso_laboral_hora ingreso_hora_valido ///
+    sector_cod rama4d_cod cotiza_pension_cod tamano_empresa_cod sexo_cod ///
+    educacion_cod educacion_grado_cod educacion_tipo_cod ///
+    edad depto_cod area_cod posicion_ocupacional_cod oficio_cod
+
+use `vars_a_cargar' using "Outputs/tables/GEIH_consolidada_variables_interes_2008_2025.dta", clear
+
+keep if inrange(anio, 2010, 2025)
 
 
 *====================================================
@@ -409,6 +428,129 @@ label define educ_hom_lbl ///
     9 "No sabe, no informa", replace
 
 label values educ_hom_cod educ_hom_lbl
+
+
+*====================================================
+* 3b. CINE 11 (Clasificación Internacional Normalizada de la Educación,
+*     adaptada para Colombia), replica de la sintaxis SAS oficial del
+*     DANE en DocumentacionAuxiliar/anex-GEIHFLE-2024.xlsx, hoja
+*     "Código_SAS". Ver GEIH_2010_NumeroOcupadosCINE11.do y
+*     GEIH_2024_NumeroOcupadosCINE11.do para la traduccion linea por
+*     linea SAS->Stata (missing, SUM() vs "+", rangos abiertos, etc.) y
+*     su validacion exacta contra las cifras oficiales del DANE.
+*====================================================
+* Hay dos sintaxis oficiales, con formulas y codigos DISTINTOS entre si:
+*   - "marco 2005" (P6210/P6210S1/P6220), usada 2008-2019. Codigos CINE11
+*     crudos: 0 Ninguno, 1 primaria, 2 secundaria, 3 media,
+*     5 tecnica/tecnologica, 6 superior, 7 postgrado, 98/99 no determinado.
+*   - "marco 2018" (P3042/P3042S1/P3043), usada desde 2021. Codigos CINE11
+*     crudos: 1 Ninguno, 2 primaria, 3 secundaria, 4 media,
+*     5 y 6 tecnica/tecnologica, 7 universitaria, 8 postgrado,
+*     98/99 no determinado.
+* Como el mismo numero de codigo significa cosas distintas segun el
+* marco (p.ej. crudo=1 es "primaria" en marco 2005 pero "Ninguno" en
+* marco 2018), aqui se calculan por separado (cine11_marco2005,
+* cine11_marco2018, cada uno solo con missing fuera de su propio rango
+* de anios/variable) y se homologan a una sola escala comparable para
+* todo el panel: cine11_hom_cod, con esta codificacion unica:
+*   1 Ninguno, 2 Básica primaria, 3 Básica secundaria, 4 Educación media,
+*   5 Educación técnica profesional y tecnológica, 6 Universitaria,
+*   7 Posgrado, 98 No determinado.
+
+local marco2005 `"inlist(educ_var_u, "P6210", "NIVEL_MAS_ALTO") & inrange(anio, 2008, 2019)"'
+local marco2018 `"(educ_var_u == "P3042" | (educ_var_u == "NIVEL_MAS_ALTO" & anio >= 2021))"'
+
+* ---- Marco 2005: EDUC = SUM(P6210*100, P6210S1) ----
+* SUM() de SAS trata missing como 0 y solo da missing si AMBOS son
+* missing; no es lo mismo que sumar con "+" (que propaga missing con
+* cualquiera de los dos operandos).
+capture drop educ_marco2005
+gen double educ_marco2005 = .
+replace educ_marco2005 = educacion_cod * 100 if `marco2005'
+replace educ_marco2005 = educ_marco2005 + educacion_grado_cod ///
+    if `marco2005' & !missing(educ_marco2005) & !missing(educacion_grado_cod)
+replace educ_marco2005 = educacion_grado_cod ///
+    if `marco2005' & missing(educ_marco2005) & !missing(educacion_grado_cod)
+* si P6210 y P6210S1 son ambos missing, educ_marco2005 ya quedo missing
+
+capture drop cine11_marco2005
+gen byte cine11_marco2005 = .
+
+replace cine11_marco2005 = 0  if `marco2005' & missing(cine11_marco2005) & inrange(educ_marco2005, 100, 304)
+replace cine11_marco2005 = 1  if `marco2005' & missing(cine11_marco2005) & inrange(educ_marco2005, 305, 408)
+replace cine11_marco2005 = 2  if `marco2005' & missing(cine11_marco2005) & inrange(educ_marco2005, 409, 513) & (educacion_tipo_cod <= 1 | missing(educacion_tipo_cod))
+replace cine11_marco2005 = 2  if `marco2005' & missing(cine11_marco2005) & educ_marco2005 == 511 & educacion_tipo_cod == 1
+replace cine11_marco2005 = 3  if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 511) & educacion_tipo_cod == 2
+replace cine11_marco2005 = 5  if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 601) & educacion_tipo_cod == 3
+replace cine11_marco2005 = 6  if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 604) & educacion_tipo_cod == 4
+replace cine11_marco2005 = 7  if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 605) & educacion_tipo_cod == 5
+replace cine11_marco2005 = 99 if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 500) & educacion_tipo_cod == 9
+replace cine11_marco2005 = 99 if `marco2005' & missing(cine11_marco2005) & (educ_marco2005 == 900 | educ_marco2005 == 999 | educacion_tipo_cod == 9)
+replace cine11_marco2005 = 98 if `marco2005' & missing(cine11_marco2005)
+* OJO: el SAS del marco 2005 no fuerza cine11=. cuando EDUC es missing
+* (cae en "Otherwise CINE11=98"); aqui se replica igual, sin ajuste extra.
+
+* ---- Marco 2018: EDUC = P3042*100 + P3042S1 (suma normal, "+") ----
+capture drop educ_marco2018
+gen double educ_marco2018 = .
+replace educ_marco2018 = educacion_cod * 100 + educacion_grado_cod if `marco2018'
+
+capture drop cine11_marco2018
+gen byte cine11_marco2018 = .
+
+replace cine11_marco2018 = 1  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 100, 304)
+replace cine11_marco2018 = 2  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 305, 403)
+replace cine11_marco2018 = 3  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 404, 705) & (educacion_tipo_cod <= 1 | missing(educacion_tipo_cod))
+replace cine11_marco2018 = 4  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 502, 1028) & educacion_tipo_cod == 2
+replace cine11_marco2018 = 4  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 602, 1028) & educacion_tipo_cod == 3
+replace cine11_marco2018 = 4  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 704, 1028) & educacion_tipo_cod == 4
+replace cine11_marco2018 = 5  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 802, 1028) & educacion_tipo_cod == 5
+replace cine11_marco2018 = 6  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 904, 1028) & educacion_tipo_cod == 6
+replace cine11_marco2018 = 7  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 1008, 1306) & educacion_tipo_cod == 7
+replace cine11_marco2018 = 8  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 1102, 1306) & educacion_tipo_cod == 8
+replace cine11_marco2018 = 8  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 1204, 1314) & educacion_tipo_cod == 9
+replace cine11_marco2018 = 8  if `marco2018' & missing(cine11_marco2018) & (!missing(educ_marco2018) & educ_marco2018 >= 1306) & educacion_tipo_cod == 10
+replace cine11_marco2018 = 99 if `marco2018' & missing(cine11_marco2018) & ((!missing(educ_marco2018) & educ_marco2018 >= 9900) | educacion_tipo_cod == 99)
+replace cine11_marco2018 = 98 if `marco2018' & missing(cine11_marco2018)
+replace cine11_marco2018 = .  if `marco2018' & missing(educ_marco2018)
+
+* ---- Homologar los dos marcos a una sola escala comparable ----
+capture drop cine11_hom_cod
+gen byte cine11_hom_cod = .
+
+replace cine11_hom_cod = 1  if `marco2005' & cine11_marco2005 == 0
+replace cine11_hom_cod = 2  if `marco2005' & cine11_marco2005 == 1
+replace cine11_hom_cod = 3  if `marco2005' & cine11_marco2005 == 2
+replace cine11_hom_cod = 4  if `marco2005' & cine11_marco2005 == 3
+replace cine11_hom_cod = 5  if `marco2005' & cine11_marco2005 == 5
+replace cine11_hom_cod = 6  if `marco2005' & cine11_marco2005 == 6
+replace cine11_hom_cod = 7  if `marco2005' & cine11_marco2005 == 7
+replace cine11_hom_cod = 98 if `marco2005' & inlist(cine11_marco2005, 98, 99)
+
+replace cine11_hom_cod = 1  if `marco2018' & cine11_marco2018 == 1
+replace cine11_hom_cod = 2  if `marco2018' & cine11_marco2018 == 2
+replace cine11_hom_cod = 3  if `marco2018' & cine11_marco2018 == 3
+replace cine11_hom_cod = 4  if `marco2018' & cine11_marco2018 == 4
+replace cine11_hom_cod = 5  if `marco2018' & inlist(cine11_marco2018, 5, 6)
+replace cine11_hom_cod = 6  if `marco2018' & cine11_marco2018 == 7
+replace cine11_hom_cod = 7  if `marco2018' & cine11_marco2018 == 8
+replace cine11_hom_cod = 98 if `marco2018' & inlist(cine11_marco2018, 98, 99)
+replace cine11_hom_cod = .  if `marco2018' & missing(cine11_marco2018)
+
+label define cine11_hom_lbl ///
+    1  "Ninguno" ///
+    2  "Básica primaria" ///
+    3  "Básica secundaria" ///
+    4  "Educación media" ///
+    5  "Educación técnica profesional y tecnológica" ///
+    6  "Universitaria" ///
+    7  "Posgrado" ///
+    98 "No determinado", replace
+
+label values cine11_hom_cod cine11_hom_lbl
+label variable cine11_hom_cod "Nivel educativo CINE 11, homologado marco 2005/2018"
+
+capture drop educ_marco2005 educ_marco2018 cine11_marco2005 cine11_marco2018
 
 
 *====================================================
@@ -823,6 +965,7 @@ label values subrama_det_cod subrama_det_lbl
 
 gen byte miss_tamano   = missing(tamano_hom_cod)
 gen byte miss_educ     = missing(educ_hom_cod)
+gen byte miss_cine11   = missing(cine11_hom_cod)
 gen byte miss_form     = missing(formalidad_cod)
 gen byte miss_sexo     = missing(sexo_hom_cod)
 gen byte miss_sector   = missing(sector_hom_cod)
@@ -842,6 +985,7 @@ collapse ///
     (sum) obs_validas_ingreso = fila_audit ///
     (sum) miss_tamano = miss_tamano ///
     (sum) miss_educ = miss_educ ///
+    (sum) miss_cine11 = miss_cine11 ///
     (sum) miss_form = miss_form ///
     (sum) miss_sexo = miss_sexo ///
     (sum) miss_sector = miss_sector ///
@@ -951,6 +1095,7 @@ label variable subrama_det "Subrama detallada homologada"
 
 decode tamano_hom_cod, gen(tamano_empresa)
 decode educ_hom_cod, gen(educacion)
+decode cine11_hom_cod, gen(cine11)
 decode sexo_hom_cod, gen(sexo)
 decode formalidad_cod, gen(formalidad)
 
@@ -1022,6 +1167,7 @@ order persona_id anio ///
       posicion_ocupacional posicion_ocupacional_label ocupacion ///
       tamano_hom_cod tamano_empresa ///
       educ_hom_cod educacion ///
+      cine11_hom_cod cine11 ///
       sexo_hom_cod sexo mujer ///
       formalidad_cod formalidad formal pensionado_ocupado ///
       fex ///
@@ -1043,6 +1189,7 @@ keep persona_id anio ///
      posicion_ocupacional posicion_ocupacional_label ocupacion ///
      tamano_hom_cod tamano_empresa ///
      educ_hom_cod educacion ///
+     cine11_hom_cod cine11 ///
      sexo_hom_cod sexo mujer ///
      formalidad_cod formalidad formal pensionado_ocupado ///
      fex ///
@@ -1061,13 +1208,20 @@ compress
 * 13. Guardar base individual
 *====================================================
 
-save "Outputs/tables/Paper-GEIH_base_modelo_personas_2008_2025.dta", replace
+* OJO: esta corrida esta filtrada a 2010-2025 (ver el "keep if
+* inrange(anio,2010,2025)" cerca del inicio) para que el proceso no se
+* demore tanto. Por eso aqui NO se vuelve a guardar
+* "Paper-GEIH_base_modelo_personas_2008_2025.dta" -ese archivo ya existe
+* en disco con el rango completo 2008-2025 de una corrida anterior, y
+* guardarlo aqui lo truncaria a 2010-2025-. Solo se guarda la base nueva
+* con CINE 11, para 2010-2025.
+save "Outputs/tables/BaseconCINE11.dta", replace
 
 di "===================================================="
-di "BASE INDIVIDUAL PARA MODELOS CREADA CORRECTAMENTE"
+di "BASE CON CINE 11 CREADA CORRECTAMENTE (2010-2025)"
 di "Unidad: persona ocupada"
 di "Archivo:"
-di "Outputs/tables/Paper-GEIH_base_modelo_personas_2008_2025.dta"
+di "Outputs/tables/BaseconCINE11.dta"
 di "Auditoría:"
 di "Outputs/tables/auditoria_base_modelo_personas.xlsx"
 di "===================================================="
