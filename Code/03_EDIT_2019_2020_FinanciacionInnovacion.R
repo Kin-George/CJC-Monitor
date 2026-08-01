@@ -44,14 +44,104 @@ first_nonmissing <- function(x) {
   x[1]
 }
 
-project_root <- find_project_root()
-processed_dir <- file.path(project_root, "Datos", "Processed")
-doc_dir <- file.path(project_root, "DocumentacionAuxiliar")
+first_nonmissing_chr <- function(x) {
+  x <- x[!is.na(x) & x != ""]
+  if (length(x) == 0) return(NA_character_)
+  x[1]
+}
 
-panel_path <- file.path(processed_dir, "EDIT_Panel.dta")
+clean_varname <- function(x) {
+  out <- toupper(trimws(as.character(x)))
+  out <- iconv(out, from = "", to = "ASCII//TRANSLIT")
+  out <- gsub("[^A-Z0-9]+", "_", out)
+  out <- gsub("^_+|_+$", "", out)
+  out[out == ""] <- "VAR"
+  out <- ifelse(grepl("^[0-9]", out), paste0("X", out), out)
+  make.unique(out, sep = "_")
+}
+
+load_edit_dictionary <- function(path, period = "2019_2020") {
+  read_excel(path, sheet = "variables", col_types = "text") %>%
+    transmute(
+      edit_period = as.character(period),
+      order_global = suppressWarnings(as.integer(order_global)),
+      variable_original_dic = as.character(variable)
+    ) %>%
+    filter(edit_period == period) %>%
+    arrange(order_global) %>%
+    mutate(variable_dic = clean_varname(variable_original_dic))
+}
+
+apply_dictionary_names <- function(data, dict_period) {
+  raw_names <- names(data)
+
+  if (nrow(dict_period) == ncol(data)) {
+    names(data) <- make.unique(dict_period$variable_dic, sep = "_")
+    attr(data, "dictionary_name_source") <- "diccionario_dane_por_orden"
+  } else {
+    names(data) <- clean_varname(raw_names)
+    attr(data, "dictionary_name_source") <- "nombres_microdato_limpios"
+    warning(
+      "El diccionario 2019_2020 tiene ", nrow(dict_period),
+      " variables, pero la base cruda EDIT tiene ", ncol(data),
+      ". Se usan nombres limpios de la base cruda."
+    )
+  }
+
+  attr(data, "raw_names") <- raw_names
+  data
+}
+
+as_plain_character <- function(x) {
+  if (inherits(x, "haven_labelled")) return(as.character(as_factor(x, levels = "values")))
+  as.character(x)
+}
+
+normalize_id <- function(x) {
+  x <- as_plain_character(x)
+  x <- str_trim(x)
+  x <- str_replace(x, "\\.0$", "")
+  x <- str_replace_all(x, "[^0-9A-Za-z]", "")
+  ifelse(x == "", NA_character_, x)
+}
+
+normalize_ciiu_code <- function(x) {
+  out <- str_extract(as.character(x), "[0-9]+")
+  ifelse(is.na(out) | out == "", NA_character_, out)
+}
+
+detect_ciiu_var <- function(data) {
+  nms <- names(data)
+
+  case_when(
+    "CIIU4" %in% nms ~ "CIIU4",
+    "CIIU_4" %in% nms ~ "CIIU_4",
+    "CIIU3" %in% nms ~ "CIIU3",
+    "CIIU_3" %in% nms ~ "CIIU_3",
+    "ACT3" %in% nms ~ "ACT3",
+    "ACT" %in% nms ~ "ACT",
+    TRUE ~ NA_character_
+  )
+}
+
+find_var <- function(data, candidates) {
+  nms <- names(data)
+  hit <- candidates[toupper(candidates) %in% toupper(nms)]
+  if (length(hit) == 0) return(NA_character_)
+  nms[match(toupper(hit[1]), toupper(nms))]
+}
+
+project_root <- find_project_root()
+raw_edit_dir <- file.path(project_root, "Datos", "Raw", "EDIT")
+doc_dir <- file.path(project_root, "DocumentacionAuxiliar")
+dict_dir <- file.path(project_root, "Diccionarios", "EDIT")
+
+edit_raw_path <- file.path(raw_edit_dir, "EDIT_X_2019_2020.dta")
+dictionary_path <- file.path(dict_dir, "EDIT_Diccionarios_Consolidado.xlsx")
 ciiu4_structure_path <- file.path(doc_dir, "Estructura-detallada-CIIU-4AC-2022.xlsx")
 
-if (!file.exists(panel_path)) stop("No existe: ", panel_path)
+if (!file.exists(edit_raw_path)) stop("No existe la base cruda EDIT 2019-2020: ", edit_raw_path)
+if (!file.exists(dictionary_path)) stop("No existe el diccionario consolidado EDIT: ", dictionary_path)
 if (!file.exists(ciiu4_structure_path)) stop("No existe: ", ciiu4_structure_path)
 
 ciiu4_div_labels <- read_excel(ciiu4_structure_path, sheet = 1, skip = 1, col_types = "text") %>%
@@ -78,6 +168,7 @@ vars_needed <- c(
   "II1R4C1", "II1R4C2", "II1R5C1", "II1R5C2", "II1R6C1", "II1R6C2",
   "II1R7C1", "II1R7C2", "II1R8C1", "II1R8C2", "II1R9C1", "II1R9C2",
   "II1R11C1", "II1R11C2", "II1R12C1", "II1R12C2", # Destino de la inversion ACTI
+  "I3R1C1", "I3R1C2", "I3R2C1", "I3R2C2", # Ingresos/ventas nacionales y exportaciones
   "III3R1C1", "III4R1C1", "III4R2C1", "III4R3C1", "III4R4C1", "III4R5C1", "III4R6C1", "III5R1C1",
   "I2R5C1", "I2R6C1", "I2R16C1", "I2R17C1", "I2R18C1", # Impactos de innovacion
   "I4R1C1", "I4R2C1", "I4R3C1", "I4R4C1", "I4R5C1", # Ventas nacionales por tipo de innovacion
@@ -87,14 +178,41 @@ vars_needed <- c(
   "III2R7C1", "III2R7C2", "III2R8C1", "III2R8C2", "III2R9C1", "III2R9C2"
 )
 
-available_vars <- names(read_dta(panel_path, n_max = 0))
-missing_vars <- setdiff(vars_needed, available_vars)
-if (length(missing_vars) > 0) warning("Variables no encontradas: ", paste(missing_vars, collapse = ", "))
+dict_2019_2020 <- load_edit_dictionary(dictionary_path, period = "2019_2020")
 
-edit_2019_2020 <- read_dta(panel_path, col_select = any_of(vars_needed)) %>%
-  filter(edit_period == "2019_2020") %>%
+edit_raw <- read_dta(edit_raw_path)
+edit_raw <- apply_dictionary_names(edit_raw, dict_2019_2020)
+message("Fuente de nombres EDIT: ", attr(edit_raw, "dictionary_name_source"))
+
+ciiu_var <- detect_ciiu_var(edit_raw)
+if (is.na(ciiu_var)) warning("No se encontro una variable CIIU reconocible en EDIT.")
+
+edit_raw <- edit_raw %>%
   mutate(
-    empresa_id = as.character(nordemp),
+    edit_period = "2019_2020",
+    nordemp = if ("NORDEMP" %in% names(.)) normalize_id(NORDEMP) else NA_character_,
+    empresa_id = nordemp,
+    ciiu_original = if (!is.na(ciiu_var)) normalize_ciiu_code(as_plain_character(.data[[ciiu_var]])) else NA_character_,
+    ciiu4_homologado = case_when(
+      !is.na(ciiu_original) & nchar(ciiu_original) >= 4 ~ str_sub(str_pad(ciiu_original, 4, pad = "0"), 1, 4),
+      !is.na(ciiu_original) & nchar(ciiu_original) == 3 ~ str_pad(ciiu_original, 3, pad = "0"),
+      !is.na(ciiu_original) & nchar(ciiu_original) == 2 ~ str_pad(ciiu_original, 2, pad = "0"),
+      TRUE ~ NA_character_
+    ),
+    ciiu4_div = case_when(
+      !is.na(ciiu4_homologado) & nchar(ciiu4_homologado) >= 3 ~ str_sub(ciiu4_homologado, 1, 2),
+      !is.na(ciiu4_homologado) & nchar(ciiu4_homologado) == 2 ~ ciiu4_homologado,
+      TRUE ~ NA_character_
+    )
+  )
+
+available_vars <- names(edit_raw)
+missing_vars <- setdiff(vars_needed, available_vars)
+if (length(missing_vars) > 0) warning("Variables no encontradas en EDIT: ", paste(missing_vars, collapse = ", "))
+
+edit_2019_2020 <- edit_raw %>%
+  select(any_of(vars_needed), empresa_id, ciiu_original) %>%
+  mutate(
     ciiu4_div = as.character(ciiu4_div)
   ) %>%
   left_join(ciiu4_div_labels, by = "ciiu4_div")
@@ -116,6 +234,8 @@ financiacion_empresa_anio <- bind_rows(
       cooperacion_donaciones = to_numeric_safe(III1R7C1) + to_numeric_safe(III1R7C2),
       total_financiacion_reportado = to_numeric_safe(III1R8C1),
       total_inversion_innovacion = to_numeric_safe(II1R10C1),
+      ingresos_ventas_nacionales = to_numeric_safe(I3R1C1),
+      exportaciones_totales = to_numeric_safe(I3R1C2),
       inversion_id_interna = to_numeric_safe(II1R1C1),
       inversion_id_externa = to_numeric_safe(II1R2C1),
       inversion_maquinaria = to_numeric_safe(II1R3C1),
@@ -171,6 +291,8 @@ financiacion_empresa_anio <- bind_rows(
       cooperacion_donaciones = to_numeric_safe(III1R7C3) + to_numeric_safe(III1R7C4),
       total_financiacion_reportado = to_numeric_safe(III1R8C2),
       total_inversion_innovacion = to_numeric_safe(II1R10C2),
+      ingresos_ventas_nacionales = to_numeric_safe(I3R2C1),
+      exportaciones_totales = to_numeric_safe(I3R2C2),
       inversion_id_interna = to_numeric_safe(II1R1C2),
       inversion_id_externa = to_numeric_safe(II1R2C2),
       inversion_maquinaria = to_numeric_safe(II1R3C2),
@@ -212,6 +334,35 @@ financiacion_empresa_anio <- bind_rows(
     )
 ) %>%
   mutate(
+    ingresos_ventas_totales = case_when(
+      is.na(ingresos_ventas_nacionales) & is.na(exportaciones_totales) ~ NA_real_,
+      TRUE ~ replace_na(ingresos_ventas_nacionales, 0) + replace_na(exportaciones_totales, 0)
+    ),
+    across(
+      c(
+        recursos_propios,
+        recursos_grupo,
+        recursos_publicos,
+        banca_privada,
+        otras_empresas,
+        capital_privado,
+        cooperacion_donaciones,
+        inversion_id_interna,
+        inversion_id_externa,
+        inversion_maquinaria,
+        inversion_tic_datos,
+        inversion_mercadotecnia,
+        inversion_propiedad_intelectual,
+        inversion_consultoria,
+        inversion_ingenieria_diseno,
+        inversion_capacitacion,
+        inversion_edificaciones,
+        inversion_metodos_organizativos
+      ),
+      ~ replace_na(.x, 0)
+    )
+  ) %>%
+  mutate(
     financiamiento_privado = recursos_propios + recursos_grupo + banca_privada + otras_empresas + capital_privado,
     financiamiento_clasificado = financiamiento_privado + recursos_publicos + cooperacion_donaciones,
     diferencia_con_total_reportado = total_financiacion_reportado - financiamiento_clasificado,
@@ -226,6 +377,147 @@ financiacion_empresa_anio <- bind_rows(
       cooperacion_donaciones > 0 ~ "Cooperacion/donaciones",
       TRUE ~ "Sin financiacion reportada"
     )
+  )
+
+base_edit_2019 <- financiacion_empresa_anio %>%
+  filter(year == 2019L, !is.na(empresa_id), empresa_id != "") %>%
+  mutate(
+    total_privado = financiamiento_privado,
+    total_publico = recursos_publicos,
+    total_cooperacion = cooperacion_donaciones,
+    fuente_financiacion_principal = case_when(
+      total_publico > total_privado & total_publico > total_cooperacion ~ "Publica",
+      total_privado > total_publico & total_privado > total_cooperacion ~ "Privada",
+      total_cooperacion > total_publico & total_cooperacion > total_privado ~ "Cooperacion/donaciones",
+      total_publico > 0 & total_privado > 0 & total_publico == total_privado ~ "Mixta",
+      total_publico > 0 & total_privado > 0 ~ "Mixta",
+      total_publico > 0 ~ "Publica",
+      total_privado > 0 ~ "Privada",
+      total_cooperacion > 0 ~ "Cooperacion/donaciones",
+      TRUE ~ "Sin financiacion reportada"
+    ),
+    pct_financiacion_publica = if_else(total_financiacion_reportado > 0, total_publico / total_financiacion_reportado, NA_real_),
+    pct_financiacion_privada = if_else(total_financiacion_reportado > 0, total_privado / total_financiacion_reportado, NA_real_),
+    pct_financiacion_cooperacion = if_else(total_financiacion_reportado > 0, total_cooperacion / total_financiacion_reportado, NA_real_),
+    pct_inversion_innovacion_ventas = if_else(ingresos_ventas_totales > 0, total_inversion_innovacion / ingresos_ventas_totales, NA_real_),
+    inversion_destinos_suma = rowSums(
+      across(c(
+        inversion_id_interna,
+        inversion_id_externa,
+        inversion_maquinaria,
+        inversion_tic_datos,
+        inversion_mercadotecnia,
+        inversion_propiedad_intelectual,
+        inversion_consultoria,
+        inversion_ingenieria_diseno,
+        inversion_capacitacion,
+        inversion_edificaciones,
+        inversion_metodos_organizativos
+      )),
+      na.rm = TRUE
+    ),
+    pct_inversion_id_interna = if_else(total_inversion_innovacion > 0, inversion_id_interna / total_inversion_innovacion, NA_real_),
+    pct_inversion_id_externa = if_else(total_inversion_innovacion > 0, inversion_id_externa / total_inversion_innovacion, NA_real_),
+    pct_inversion_maquinaria = if_else(total_inversion_innovacion > 0, inversion_maquinaria / total_inversion_innovacion, NA_real_),
+    pct_inversion_tic_datos = if_else(total_inversion_innovacion > 0, inversion_tic_datos / total_inversion_innovacion, NA_real_),
+    pct_inversion_mercadotecnia = if_else(total_inversion_innovacion > 0, inversion_mercadotecnia / total_inversion_innovacion, NA_real_),
+    pct_inversion_propiedad_intelectual = if_else(total_inversion_innovacion > 0, inversion_propiedad_intelectual / total_inversion_innovacion, NA_real_),
+    pct_inversion_consultoria = if_else(total_inversion_innovacion > 0, inversion_consultoria / total_inversion_innovacion, NA_real_),
+    pct_inversion_ingenieria_diseno = if_else(total_inversion_innovacion > 0, inversion_ingenieria_diseno / total_inversion_innovacion, NA_real_),
+    pct_inversion_capacitacion = if_else(total_inversion_innovacion > 0, inversion_capacitacion / total_inversion_innovacion, NA_real_),
+    pct_inversion_edificaciones = if_else(total_inversion_innovacion > 0, inversion_edificaciones / total_inversion_innovacion, NA_real_),
+    pct_inversion_metodos_organizativos = if_else(total_inversion_innovacion > 0, inversion_metodos_organizativos / total_inversion_innovacion, NA_real_)
+  ) %>%
+  select(
+    empresa_id,
+    ciiu4_div,
+    ciiu4_homologado,
+    sector_label,
+    ingresos_ventas_nacionales,
+    exportaciones_totales,
+    ingresos_ventas_totales,
+    total_inversion_innovacion,
+    total_financiacion_reportado,
+    total_publico,
+    total_privado,
+    total_cooperacion,
+    fuente_financiacion_principal,
+    pct_financiacion_publica,
+    pct_financiacion_privada,
+    pct_financiacion_cooperacion,
+    pct_inversion_innovacion_ventas,
+    starts_with("inversion_"),
+    starts_with("pct_inversion_")
+  )
+
+resumen_base_edit_2019 <- tibble(
+  empresas_edit_2019 = n_distinct(base_edit_2019$empresa_id, na.rm = TRUE),
+  empresas_con_inversion = sum(base_edit_2019$total_inversion_innovacion > 0, na.rm = TRUE),
+  empresas_con_ventas_reportadas = sum(base_edit_2019$ingresos_ventas_totales > 0, na.rm = TRUE),
+  ingresos_ventas_totales = sum(base_edit_2019$ingresos_ventas_totales, na.rm = TRUE),
+  inversion_innovacion_2019 = sum(base_edit_2019$total_inversion_innovacion, na.rm = TRUE),
+  pct_inversion_sobre_ventas = inversion_innovacion_2019 / ingresos_ventas_totales
+)
+
+tabla_fuente_edit_2019 <- base_edit_2019 %>%
+  summarise(
+    recursos_publicos = sum(total_publico, na.rm = TRUE),
+    financiamiento_privado = sum(total_privado, na.rm = TRUE),
+    cooperacion_donaciones = sum(total_cooperacion, na.rm = TRUE),
+    total_financiacion = sum(total_financiacion_reportado, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    c(recursos_publicos, financiamiento_privado, cooperacion_donaciones),
+    names_to = "fuente",
+    values_to = "monto"
+  ) %>%
+  mutate(participacion = monto / total_financiacion)
+
+tabla_destino_edit_2019 <- base_edit_2019 %>%
+  select(
+    inversion_id_interna,
+    inversion_id_externa,
+    inversion_maquinaria,
+    inversion_tic_datos,
+    inversion_mercadotecnia,
+    inversion_propiedad_intelectual,
+    inversion_consultoria,
+    inversion_ingenieria_diseno,
+    inversion_capacitacion,
+    inversion_edificaciones,
+    inversion_metodos_organizativos
+  ) %>%
+  summarise(across(everything(), ~ sum(.x, na.rm = TRUE))) %>%
+  pivot_longer(everything(), names_to = "destino", values_to = "monto") %>%
+  mutate(
+    destino = recode(
+      destino,
+      inversion_id_interna = "I+D interna",
+      inversion_id_externa = "I+D externa",
+      inversion_maquinaria = "Maquinaria y equipo",
+      inversion_tic_datos = "TIC, software y datos",
+      inversion_mercadotecnia = "Mercadotecnia",
+      inversion_propiedad_intelectual = "Propiedad intelectual",
+      inversion_consultoria = "Asistencia tecnica y consultoria",
+      inversion_ingenieria_diseno = "Ingenieria y diseno",
+      inversion_capacitacion = "Formacion y capacitacion",
+      inversion_edificaciones = "Edificaciones",
+      inversion_metodos_organizativos = "Metodos organizativos"
+    ),
+    participacion = monto / sum(monto, na.rm = TRUE)
+  ) %>%
+  arrange(desc(monto))
+
+tabla_intensidad_inversion_ventas <- base_edit_2019 %>%
+  filter(ingresos_ventas_totales > 0) %>%
+  summarise(
+    empresas = n(),
+    ingresos_ventas_totales = sum(ingresos_ventas_totales, na.rm = TRUE),
+    inversion_innovacion_total = sum(total_inversion_innovacion, na.rm = TRUE),
+    pct_inversion_sobre_ventas_agregado = inversion_innovacion_total / ingresos_ventas_totales,
+    mediana_pct_empresa = median(pct_inversion_innovacion_ventas, na.rm = TRUE),
+    promedio_pct_empresa = mean(pct_inversion_innovacion_ventas, na.rm = TRUE),
+    p90_pct_empresa = quantile(pct_inversion_innovacion_ventas, 0.90, na.rm = TRUE, names = FALSE)
   )
 
 resumen_nacional <- financiacion_empresa_anio %>%
@@ -563,7 +855,16 @@ grafico_concentracion <- ggplot(concentracion_financiacion, aes(x = factor(year)
   theme_minimal(base_size = 11) +
   theme(plot.title = element_text(face = "bold"))
 
-cat("\n=== 1. Panorama nacional ===\n")
+cat("\n=== 0. Resumen EDIT 2019 ===\n")
+print(resumen_base_edit_2019)
+cat("\n=== 0.1. Fuente de financiacion de la inversion en innovacion, EDIT 2019 ===\n")
+print(tabla_fuente_edit_2019)
+cat("\n=== 0.2. Destino de la inversion ACTI, EDIT 2019 ===\n")
+print(tabla_destino_edit_2019)
+cat("\n=== 0.3. Inversion en innovacion como porcentaje de ingresos/ventas, EDIT 2019 ===\n")
+print(tabla_intensidad_inversion_ventas)
+
+cat("\n=== 1. Panorama nacional EDIT 2019-2020 ===\n")
 print(resumen_nacional)
 cat("\n=== 2. Financiamiento por sector ===\n")
 print(resumen_sector)

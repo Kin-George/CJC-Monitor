@@ -40,6 +40,8 @@ local cand_edad       "P6040 EDAD p6040 edad"
 local cand_depto      "DPTO dpto"
 local cand_area       "AREA area"
 local cand_posicion   "P6430 p6430"
+local cand_oficio     "OFICIO_C8 oficio_c8 OFICIO oficio"
+local cand_oficio2d   "OFICIO_C8_2D oficio_c8_2d"
 local cand_ei         "EI ei"
 
 
@@ -125,6 +127,8 @@ postfile `postaudit' ///
     str40 var_depto ///
     str40 var_area ///
     str40 var_posicion ///
+    str40 var_oficio ///
+    str40 var_oficio2d ///
     str40 var_ei ///
     byte procesado ///
     str200 observacion ///
@@ -165,13 +169,23 @@ foreach year of local anios {
             ("") ///
             ("") ///
             ("") ///
+            ("") ///
+            ("") ///
             (0) ///
             ("No existe el archivo")
 
         continue
     }
 
-    use "`archivo_base'", clear
+    * Los archivos GEIH_<year>_TOTAL.dta crudos pesan varios GB (hasta 4+ GB
+    * para un solo año) con cientos de columnas, y esta maquina tiene poca
+    * RAM disponible. Para detectar los nombres reales de las variables no
+    * hace falta cargar todas las filas: "in 1" trae solo la primera
+    * observacion (todas las columnas, una sola fila), que alcanza para que
+    * find_first_var (basado en "ds") encuentre los nombres. La carga
+    * completa, ya filtrada a las columnas que realmente se usan, se hace
+    * mas abajo en 4.1.5, despues de saber cuales son esas columnas.
+    use "`archivo_base'" in 1, clear
 
 
     *================================================
@@ -223,6 +237,12 @@ foreach year of local anios {
     find_first_var, candidates("`cand_posicion'")
     local var_posicion "`r(var)'"
 
+    find_first_var, candidates("`cand_oficio'")
+    local var_oficio "`r(var)'"
+
+    find_first_var, candidates("`cand_oficio2d'")
+    local var_oficio2d "`r(var)'"
+
     find_first_var, candidates("`cand_ei'")
     local var_ei "`r(var)'"
 
@@ -268,6 +288,8 @@ foreach year of local anios {
             ("`var_depto'") ///
             ("`var_area'") ///
             ("`var_posicion'") ///
+            ("`var_oficio'") ///
+            ("`var_oficio2d'") ///
             ("`var_ei'") ///
             (0) ///
             ("`observacion'")
@@ -275,6 +297,24 @@ foreach year of local anios {
         di as error "Se omite `year': `observacion'"
         continue
     }
+
+
+    *================================================
+    * 4.1.5. Recargar el archivo completo, solo con las columnas
+    *        que en realidad se van a usar (evita cargar a memoria
+    *        las cientos de columnas restantes del archivo crudo)
+    *================================================
+
+    local vars_a_cargar ""
+    foreach v in `var_factor' `var_ingreso' `var_sector' `var_rama4d' `var_ocupado' ///
+                 `var_pension' `var_tamano' `var_horas' `var_sexo' `var_salud' ///
+                 `var_educ' `var_edad' `var_depto' `var_area' `var_posicion' ///
+                 `var_oficio' `var_oficio2d' `var_ei' {
+        if "`v'" != "" local vars_a_cargar "`vars_a_cargar' `v'"
+    }
+
+    di as text "Cargando `year' solo con: `vars_a_cargar'"
+    use `vars_a_cargar' using "`archivo_base'", clear
 
 
     * Variables no esenciales, pero se registran en auditoría
@@ -326,6 +366,14 @@ foreach year of local anios {
         local observacion "`observacion' Falta posición ocupacional;"
     }
 
+    if "`var_oficio'" == "" {
+        local observacion "`observacion' Falta oficio/CNO;"
+    }
+
+    if "`var_oficio2d'" == "" {
+        local observacion "`observacion' Falta oficio 2D;"
+    }
+
     if "`observacion'" == "" {
         local observacion "Completo"
     }
@@ -348,6 +396,8 @@ foreach year of local anios {
         ("`var_depto'") ///
         ("`var_area'") ///
         ("`var_posicion'") ///
+        ("`var_oficio'") ///
+        ("`var_oficio2d'") ///
         ("`var_ei'") ///
         (1) ///
         ("`observacion'")
@@ -369,6 +419,8 @@ foreach year of local anios {
     di as result "Depto:     `var_depto'"
     di as result "Área:      `var_area'"
     di as result "Posición:  `var_posicion'"
+    di as result "Oficio:    `var_oficio'"
+    di as result "Oficio 2D: `var_oficio2d'"
     di as result "EI:        `var_ei'"
 
 
@@ -393,6 +445,8 @@ foreach year of local anios {
     gen str40 depto_var_original    = "`var_depto'"
     gen str40 area_var_original     = "`var_area'"
     gen str40 posicion_var_original = "`var_posicion'"
+    gen str40 oficio_var_original   = "`var_oficio'"
+    gen str40 oficio2d_var_original = "`var_oficio2d'"
     gen str40 ei_var_original       = "`var_ei'"
 
 
@@ -415,6 +469,8 @@ foreach year of local anios {
     make_double_from_var, newname(depto_cod) varname("`var_depto'")
     make_double_from_var, newname(area_cod) varname("`var_area'")
     make_double_from_var, newname(posicion_ocupacional_cod) varname("`var_posicion'")
+    make_double_from_var, newname(oficio_cod) varname("`var_oficio'")
+    make_double_from_var, newname(oficio_c8_2d_cod) varname("`var_oficio2d'")
 
     * EI se copia primero como auxiliar para no chocar con el EI original
     make_double_from_var, newname(EI_tmp) varname("`var_ei'")
@@ -491,7 +547,7 @@ foreach year of local anios {
         ocupado_var_original pension_var_original tamano_var_original ///
         horas_var_original sexo_var_original salud_var_original educ_var_original ///
         edad_var_original depto_var_original area_var_original posicion_var_original ///
-        ei_var_original ///
+        oficio_var_original oficio2d_var_original ei_var_original ///
         factor_expansion_original factor_expansion_anual ///
         ocupado_cod ///
         ingresos_laborales ingreso_valido ///
@@ -508,6 +564,8 @@ foreach year of local anios {
         depto_cod ///
         area_cod ///
         posicion_ocupacional_cod ///
+        oficio_cod ///
+        oficio_c8_2d_cod ///
         EI_tmp
 
     rename EI_tmp EI

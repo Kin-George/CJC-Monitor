@@ -14,6 +14,47 @@ cd "C:/Users/jorge/Documents/Databases/GEIH"
 capture mkdir "Outputs"
 capture mkdir "Outputs/tables"
 
+*====================================================
+* 0a. Labels ocupacionales CIUO-08 A.C.
+*====================================================
+* La GEIH 2021-2025 trae OFICIO_C8 y OFICIO_C8_2D en CIUO-08 A.C.
+* Este bloque no homologa ocupaciones; solo trae la descripción oficial
+* de cada código desde la estructura CIUO-08 A.C. del DANE.
+
+tempfile ciuo08_4d_labels ciuo08_2d_labels
+
+import excel using ///
+    "C:/Users/jorge/Documents/Trabajo-Profesional/Javeriana/DocumentacionAuxiliar/Correlativa_CIUO_88_A_C_vs_CIUO_08_A_C.xlsx", ///
+    sheet("Estructura CIUO-08 A.C.") cellrange(A5:B975) clear
+
+rename A ciuo08_raw
+rename B ciuo08_desc
+
+foreach v in ciuo08_raw ciuo08_desc {
+    capture confirm numeric variable `v'
+    if !_rc {
+        tostring `v', replace force format(%20.0g)
+    }
+    replace `v' = strtrim(`v')
+    replace `v' = "" if `v' == "."
+}
+
+preserve
+    keep if regexm(ciuo08_raw, "^[0-9][0-9][0-9][0-9]$")
+    gen double oficio_cod = real(ciuo08_raw)
+    gen str240 oficio_c8_label = ciuo08_desc
+    keep oficio_cod oficio_c8_label
+    duplicates drop oficio_cod, force
+    save `ciuo08_4d_labels', replace
+restore
+
+keep if regexm(ciuo08_raw, "^[0-9][0-9]$")
+gen double oficio_c8_2d_cod = real(ciuo08_raw)
+gen str240 oficio_c8_2d_label = ciuo08_desc
+keep oficio_c8_2d_cod oficio_c8_2d_label
+duplicates drop oficio_c8_2d_cod, force
+save `ciuo08_2d_labels', replace
+
 use "Outputs/tables/GEIH_consolidada_variables_interes_2021_2025.dta", clear
 
 
@@ -100,10 +141,40 @@ foreach v in depto_cod area_cod posicion_ocupacional_cod {
     }
 }
 
+foreach v in oficio_cod oficio_c8_2d_cod {
+
+    capture confirm variable `v'
+
+    if _rc {
+        di as error "No se encontró la variable `v' en la base consolidada."
+        di as error "Vuelve a ejecutar baseConsolidada2021-2025.do para conservar OFICIO_C8 y OFICIO_C8_2D."
+        exit 111
+    }
+
+    capture confirm numeric variable `v'
+
+    if _rc {
+        tempvar tmp_oficio
+        destring `v', gen(`tmp_oficio') force
+        drop `v'
+        rename `tmp_oficio' `v'
+    }
+}
+
 * Limpiar códigos imposibles o vacíos
 replace depto_cod = . if depto_cod <= 0
 replace area_cod = . if area_cod <= 0
 replace posicion_ocupacional_cod = . if !inrange(posicion_ocupacional_cod, 1, 9)
+replace oficio_cod = . if !inrange(oficio_cod, 0, 9999)
+replace oficio_c8_2d_cod = . if !inrange(oficio_c8_2d_cod, 0, 99)
+
+merge m:1 oficio_cod using `ciuo08_4d_labels', keep(master match) nogen
+merge m:1 oficio_c8_2d_cod using `ciuo08_2d_labels', keep(master match) nogen
+
+label variable oficio_cod "Código ocupacional OFICIO_C8, CIUO-08 A.C. a 4 dígitos"
+label variable oficio_c8_label "Descripción OFICIO_C8, CIUO-08 A.C. a 4 dígitos"
+label variable oficio_c8_2d_cod "Código ocupacional OFICIO_C8_2D, CIUO-08 A.C. a 2 dígitos"
+label variable oficio_c8_2d_label "Descripción OFICIO_C8_2D, CIUO-08 A.C. a 2 dígitos"
 
 label define posicion_ocupacional_lbl ///
     1 "Obrero o empleado de empresa particular" ///
@@ -132,10 +203,23 @@ label values area_cod area_lbl
 *====================================================
 * 1. Filtrar observaciones válidas
 *====================================================
+* OJO: antes esta seccion tambien exigia ingreso_hora_valido==1,
+* ingreso_laboral_hora no missing y > 0. Eso descartaba de la base a
+* cualquier persona ocupada (ya viene de baseConsolidada con
+* ocupado_cod==1) que no tuviera un ingreso por hora valido -por ejemplo
+* trabajador familiar sin remuneracion, o item-missing en el ingreso-,
+* aunque para contar "numero de ocupados" no se necesita el ingreso.
+* Se quita ese filtro aqui para conservar la base lo mas completa posible;
+* el indicador ingreso_hora_valido queda intacto para que cualquier
+* analisis que si necesite ingreso por hora (ej. brecha salarial) filtre
+* por su cuenta en el momento de usarlo, sin tener que rehacer la base.
+*
+* Se mantienen unicamente los filtros que son indispensables para
+* cualquier conteo expandido: anio valido en el rango del panel, y un
+* factor de expansion valido y positivo (sin fex no hay como expandir esa
+* fila a poblacion, expandida o no expandida esa fila no aporta a ningun
+* total).
 
-keep if ingreso_hora_valido == 1
-keep if !missing(ingreso_laboral_hora)
-keep if ingreso_laboral_hora > 0
 keep if !missing(factor_expansion_anual)
 keep if factor_expansion_anual > 0
 
@@ -701,6 +785,12 @@ gen byte miss_edad     = missing(edad)
 gen byte miss_depto    = missing(depto_cod)
 gen byte miss_area     = missing(area_cod)
 gen byte miss_posicion = missing(posicion_ocupacional_cod)
+gen byte miss_oficio4d = missing(oficio_cod)
+gen byte miss_oficio2d = missing(oficio_c8_2d_cod)
+gen byte miss_label_oficio4d = missing(oficio_c8_label) if !missing(oficio_cod)
+gen byte miss_label_oficio2d = missing(oficio_c8_2d_label) if !missing(oficio_c8_2d_cod)
+replace miss_label_oficio4d = 0 if missing(miss_label_oficio4d)
+replace miss_label_oficio2d = 0 if missing(miss_label_oficio2d)
 gen byte miss_ei       = missing(EI)
 gen byte fila_audit    = 1
 
@@ -717,6 +807,10 @@ collapse ///
     (sum) miss_depto = miss_depto ///
     (sum) miss_area = miss_area ///
     (sum) miss_posicion = miss_posicion ///
+    (sum) miss_oficio4d = miss_oficio4d ///
+    (sum) miss_oficio2d = miss_oficio2d ///
+    (sum) miss_label_oficio4d = miss_label_oficio4d ///
+    (sum) miss_label_oficio2d = miss_label_oficio2d ///
     (sum) miss_ei = miss_ei, ///
     by(anio)
 
@@ -729,18 +823,22 @@ restore
 
 
 *====================================================
-* 8. Mantener observaciones completas
+* 8. Ya NO se eliminan observaciones por variables incompletas
 *====================================================
-
-drop if missing(tamano_hom_cod)
-drop if missing(educ_hom_cod)
-drop if missing(formalidad_cod)
-drop if missing(sexo_hom_cod)
-drop if missing(sector_hom_cod)
-drop if missing(edad)
-drop if missing(depto_cod)
-drop if missing(posicion_ocupacional_cod)
-drop if missing(EI)
+* Antes esta seccion eliminaba cualquier fila (persona ocupada) que
+* tuviera missing en tamano de empresa, educacion, formalidad, sexo,
+* sector, edad, departamento, posicion ocupacional o EI. Cada uno de esos
+* missing por separado le quitaba gente genuinamente ocupada al conteo
+* total, sin que esa informacion faltante tuviera nada que ver con si la
+* persona esta o no ocupada.
+*
+* La base ahora conserva a todo ocupado (ocupado_cod==1, ya filtrado en
+* baseConsolidada2021-2025.do) con fex valido, sin importar que le falten
+* estas variables. Los indicadores miss_* generados en la seccion 7 siguen
+* disponibles para que cualquier analisis que sí necesite, por ejemplo,
+* sector_hom_cod completo, filtre por su cuenta con
+* "keep if !missing(sector_hom_cod)" en ese momento, en vez de perder esas
+* observaciones para todo el mundo desde la base madre.
 
 *====================================================
 * 9. IPC y salario real
@@ -815,6 +913,9 @@ decode posicion_ocupacional_cod, gen(ocupacion)
 clonevar posicion_ocupacional = posicion_ocupacional_cod
 decode posicion_ocupacional_cod, gen(posicion_ocupacional_label)
 
+clonevar oficio_c8_4d = oficio_cod
+label variable oficio_c8_4d "Código ocupacional OFICIO_C8, CIUO-08 A.C. a 4 dígitos"
+
 gen byte mujer = sexo_hom_cod == 2 if !missing(sexo_hom_cod)
 
 * Dummy formal:
@@ -863,6 +964,7 @@ order persona_id anio ///
       sector_hom_cod sector ///
       rama4d rama4d_clase rama3d rama4d_div ciiu_revision_rama4d ///
       subrama_det_cod subrama_det ///
+      oficio_c8_4d oficio_c8_label oficio_c8_2d_cod oficio_c8_2d_label ///
       posicion_ocupacional posicion_ocupacional_label ocupacion ///
       tamano_hom_cod tamano_empresa ///
       educ_hom_cod educacion ///
@@ -880,6 +982,7 @@ keep persona_id anio ///
      sector_hom_cod sector ///
      rama4d rama4d_clase rama3d rama4d_div ciiu_revision_rama4d ///
      subrama_det_cod subrama_det ///
+     oficio_c8_4d oficio_c8_label oficio_c8_2d_cod oficio_c8_2d_label ///
      posicion_ocupacional posicion_ocupacional_label ocupacion ///
      tamano_hom_cod tamano_empresa ///
      educ_hom_cod educacion ///

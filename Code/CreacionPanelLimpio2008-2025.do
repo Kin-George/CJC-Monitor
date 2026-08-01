@@ -14,7 +14,87 @@ cd "C:/Users/jorge/Documents/Databases/GEIH"
 capture mkdir "Outputs"
 capture mkdir "Outputs/tables"
 
-use "Outputs/tables/GEIH_consolidada_variables_interes_2008_2025.dta", clear
+*====================================================
+* 0a. Puente ocupacional CIUO-08 -> CIUO-88
+*====================================================
+* Desde 2021 la GEIH trae OFICIO_C8, codificado en CIUO-08.
+* Para mantener una serie comparable con el OFICIO usado hasta 2019,
+* se construye un puente a dos dígitos usando la matriz oficial
+* CIUO-88 A.C. vs CIUO-08 A.C. disponible en DocumentacionAuxiliar.
+
+tempfile xwalk_ciuo08_ciuo88_unique xwalk_ciuo08_ciuo88_ambiguous
+
+import excel using ///
+    "C:/Users/jorge/Documents/Trabajo-Profesional/Javeriana/DocumentacionAuxiliar/Correlativa_CIUO_88_A_C_vs_CIUO_08_A_C.xlsx", ///
+    sheet("Matriz 88 A.C. vs 08 A.C.") cellrange(A6:D1590) clear
+
+rename A ciuo88_raw
+rename B ciuo88_desc
+rename C ciuo08_raw
+rename D ciuo08_desc
+
+foreach v in ciuo88_raw ciuo08_raw {
+    capture confirm numeric variable `v'
+    if !_rc {
+        tostring `v', replace force format(%20.0g)
+    }
+    replace `v' = upper(strtrim(`v'))
+    replace `v' = subinstr(`v', "P", "", .)
+    replace `v' = subinstr(`v', " ", "", .)
+    replace `v' = "" if `v' == "."
+}
+
+replace ciuo88_raw = ciuo88_raw[_n-1] if ciuo88_raw == "" & _n > 1
+replace ciuo88_desc = ciuo88_desc[_n-1] if missing(ciuo88_desc) & _n > 1
+
+* La matriz tiene filas jerárquicas de 1, 2, 3 y 4 dígitos.
+* Para mapear OFICIO_C8 usamos únicamente códigos completos de 4 dígitos.
+keep if regexm(ciuo88_raw, "^[0-9][0-9][0-9][0-9]$")
+keep if regexm(ciuo08_raw, "^[0-9][0-9][0-9][0-9]$")
+
+gen long ciuo08_4d_cod = real(ciuo08_raw)
+gen byte oficio_ciuo88_2d_cod = real(substr(ciuo88_raw, 1, 2))
+
+drop if missing(ciuo08_4d_cod)
+drop if missing(oficio_ciuo88_2d_cod)
+
+bysort ciuo08_4d_cod oficio_ciuo88_2d_cod: gen byte tag_destino = _n == 1
+bysort ciuo08_4d_cod: egen oficio_hom_n_destinos = total(tag_destino)
+
+preserve
+    keep if oficio_hom_n_destinos > 1
+    bysort ciuo08_4d_cod: keep if _n == 1
+    gen byte oficio_hom_ambiguo = 1
+    rename oficio_hom_n_destinos oficio_hom_n_destinos_amb
+    keep ciuo08_4d_cod oficio_hom_ambiguo oficio_hom_n_destinos_amb
+    save `xwalk_ciuo08_ciuo88_ambiguous', replace
+restore
+
+keep if oficio_hom_n_destinos == 1
+bysort ciuo08_4d_cod: keep if _n == 1
+keep ciuo08_4d_cod oficio_ciuo88_2d_cod oficio_hom_n_destinos
+save `xwalk_ciuo08_ciuo88_unique', replace
+
+* Para armar BaseconCINE11.dta (2010-2025) mas rapido: se carga solo con
+* las columnas que este script realmente usa mas adelante (se verifico
+* una por una contra el codigo; las que no se usan, como
+* factor_expansion_original, ingresos_laborales o ciiu_revision_rama4d
+* -esta ultima se re-genera igual desde cero en la seccion 6b-, se dejan
+* afuera), y se filtra de una vez a 2010-2025 para que todos los replace
+* que vienen despues corran sobre menos filas.
+local vars_a_cargar ///
+    anio ///
+    sector_var_original rama4d_var_original tamano_var_original ///
+    educ_var_original oficio_var_original ///
+    factor_expansion_anual horas_semana ///
+    ingreso_laboral_hora ingreso_hora_valido ///
+    sector_cod rama4d_cod cotiza_pension_cod tamano_empresa_cod sexo_cod ///
+    educacion_cod educacion_grado_cod educacion_tipo_cod ///
+    edad depto_cod area_cod posicion_ocupacional_cod oficio_cod
+
+use `vars_a_cargar' using "Outputs/tables/GEIH_consolidada_variables_interes_2008_2025.dta", clear
+
+keep if inrange(anio, 2010, 2025)
 
 
 *====================================================
@@ -24,6 +104,13 @@ use "Outputs/tables/GEIH_consolidada_variables_interes_2008_2025.dta", clear
 gen str40 sector_var_u = upper(strtrim(sector_var_original))
 gen str40 tamano_var_u = upper(strtrim(tamano_var_original))
 gen str40 educ_var_u   = upper(strtrim(educ_var_original))
+
+capture confirm variable oficio_var_original
+if _rc {
+    gen str40 oficio_var_original = ""
+}
+
+gen str40 oficio_var_u = upper(strtrim(oficio_var_original))
 
 *====================================================
 * 0b. Verificar y limpiar edad
@@ -75,10 +162,24 @@ foreach v in depto_cod area_cod posicion_ocupacional_cod {
     }
 }
 
+capture confirm variable oficio_cod
+if _rc {
+    gen double oficio_cod = .
+}
+
+capture confirm numeric variable oficio_cod
+if _rc {
+    tempvar oficio_cod_num
+    destring oficio_cod, gen(`oficio_cod_num') force
+    drop oficio_cod
+    rename `oficio_cod_num' oficio_cod
+}
+
 * Limpiar códigos imposibles o vacíos
 replace depto_cod = . if depto_cod <= 0
 replace area_cod = . if area_cod <= 0
 replace posicion_ocupacional_cod = . if !inrange(posicion_ocupacional_cod, 1, 9)
+replace oficio_cod = . if oficio_cod < 0
 
 label define posicion_ocupacional_lbl ///
     1 "Obrero o empleado de empresa particular" ///
@@ -102,6 +203,64 @@ label define area_lbl ///
     8 "Centro poblado y rural disperso", replace
 
 label values area_cod area_lbl
+
+*====================================================
+* 0c. Homologación ocupacional: OFICIO / CNO antiguo
+*====================================================
+* 2008-2019: OFICIO ya viene en la codificación antigua usada por la GEIH.
+* 2021-2025: OFICIO_C8 viene en CIUO-08 a 4 dígitos; se traduce a una
+* categoría de dos dígitos comparable usando la matriz CIUO-08 -> CIUO-88.
+* Si un código CIUO-08 tiene más de un destino de dos dígitos, se marca
+* como ambiguo y no se fuerza una categoría única.
+
+gen double oficio_cod_original = oficio_cod
+label variable oficio_cod_original "Código de oficio original preservado por año"
+
+gen long ciuo08_4d_cod = .
+replace ciuo08_4d_cod = round(oficio_cod_original) ///
+    if inrange(anio, 2021, 2025) & inrange(round(oficio_cod_original), 1000, 9999)
+
+merge m:1 ciuo08_4d_cod using `xwalk_ciuo08_ciuo88_unique', ///
+    keep(master match) nogen
+
+merge m:1 ciuo08_4d_cod using `xwalk_ciuo08_ciuo88_ambiguous', ///
+    keep(master match) nogen
+
+replace oficio_hom_ambiguo = 0 if missing(oficio_hom_ambiguo)
+replace oficio_hom_n_destinos = oficio_hom_n_destinos_amb ///
+    if oficio_hom_ambiguo == 1 & !missing(oficio_hom_n_destinos_amb)
+drop oficio_hom_n_destinos_amb
+replace oficio_hom_n_destinos = 0 if missing(oficio_hom_n_destinos) & !missing(ciuo08_4d_cod)
+
+gen byte oficio_cno70_2d_hom_cod = .
+
+replace oficio_cno70_2d_hom_cod = round(oficio_cod_original) ///
+    if inrange(anio, 2008, 2019) & inrange(round(oficio_cod_original), 0, 99)
+
+replace oficio_cno70_2d_hom_cod = floor(round(oficio_cod_original) / 100) ///
+    if inrange(anio, 2008, 2019) & inrange(round(oficio_cod_original), 100, 9999)
+
+replace oficio_cno70_2d_hom_cod = oficio_ciuo88_2d_cod ///
+    if inrange(anio, 2021, 2025) & oficio_hom_ambiguo == 0
+
+replace oficio_cno70_2d_hom_cod = . if !inrange(oficio_cno70_2d_hom_cod, 0, 99)
+
+gen byte oficio_hom_fuente = .
+replace oficio_hom_fuente = 1 if inrange(anio, 2008, 2019) & !missing(oficio_cno70_2d_hom_cod)
+replace oficio_hom_fuente = 2 if inrange(anio, 2021, 2025) & !missing(oficio_cno70_2d_hom_cod)
+
+label define oficio_hom_fuente_lbl ///
+    1 "OFICIO original 2008-2019" ///
+    2 "OFICIO_C8 homologado 2021-2025", replace
+
+label values oficio_hom_fuente oficio_hom_fuente_lbl
+
+label variable ciuo08_4d_cod "Código CIUO-08 a 4 dígitos original, 2021-2025"
+label variable oficio_ciuo88_2d_cod "Destino CIUO-88 a 2 dígitos desde matriz oficial"
+label variable oficio_hom_ambiguo "CIUO-08 con más de un destino CIUO-88 a 2 dígitos"
+label variable oficio_hom_n_destinos "Número de destinos CIUO-88 a 2 dígitos para CIUO-08"
+label variable oficio_cno70_2d_hom_cod "Oficio/CNO antiguo a 2 dígitos homologado"
+label variable oficio_hom_fuente "Fuente de la homologación ocupacional"
 
 
 *====================================================
@@ -269,6 +428,129 @@ label define educ_hom_lbl ///
     9 "No sabe, no informa", replace
 
 label values educ_hom_cod educ_hom_lbl
+
+
+*====================================================
+* 3b. CINE 11 (Clasificación Internacional Normalizada de la Educación,
+*     adaptada para Colombia), replica de la sintaxis SAS oficial del
+*     DANE en DocumentacionAuxiliar/anex-GEIHFLE-2024.xlsx, hoja
+*     "Código_SAS". Ver GEIH_2010_NumeroOcupadosCINE11.do y
+*     GEIH_2024_NumeroOcupadosCINE11.do para la traduccion linea por
+*     linea SAS->Stata (missing, SUM() vs "+", rangos abiertos, etc.) y
+*     su validacion exacta contra las cifras oficiales del DANE.
+*====================================================
+* Hay dos sintaxis oficiales, con formulas y codigos DISTINTOS entre si:
+*   - "marco 2005" (P6210/P6210S1/P6220), usada 2008-2019. Codigos CINE11
+*     crudos: 0 Ninguno, 1 primaria, 2 secundaria, 3 media,
+*     5 tecnica/tecnologica, 6 superior, 7 postgrado, 98/99 no determinado.
+*   - "marco 2018" (P3042/P3042S1/P3043), usada desde 2021. Codigos CINE11
+*     crudos: 1 Ninguno, 2 primaria, 3 secundaria, 4 media,
+*     5 y 6 tecnica/tecnologica, 7 universitaria, 8 postgrado,
+*     98/99 no determinado.
+* Como el mismo numero de codigo significa cosas distintas segun el
+* marco (p.ej. crudo=1 es "primaria" en marco 2005 pero "Ninguno" en
+* marco 2018), aqui se calculan por separado (cine11_marco2005,
+* cine11_marco2018, cada uno solo con missing fuera de su propio rango
+* de anios/variable) y se homologan a una sola escala comparable para
+* todo el panel: cine11_hom_cod, con esta codificacion unica:
+*   1 Ninguno, 2 Básica primaria, 3 Básica secundaria, 4 Educación media,
+*   5 Educación técnica profesional y tecnológica, 6 Universitaria,
+*   7 Posgrado, 98 No determinado.
+
+local marco2005 `"inlist(educ_var_u, "P6210", "NIVEL_MAS_ALTO") & inrange(anio, 2008, 2019)"'
+local marco2018 `"(educ_var_u == "P3042" | (educ_var_u == "NIVEL_MAS_ALTO" & anio >= 2021))"'
+
+* ---- Marco 2005: EDUC = SUM(P6210*100, P6210S1) ----
+* SUM() de SAS trata missing como 0 y solo da missing si AMBOS son
+* missing; no es lo mismo que sumar con "+" (que propaga missing con
+* cualquiera de los dos operandos).
+capture drop educ_marco2005
+gen double educ_marco2005 = .
+replace educ_marco2005 = educacion_cod * 100 if `marco2005'
+replace educ_marco2005 = educ_marco2005 + educacion_grado_cod ///
+    if `marco2005' & !missing(educ_marco2005) & !missing(educacion_grado_cod)
+replace educ_marco2005 = educacion_grado_cod ///
+    if `marco2005' & missing(educ_marco2005) & !missing(educacion_grado_cod)
+* si P6210 y P6210S1 son ambos missing, educ_marco2005 ya quedo missing
+
+capture drop cine11_marco2005
+gen byte cine11_marco2005 = .
+
+replace cine11_marco2005 = 0  if `marco2005' & missing(cine11_marco2005) & inrange(educ_marco2005, 100, 304)
+replace cine11_marco2005 = 1  if `marco2005' & missing(cine11_marco2005) & inrange(educ_marco2005, 305, 408)
+replace cine11_marco2005 = 2  if `marco2005' & missing(cine11_marco2005) & inrange(educ_marco2005, 409, 513) & (educacion_tipo_cod <= 1 | missing(educacion_tipo_cod))
+replace cine11_marco2005 = 2  if `marco2005' & missing(cine11_marco2005) & educ_marco2005 == 511 & educacion_tipo_cod == 1
+replace cine11_marco2005 = 3  if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 511) & educacion_tipo_cod == 2
+replace cine11_marco2005 = 5  if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 601) & educacion_tipo_cod == 3
+replace cine11_marco2005 = 6  if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 604) & educacion_tipo_cod == 4
+replace cine11_marco2005 = 7  if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 605) & educacion_tipo_cod == 5
+replace cine11_marco2005 = 99 if `marco2005' & missing(cine11_marco2005) & (!missing(educ_marco2005) & educ_marco2005 >= 500) & educacion_tipo_cod == 9
+replace cine11_marco2005 = 99 if `marco2005' & missing(cine11_marco2005) & (educ_marco2005 == 900 | educ_marco2005 == 999 | educacion_tipo_cod == 9)
+replace cine11_marco2005 = 98 if `marco2005' & missing(cine11_marco2005)
+* OJO: el SAS del marco 2005 no fuerza cine11=. cuando EDUC es missing
+* (cae en "Otherwise CINE11=98"); aqui se replica igual, sin ajuste extra.
+
+* ---- Marco 2018: EDUC = P3042*100 + P3042S1 (suma normal, "+") ----
+capture drop educ_marco2018
+gen double educ_marco2018 = .
+replace educ_marco2018 = educacion_cod * 100 + educacion_grado_cod if `marco2018'
+
+capture drop cine11_marco2018
+gen byte cine11_marco2018 = .
+
+replace cine11_marco2018 = 1  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 100, 304)
+replace cine11_marco2018 = 2  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 305, 403)
+replace cine11_marco2018 = 3  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 404, 705) & (educacion_tipo_cod <= 1 | missing(educacion_tipo_cod))
+replace cine11_marco2018 = 4  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 502, 1028) & educacion_tipo_cod == 2
+replace cine11_marco2018 = 4  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 602, 1028) & educacion_tipo_cod == 3
+replace cine11_marco2018 = 4  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 704, 1028) & educacion_tipo_cod == 4
+replace cine11_marco2018 = 5  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 802, 1028) & educacion_tipo_cod == 5
+replace cine11_marco2018 = 6  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 904, 1028) & educacion_tipo_cod == 6
+replace cine11_marco2018 = 7  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 1008, 1306) & educacion_tipo_cod == 7
+replace cine11_marco2018 = 8  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 1102, 1306) & educacion_tipo_cod == 8
+replace cine11_marco2018 = 8  if `marco2018' & missing(cine11_marco2018) & inrange(educ_marco2018, 1204, 1314) & educacion_tipo_cod == 9
+replace cine11_marco2018 = 8  if `marco2018' & missing(cine11_marco2018) & (!missing(educ_marco2018) & educ_marco2018 >= 1306) & educacion_tipo_cod == 10
+replace cine11_marco2018 = 99 if `marco2018' & missing(cine11_marco2018) & ((!missing(educ_marco2018) & educ_marco2018 >= 9900) | educacion_tipo_cod == 99)
+replace cine11_marco2018 = 98 if `marco2018' & missing(cine11_marco2018)
+replace cine11_marco2018 = .  if `marco2018' & missing(educ_marco2018)
+
+* ---- Homologar los dos marcos a una sola escala comparable ----
+capture drop cine11_hom_cod
+gen byte cine11_hom_cod = .
+
+replace cine11_hom_cod = 1  if `marco2005' & cine11_marco2005 == 0
+replace cine11_hom_cod = 2  if `marco2005' & cine11_marco2005 == 1
+replace cine11_hom_cod = 3  if `marco2005' & cine11_marco2005 == 2
+replace cine11_hom_cod = 4  if `marco2005' & cine11_marco2005 == 3
+replace cine11_hom_cod = 5  if `marco2005' & cine11_marco2005 == 5
+replace cine11_hom_cod = 6  if `marco2005' & cine11_marco2005 == 6
+replace cine11_hom_cod = 7  if `marco2005' & cine11_marco2005 == 7
+replace cine11_hom_cod = 98 if `marco2005' & inlist(cine11_marco2005, 98, 99)
+
+replace cine11_hom_cod = 1  if `marco2018' & cine11_marco2018 == 1
+replace cine11_hom_cod = 2  if `marco2018' & cine11_marco2018 == 2
+replace cine11_hom_cod = 3  if `marco2018' & cine11_marco2018 == 3
+replace cine11_hom_cod = 4  if `marco2018' & cine11_marco2018 == 4
+replace cine11_hom_cod = 5  if `marco2018' & inlist(cine11_marco2018, 5, 6)
+replace cine11_hom_cod = 6  if `marco2018' & cine11_marco2018 == 7
+replace cine11_hom_cod = 7  if `marco2018' & cine11_marco2018 == 8
+replace cine11_hom_cod = 98 if `marco2018' & inlist(cine11_marco2018, 98, 99)
+replace cine11_hom_cod = .  if `marco2018' & missing(cine11_marco2018)
+
+label define cine11_hom_lbl ///
+    1  "Ninguno" ///
+    2  "Básica primaria" ///
+    3  "Básica secundaria" ///
+    4  "Educación media" ///
+    5  "Educación técnica profesional y tecnológica" ///
+    6  "Universitaria" ///
+    7  "Posgrado" ///
+    98 "No determinado", replace
+
+label values cine11_hom_cod cine11_hom_lbl
+label variable cine11_hom_cod "Nivel educativo CINE 11, homologado marco 2005/2018"
+
+capture drop educ_marco2005 educ_marco2018 cine11_marco2005 cine11_marco2018
 
 
 *====================================================
@@ -683,6 +965,7 @@ label values subrama_det_cod subrama_det_lbl
 
 gen byte miss_tamano   = missing(tamano_hom_cod)
 gen byte miss_educ     = missing(educ_hom_cod)
+gen byte miss_cine11   = missing(cine11_hom_cod)
 gen byte miss_form     = missing(formalidad_cod)
 gen byte miss_sexo     = missing(sexo_hom_cod)
 gen byte miss_sector   = missing(sector_hom_cod)
@@ -691,6 +974,9 @@ gen byte miss_edad     = missing(edad)
 gen byte miss_depto    = missing(depto_cod)
 gen byte miss_area     = missing(area_cod)
 gen byte miss_posicion = missing(posicion_ocupacional_cod)
+gen byte miss_oficio   = missing(oficio_cno70_2d_hom_cod)
+gen byte amb_oficio    = oficio_hom_ambiguo == 1 if !missing(oficio_hom_ambiguo)
+replace amb_oficio = 0 if missing(amb_oficio)
 gen byte fila_audit    = 1
 
 preserve
@@ -699,6 +985,7 @@ collapse ///
     (sum) obs_validas_ingreso = fila_audit ///
     (sum) miss_tamano = miss_tamano ///
     (sum) miss_educ = miss_educ ///
+    (sum) miss_cine11 = miss_cine11 ///
     (sum) miss_form = miss_form ///
     (sum) miss_sexo = miss_sexo ///
     (sum) miss_sector = miss_sector ///
@@ -706,7 +993,9 @@ collapse ///
     (sum) miss_edad = miss_edad ///
     (sum) miss_depto = miss_depto ///
     (sum) miss_area = miss_area ///
-    (sum) miss_posicion = miss_posicion, ///
+    (sum) miss_posicion = miss_posicion ///
+    (sum) miss_oficio = miss_oficio ///
+    (sum) amb_oficio = amb_oficio, ///
     by(anio)
 
 export excel using "Outputs/tables/auditoria_base_modelo_personas.xlsx", ///
@@ -733,7 +1022,8 @@ gen byte muestra_controles_completos = ///
     !missing(sector_hom_cod) & ///
     !missing(edad) & ///
     !missing(depto_cod) & ///
-    !missing(posicion_ocupacional_cod)
+    !missing(posicion_ocupacional_cod) & ///
+    !missing(oficio_cno70_2d_hom_cod)
 
 gen byte muestra_sector_completo = ///
     !missing(sector_hom_cod) & ///
@@ -805,6 +1095,7 @@ label variable subrama_det "Subrama detallada homologada"
 
 decode tamano_hom_cod, gen(tamano_empresa)
 decode educ_hom_cod, gen(educacion)
+decode cine11_hom_cod, gen(cine11)
 decode sexo_hom_cod, gen(sexo)
 decode formalidad_cod, gen(formalidad)
 
@@ -818,6 +1109,9 @@ decode posicion_ocupacional_cod, gen(ocupacion)
 * Alias más explícito, por si quieres usar ambos nombres
 clonevar posicion_ocupacional = posicion_ocupacional_cod
 decode posicion_ocupacional_cod, gen(posicion_ocupacional_label)
+
+clonevar oficio_cno70_2d = oficio_cno70_2d_hom_cod
+label variable oficio_cno70_2d "Oficio/CNO antiguo a 2 dígitos homologado"
 
 gen byte mujer = sexo_hom_cod == 2 if !missing(sexo_hom_cod)
 
@@ -867,9 +1161,13 @@ order persona_id anio ///
       sector_hom_cod sector ///
       rama4d rama4d_clase rama3d rama4d_div ciiu_revision_rama4d ///
       subrama_det_cod subrama_det ///
+      oficio_cod_original oficio_cno70_2d_hom_cod oficio_cno70_2d ///
+      ciuo08_4d_cod oficio_ciuo88_2d_cod oficio_hom_ambiguo ///
+      oficio_hom_n_destinos oficio_hom_fuente ///
       posicion_ocupacional posicion_ocupacional_label ocupacion ///
       tamano_hom_cod tamano_empresa ///
       educ_hom_cod educacion ///
+      cine11_hom_cod cine11 ///
       sexo_hom_cod sexo mujer ///
       formalidad_cod formalidad formal pensionado_ocupado ///
       fex ///
@@ -885,9 +1183,13 @@ keep persona_id anio ///
      sector_hom_cod sector ///
      rama4d rama4d_clase rama3d rama4d_div ciiu_revision_rama4d ///
      subrama_det_cod subrama_det ///
+     oficio_cod_original oficio_cno70_2d_hom_cod oficio_cno70_2d ///
+     ciuo08_4d_cod oficio_ciuo88_2d_cod oficio_hom_ambiguo ///
+     oficio_hom_n_destinos oficio_hom_fuente ///
      posicion_ocupacional posicion_ocupacional_label ocupacion ///
      tamano_hom_cod tamano_empresa ///
      educ_hom_cod educacion ///
+     cine11_hom_cod cine11 ///
      sexo_hom_cod sexo mujer ///
      formalidad_cod formalidad formal pensionado_ocupado ///
      fex ///
@@ -906,13 +1208,20 @@ compress
 * 13. Guardar base individual
 *====================================================
 
-save "Outputs/tables/Paper-GEIH_base_modelo_personas_2008_2025.dta", replace
+* OJO: esta corrida esta filtrada a 2010-2025 (ver el "keep if
+* inrange(anio,2010,2025)" cerca del inicio) para que el proceso no se
+* demore tanto. Por eso aqui NO se vuelve a guardar
+* "Paper-GEIH_base_modelo_personas_2008_2025.dta" -ese archivo ya existe
+* en disco con el rango completo 2008-2025 de una corrida anterior, y
+* guardarlo aqui lo truncaria a 2010-2025-. Solo se guarda la base nueva
+* con CINE 11, para 2010-2025.
+save "Outputs/tables/BaseconCINE11.dta", replace
 
 di "===================================================="
-di "BASE INDIVIDUAL PARA MODELOS CREADA CORRECTAMENTE"
+di "BASE CON CINE 11 CREADA CORRECTAMENTE (2010-2025)"
 di "Unidad: persona ocupada"
 di "Archivo:"
-di "Outputs/tables/Paper-GEIH_base_modelo_personas_2008_2025.dta"
+di "Outputs/tables/BaseconCINE11.dta"
 di "Auditoría:"
 di "Outputs/tables/auditoria_base_modelo_personas.xlsx"
 di "===================================================="

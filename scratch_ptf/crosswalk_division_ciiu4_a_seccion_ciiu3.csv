@@ -1,0 +1,87 @@
+division_ciiu4,seccion_ciiu3_equiv,descripcion
+01,S,"Agricultura, ganadería, caza y actividades de servicios conexas"
+02,S,Silvicultura y extracción de madera
+03,S,Pesca y acuicultura
+05,C,Extracción de carbón de piedra y lignito
+06,C,Extracción de petróleo crudo y gas natural
+07,C,Extracción de minerales metalíferos
+08,C,Extracción de otras minas y canteras
+09,C,Actividades de servicios de apoyo para la explotación de minas y canteras
+10,S,Elaboración de productos alimenticios
+11,S,Elaboración de bebidas
+12,S,Elaboración de productos de tabaco
+13,S,Fabricación de productos textiles
+14,S,Confección de prendas de vestir
+15,S,"Curtido y recurtido de cueros; fabricación de calzado; fabricación de artículos de viaje, maletas, bolsos de mano y artículos similares, y fabricación de artículos de talabartería y guarnicionería; adobo y teñido de pieles"
+16,S,"Transformación de la madera y fabricación de productos de madera y de corcho, excepto muebles; fabricación de artículos de cestería y espartería"
+17,S,"Fabricación de papel, cartón y productos de papel y cartón"
+18,S,Actividades de impresión y de producción de copias a partir de grabaciones originales
+19,C,"Coquización, fabricación de productos de la refinación del petróleo y actividad de mezcla de combustibles"
+20,S,Fabricación de sustancias y productos químicos
+21,S,"Fabricación de productos farmacéuticos, sustancias químicas medicinales y productos botánicos de uso farmacéutico"
+22,S,Fabricación de productos de caucho y de plástico
+23,S,Fabricación de otros productos minerales no metálicos
+24,S,Fabricación de productos metalúrgicos básicos
+25,S,"Fabricación de productos elaborados de metal, excepto maquinaria y equipo"
+26,S,"Fabricación de productos informáticos, electrónicos y ópticos"
+27,S,Fabricación de aparatos y equipo eléctrico
+28,S,Fabricación de maquinaria y equipo n.c.p.
+29,S,"Fabricación de vehículos automotores, remolques y semirremolques"
+30,S,Fabricación de otros tipos de equipo de transporte
+31,S,"Fabricación de muebles, colchones y somieres"
+32,S,Otras industrias manufactureras
+33,S,"Instalación, mantenimiento y reparación especializado de maquinaria y equipo"
+35,E,"Suministro de electricidad, gas, vapor y aire acondicionado"
+36,E,"Captación, tratamiento y distribución de agua"
+37,S,Evacuación y tratamiento de aguas residuales
+38,S,"Recolección, tratamiento y disposición de desechos, recuperación de materiales"
+39,F,Actividades de saneamiento ambiental y otros servicios de gestión de desechos
+41,F,Construcción de edificios
+42,F,Obras de ingeniería civil
+43,F,Actividades especializadas para la construcción de edificios y obras de ingeniería civil
+45,S,"Comercio, mantenimiento y reparación de vehículos automotores y motocicletas, sus partes, piezas y accesorios"
+46,S,"Comercio al por mayor y en comisión o por contrata, excepto el comercio de vehículos automotores y motocicletas"
+47,S,"Comercio al por menor (incluso el comercio al por menor de combustibles), excepto el de vehículos automotores y motocicletas"
+49,N,Transporte terrestre; transporte por tuberías
+50,N,Transporte acuático
+51,N,Transporte aéreo
+52,S,Almacenamiento y actividades complementarias al transporte
+53,N,Correo y servicios de mensajería
+55,I,Alojamiento
+56,I,Actividades de servicios de comidas y bebidas
+58,S,Actividades de edición
+59,S,"Actividades cinematográficas, de video y producción de programas de televisión, grabación de sonido y edición de música"
+60,S,"Actividades de programación, transmisión y/o difusión"
+61,N,Telecomunicaciones
+62,S,"Desarrollo de sistemas informáticos (planificación, análisis, diseño, programación, pruebas), consultoría informática y actividades relacionadas"
+63,S,Actividades de servicios de información
+64,N,"Actividades de servicios financieros, excepto las de seguros y de pensiones"
+65,N,"Seguros (incluso el reaseguro), seguros sociales y fondos de pensiones, excepto la seguridad social"
+66,N,Actividades auxiliares de las actividades de servicios financieros
+68,S,Actividades inmobiliarias
+69,S,Actividades jurídicas y de contabilidad
+70,S,Actividades de administración empresarial; actividades de consultoría de gestión
+71,S,Actividades de arquitectura e ingeniería; ensayos y análisis técnicos
+72,S,Investigación científica y desarrollo
+73,S,Publicidad y estudios de mercado
+74,S,"Otras actividades profesionales, científicas y técnicas"
+75,Q,Actividades veterinarias
+77,N,Actividades de alquiler y arrendamiento
+78,S,Actividades de empleo
+79,N,"Actividades de las agencias de viajes, operadores turísticos, servicios de reserva y actividades relacionadas"
+80,S,Actividades de seguridad e investigación privada
+81,S,"Actividades de servicios a edificios y paisajismo (jardines, zonas verdes)"
+82,N,Actividades administrativas y de apoyo de oficina y otras actividades de apoyo a las empresas
+84,O,Administración pública y defensa; planes de seguridad social de afiliación obligatoria
+85,S,Educación
+86,Q,Actividades de atención de la salud humana
+87,Q,Actividades de atención residencial medicalizada
+88,Q,Actividades de asistencia social sin alojamiento
+90,S,"Actividades creativas, artísticas y de entretenimiento"
+91,S,"Actividades de bibliotecas, archivos, museos y otras actividades culturales"
+93,S,Actividades deportivas y actividades recreativas y de esparcimiento
+94,S,Actividades de asociaciones
+95,S,"Mantenimiento y reparación de computadores, efectos personales y enseres domésticos"
+96,S,Otras actividades de servicios personales
+97,T,Actividades de los hogares individuales como empleadores de personal doméstico
+99,U,Actividades de organizaciones y entidades extraterritoriales

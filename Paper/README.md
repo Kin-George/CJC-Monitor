@@ -2,6 +2,8 @@
 
 LaTeX outputs for the CJC Monitor project.
 
+Working paper version on SSRN: <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6932699>
+
 ## Main files
 
 - `paper.tex`: academic paper.

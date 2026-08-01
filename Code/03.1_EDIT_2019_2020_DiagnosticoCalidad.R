@@ -48,14 +48,85 @@ sum_components <- function(data, vars) {
   total
 }
 
+clean_varname <- function(x) {
+  out <- toupper(trimws(as.character(x)))
+  out <- iconv(out, from = "", to = "ASCII//TRANSLIT")
+  out <- gsub("[^A-Z0-9]+", "_", out)
+  out <- gsub("^_+|_+$", "", out)
+  out[out == ""] <- "VAR"
+  out <- ifelse(grepl("^[0-9]", out), paste0("X", out), out)
+  make.unique(out, sep = "_")
+}
+
+load_edit_dictionary <- function(path, period = "2019_2020") {
+  read_excel(path, sheet = "variables", col_types = "text") %>%
+    transmute(
+      edit_period = as.character(period),
+      order_global = suppressWarnings(as.integer(order_global)),
+      variable_original_dic = as.character(variable),
+      label_dane = as.character(label)
+    ) %>%
+    filter(edit_period == period) %>%
+    arrange(order_global) %>%
+    mutate(variable_dic = clean_varname(variable_original_dic))
+}
+
+apply_dictionary_names <- function(data, dict_period) {
+  raw_names <- names(data)
+
+  if (nrow(dict_period) == ncol(data)) {
+    names(data) <- make.unique(dict_period$variable_dic, sep = "_")
+    attr(data, "dictionary_name_source") <- "diccionario_dane_por_orden"
+  } else {
+    names(data) <- clean_varname(raw_names)
+    attr(data, "dictionary_name_source") <- "nombres_microdato_limpios"
+    warning(
+      "El diccionario 2019_2020 tiene ", nrow(dict_period),
+      " variables, pero la base cruda tiene ", ncol(data),
+      ". Se usan nombres limpios de la base cruda."
+    )
+  }
+
+  attr(data, "raw_names") <- raw_names
+  data
+}
+
+as_plain_character <- function(x) {
+  if (inherits(x, "haven_labelled")) return(as.character(as_factor(x, levels = "values")))
+  as.character(x)
+}
+
+normalize_ciiu_code <- function(x) {
+  out <- str_extract(as.character(x), "[0-9]+")
+  ifelse(is.na(out) | out == "", NA_character_, out)
+}
+
+detect_ciiu_var <- function(data) {
+  nms <- names(data)
+
+  case_when(
+    "CIIU4" %in% nms ~ "CIIU4",
+    "CIIU_4" %in% nms ~ "CIIU_4",
+    "CIIU3" %in% nms ~ "CIIU3",
+    "CIIU_3" %in% nms ~ "CIIU_3",
+    "ACT3" %in% nms ~ "ACT3",
+    "ACT" %in% nms ~ "ACT",
+    TRUE ~ NA_character_
+  )
+}
+
 project_root <- find_project_root()
+raw_dir <- file.path(project_root, "Datos", "Raw", "EDIT")
 processed_dir <- file.path(project_root, "Datos", "Processed")
 doc_dir <- file.path(project_root, "DocumentacionAuxiliar")
+dict_dir <- file.path(project_root, "Diccionarios", "EDIT")
 
-panel_path <- file.path(processed_dir, "EDIT_Panel.dta")
+raw_path <- file.path(raw_dir, "EDIT_X_2019_2020.dta")
+dictionary_path <- file.path(dict_dir, "EDIT_Diccionarios_Consolidado.xlsx")
 ciiu4_structure_path <- file.path(doc_dir, "Estructura-detallada-CIIU-4AC-2022.xlsx")
 
-if (!file.exists(panel_path)) stop("No existe: ", panel_path)
+if (!file.exists(raw_path)) stop("No existe la base cruda EDIT 2019-2020: ", raw_path)
+if (!file.exists(dictionary_path)) stop("No existe el diccionario consolidado EDIT: ", dictionary_path)
 if (!file.exists(ciiu4_structure_path)) stop("No existe: ", ciiu4_structure_path)
 
 ciiu4_div_labels <- read_excel(ciiu4_structure_path, sheet = 1, skip = 1, col_types = "text") %>%
@@ -94,24 +165,55 @@ public_detail_vars <- c(
 
 id_vars <- c("edit_period", "nordemp", "ciiu4_div", "ciiu4_homologado")
 needed_vars <- unique(c(id_vars, investment_vars, financing_vars, public_detail_vars))
-available_vars <- names(read_dta(panel_path, n_max = 0))
-missing_vars <- setdiff(needed_vars, available_vars)
-if (length(missing_vars) > 0) warning("Variables no encontradas: ", paste(missing_vars, collapse = ", "))
 
 # ------------------------------------------------------------------------------
 # 2. Carga exclusiva de EDIT Industria 2019-2020
 # ------------------------------------------------------------------------------
-# Se usa el panel ya armonizado, pero se conserva solo la ronda 2019-2020.
-# El cruce CIIU agrega nombres legibles de sector para tablas y graficos.
-edit <- read_dta(panel_path, col_select = any_of(needed_vars)) %>%
-  filter(edit_period == "2019_2020") %>%
+# Se usa la base cruda del DANE para 2019-2020. Como sus nombres originales no
+# siempre coinciden con los nombres publicados en el diccionario, primero se
+# renombran las columnas por orden usando el diccionario descargado del DANE.
+# Luego se crean los identificadores mínimos que antes venían desde EDIT_Panel.
+dict_2019_2020 <- load_edit_dictionary(dictionary_path, period = "2019_2020")
+
+edit_raw <- read_dta(raw_path)
+edit_raw <- apply_dictionary_names(edit_raw, dict_2019_2020)
+
+message("Fuente de nombres: ", attr(edit_raw, "dictionary_name_source"))
+
+ciiu_var <- detect_ciiu_var(edit_raw)
+if (is.na(ciiu_var)) {
+  warning("No se encontro una variable CIIU reconocible en la base cruda.")
+}
+ciiu_select <- if (is.na(ciiu_var)) character(0) else ciiu_var
+
+edit_raw <- edit_raw %>%
   mutate(
+    edit_period = "2019_2020",
+    nordemp = if ("NORDEMP" %in% names(.)) as_plain_character(NORDEMP) else NA_character_,
     empresa_id = as.character(nordemp),
-    ciiu4_div = as.character(ciiu4_div)
-  ) %>%
+    ciiu_original = if (!is.na(ciiu_var)) normalize_ciiu_code(as_plain_character(.data[[ciiu_var]])) else NA_character_,
+    ciiu4_homologado = case_when(
+      !is.na(ciiu_original) & nchar(ciiu_original) >= 4 ~ str_sub(str_pad(ciiu_original, 4, pad = "0"), 1, 4),
+      !is.na(ciiu_original) & nchar(ciiu_original) == 3 ~ str_pad(ciiu_original, 3, pad = "0"),
+      !is.na(ciiu_original) & nchar(ciiu_original) == 2 ~ str_pad(ciiu_original, 2, pad = "0"),
+      TRUE ~ NA_character_
+    ),
+    ciiu4_div = case_when(
+      !is.na(ciiu4_homologado) & nchar(ciiu4_homologado) >= 3 ~ str_sub(ciiu4_homologado, 1, 2),
+      !is.na(ciiu4_homologado) & nchar(ciiu4_homologado) == 2 ~ ciiu4_homologado,
+      TRUE ~ NA_character_
+    )
+  )
+
+available_vars <- names(edit_raw)
+missing_vars <- setdiff(needed_vars, available_vars)
+if (length(missing_vars) > 0) warning("Variables no encontradas: ", paste(missing_vars, collapse = ", "))
+
+edit <- edit_raw %>%
+  select(any_of(needed_vars), empresa_id, ciiu_original, any_of(ciiu_select)) %>%
   left_join(ciiu4_div_labels, by = "ciiu4_div")
 
-if (nrow(edit) == 0) stop("No encontre observaciones EDIT 2019-2020 en el panel.")
+if (nrow(edit) == 0) stop("No encontre observaciones en la base cruda EDIT 2019-2020.")
 
 investment_labels <- c(
   II1R1C1 = "I+D interna 2019", II1R2C1 = "I+D externa 2019", II1R3C1 = "Maquinaria 2019",
