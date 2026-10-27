@@ -1,0 +1,11 @@
+﻿insumo,supuesto,fuente
+Pesos de Domar,Producción bruta / valor agregado total de cada rama en 2024 (suman 1.94),COU corrientes (DANE)
+PTF sectorial a priori,Promedio 2011-2024 sin 2020-2021 por rama; covarianza con contracción 0.3; modelo con crecimiento sectorial DESCARTADO por validación cruzada,"DANE PTF por actividad (producción), 2005-2024"
+Valor agregado total,"ISE enero-agosto acumulado 2.27%; septiembre ~ N(1.0, 1.2); VA = ISE - 0,05 (± 0,15)",DANE ISE (19-oct-2026)
+VA sectorial,I y II trim. observados por rama (anexo del 18-ago-2026); III trim. con las señales del ISE de julio y agosto por grupo,DANE PIB; ISE
+Ocupados,"GEIH 2026 enero-agosto medida mes a mes (variación anual media 2.34%); sep ~ N(-0.5, 1.2)","GEIH_2026_total.dta (script 06c, 18)"
+Horas efectivas,"GEIH 2026 enero-agosto vs 2025: -0.98% (horas por ocupado -3.29%); sep ~ N(-3.0, 2.5); se resta un sesgo ~ N(0.5, 1.0) (las horas de la GEIH crecen más que las implícitas del DANE)","GEIH_2026_total.dta (scripts 06, 18, 19)"
+Aporte del trabajo,"GEIH 2026 enero-agosto: horas 0.01 pp; composición medida 1.15 pp (error de muestreo 0,19); con probabilidad 75% el DANE publica esa composición y con 25% una típica N(0.25, 0.3); error propio frente al DANE 0.3",Réplica de la PTF con la GEIH 2026; ruptura de la educación (script 20)
+Medición del agregado,desv. = max(propagación 0.85; error retrospectivo 0.53) y error de Domar 0.05,Retrospectiva 2023-2025
+Inflación de cierre,"(1+5.74% acumulada a septiembre) x (1+N(1.07, 0.2)%) - 1; consenso de analistas 6,87% a diciembre (rango 6,74-6,93); desv. de la expectativa 0,10","DANE IPC; encuesta de analistas (Infobae, 21-oct-2026)"
+Regla del salario,"Piso = inflación esperada. R1 = inflación + max(productividad,0) + U(0,1), con la productividad por hora en 25% de los casos y la PTF en el resto; R2 = inflación + prima 2014-2021; R3 = inflación + prima 2022-2026",Decretos; prensa

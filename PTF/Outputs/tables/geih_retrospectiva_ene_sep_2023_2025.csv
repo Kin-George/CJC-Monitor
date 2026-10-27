@@ -1,0 +1,4 @@
+anio,horas_total_%,ocupados_%,L_propio,L_DANE,dif_L,horas_propio,horas_DANE,dif_horas,comp_propio,comp_DANE,dif_comp,PTF_propia(VA y K del DANE),PTF_DANE,dif_PTF,prod_hora_propia(VA del DANE),prod_hora_DANE,dif_prod_hora,prod_persona_propia,prod_persona_DANE,dif_prod_persona
+2023,2.56,3.76,1.8,0.91,0.89,1.5,0.55,0.95,0.3,0.35,-0.05,-1.9,-1.0,-0.9,-1.67,0.76,-2.43,-2.87,-0.7,-2.17
+2024,-1.02,0.73,-0.46,-0.63,0.17,-0.43,-0.73,0.3,-0.03,0.1,-0.13,1.55,1.73,-0.18,2.81,3.43,-0.62,1.06,1.76,-0.7
+2025,2.82,3.31,1.14,1.23,-0.09,1.4,1.43,-0.03,-0.26,-0.2,-0.06,1.01,0.91,0.1,0.09,0.57,-0.48,-0.4,-0.32,-0.08

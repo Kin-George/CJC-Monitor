@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La geografía de la remuneración laboral en Colombia, 2010–2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* Misma estética de la herramienta de IA: una columna de lectura, tinta y grises para la interfaz y color solo para los datos.
+     Cuadrantes: naranja = líder que sigue creciendo, verde azulado = rezagado que alcanza, azul = rezagado que no alcanza, gris = líder que se frena. */
+  :root{
+    color-scheme:light;
+    --bg:#f3f6f6; --surface:#ffffff; --surface-2:#e9eff0;
+    --ink:#10202a; --ink-2:#44545e; --muted:#65737c;
+    --line:#d3dbdf; --line-soft:#e4eaec; --grid:#e1e8ea; --axis:#bcc8ce;
+    --q-aa:#eb6834; --q-ba:#1baf7a; --q-bb:#2a78d6; --q-ab:#8d9aa3;
+    --s0:#e8f0f8; --s1:#bcd4ee; --s2:#7fb0e0; --s3:#3d82cc; --s4:#14477f;
+    --d-lo:#eb6834; --d-mid:#e6ebee; --d-hi:#2a78d6; --none:#dfe5e8;
+    --shadow:0 1px 2px rgba(16,32,42,.06),0 14px 32px -18px rgba(16,32,42,.28);
+    --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+    --font-body:"Public Sans","Segoe UI",system-ui,sans-serif;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --bg:#0e1317; --surface:#171a1f; --surface-2:#20262c;
+      --ink:#eaf0f2; --ink-2:#b4c0c7; --muted:#8895a0;
+      --line:#2c353c; --line-soft:#232b31; --grid:#232b31; --axis:#3a454d;
+      --q-aa:#d95926; --q-ba:#199e70; --q-bb:#3987e5; --q-ab:#7d8a93;
+      --s0:#1f2d3b; --s1:#2b4a6b; --s2:#3f6f9f; --s3:#69a1d6; --s4:#a8d0f5;
+      --d-lo:#d95926; --d-mid:#2b343b; --d-hi:#3987e5; --none:#2b353c;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 32px -18px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0e1317; --surface:#171a1f; --surface-2:#20262c;
+    --ink:#eaf0f2; --ink-2:#b4c0c7; --muted:#8895a0;
+    --line:#2c353c; --line-soft:#232b31; --grid:#232b31; --axis:#3a454d;
+    --q-aa:#d95926; --q-ba:#199e70; --q-bb:#3987e5; --q-ab:#7d8a93;
+    --s0:#1f2d3b; --s1:#2b4a6b; --s2:#3f6f9f; --s3:#69a1d6; --s4:#a8d0f5;
+    --d-lo:#d95926; --d-mid:#2b343b; --d-hi:#3987e5; --none:#2b353c;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 32px -18px rgba(0,0,0,.7);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;scroll-padding-top:72px;}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;} *{animation:none!important;transition:none!important;}}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:var(--font-display);margin:0;color:var(--ink);text-wrap:balance;}
+  p{margin:0;}
+  button,select,input{font:inherit;color:inherit;}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px;}
+  [hidden]{display:none!important;}
+  .wrap{max-width:1040px;margin-inline:auto;padding-inline:max(16px,4vw);}
+  section{padding-block:clamp(26px,4vw,48px);}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+  h2{font-size:clamp(1.45rem,2.8vw,1.95rem);line-height:1.12;font-weight:700;letter-spacing:-.015em;margin-top:6px;}
+  .lead{margin-top:6px;max-width:64ch;color:var(--ink-2);font-size:15.5px;}
+  .sec-head{margin-bottom:16px;}
+  .num{font-variant-numeric:tabular-nums;}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block;}
+  .bg-aa{background:var(--q-aa);} .bg-ba{background:var(--q-ba);} .bg-bb{background:var(--q-bb);} .bg-ab{background:var(--q-ab);}
+
+  /* barra superior */
+  .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);}
+  .topbar .wrap{display:flex;align-items:center;gap:20px;min-height:54px;}
+  .brand{font-weight:700;font-size:14px;letter-spacing:.01em;white-space:nowrap;}
+  .brand span{font-weight:500;color:var(--muted);}
+  .links{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none;}
+  .links::-webkit-scrollbar{display:none;}
+  .links a{color:var(--ink-2);text-decoration:none;font-size:14px;font-weight:500;padding:8px 10px;border-radius:6px;white-space:nowrap;}
+  .links a:hover{background:var(--surface-2);color:var(--ink);}
+  .theme-btn{flex:none;width:36px;height:36px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer;display:grid;place-items:center;}
+  .theme-btn:hover{background:var(--surface-2);}
+  .theme-btn svg{width:18px;height:18px;stroke:var(--ink);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  @media (max-width:760px){.brand span{display:none;}}
+
+  /* portada */
+  .hero{padding-block:clamp(22px,4vw,44px) clamp(18px,3vw,32px);}
+  .hero h1{font-size:clamp(1.9rem,4.6vw,3.1rem);line-height:1.05;font-weight:800;letter-spacing:-.025em;max-width:24ch;margin-top:10px;}
+  .hero .sub{margin-top:12px;max-width:68ch;font-size:clamp(1rem,1.6vw,1.1rem);color:var(--ink-2);}
+  .hero .sub b{color:var(--ink);font-weight:600;}
+  .split{margin-top:clamp(16px,2.6vw,26px);}
+  .split .bar{display:flex;gap:2px;height:30px;border-radius:8px;overflow:hidden;}
+  .split .bar i{display:block;flex:1;}
+  .split .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,2.4vw,28px);margin-top:14px;}
+  .split .col .k{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.3;}
+  .split .col .k .dot{margin-top:5px;}
+  .split .col .big{font-family:var(--font-display);font-size:clamp(1.8rem,3.8vw,2.6rem);font-weight:800;letter-spacing:-.02em;line-height:1.05;margin-top:4px;}
+  .split .col .big small{font-family:var(--font-body);font-size:.42em;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:6px;}
+  .split .col .def{margin-top:4px;font-size:13.5px;color:var(--ink-2);max-width:34ch;}
+  @media (max-width:720px){.split .cols{grid-template-columns:1fr;gap:16px;}.split .col .def{max-width:none;}}
+  .note{margin-top:14px;font-size:13px;color:var(--muted);}
+
+  /* buscador y ficha */
+  .picker{display:block;position:relative;max-width:640px;}
+  .picker input{width:100%;background:var(--surface);border:1px solid var(--axis);border-radius:var(--radius);padding:11px 52px 11px 16px;font-size:16.5px;font-weight:500;text-overflow:ellipsis;}
+  .picker input::placeholder{color:var(--muted);font-weight:400;}
+  .picker input:hover{border-color:var(--ink-2);}
+  .combo-btn{position:absolute;right:4px;top:4px;bottom:4px;width:42px;border:0;border-radius:8px;background:transparent;cursor:pointer;}
+  .combo-btn:hover{background:var(--surface-2);}
+  .combo-btn::after{content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;border-right:2px solid var(--ink-2);border-bottom:2px solid var(--ink-2);transform:translate(-50%,-70%) rotate(45deg);transition:transform .15s;}
+  .picker.open .combo-btn::after{transform:translate(-50%,-30%) rotate(225deg);}
+  .combo-list{position:absolute;z-index:15;left:0;right:0;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;max-height:340px;overflow-y:auto;background:var(--surface);border:1px solid var(--axis);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .combo-list li{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:7px;font-size:15.5px;line-height:1.3;cursor:pointer;}
+  .combo-list li.active{background:var(--surface-2);}
+  .combo-list li[aria-selected="true"]{font-weight:700;}
+  .combo-list li .dot{width:9px;height:9px;}
+  .combo-list li .nm{flex:1;min-width:0;}
+  .combo-list li .tag{flex:none;font-size:12px;color:var(--muted);}
+  .combo-list li.none{cursor:default;color:var(--muted);font-size:14px;}
+  .combo-list mark{background:transparent;color:inherit;font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--axis);}
+  .picker-lab{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+  .chip{border:1px solid var(--axis);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;cursor:pointer;}
+  .chip:hover{border-color:var(--ink-2);}
+  .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg);}
+  .controls{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:14px;}
+  .controls .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .controls .gl{font-size:12px;font-weight:600;color:var(--muted);margin-right:2px;}
+  .controls .chips{margin:0;}
+
+  .mapgrid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(14px,2.6vw,28px);margin-top:14px;align-items:start;}
+  @media (max-width:900px){.mapgrid{grid-template-columns:1fr;}}
+  .mapbox{position:relative;}
+  .insight{margin:0 0 14px;max-width:70ch;font-size:clamp(1rem,1.7vw,1.15rem);line-height:1.45;color:var(--ink);font-weight:500;}
+  .insight b{font-weight:700;}
+  #map svg{display:block;width:100%;height:auto;max-height:78vh;margin-inline:auto;}
+  .dp{stroke:var(--surface);stroke-width:.9;stroke-linejoin:round;transition:fill-opacity .12s;}
+  .dp.nodata{fill:var(--none);cursor:default;}
+  .dp.has{cursor:pointer;}
+  .dp.has:hover{stroke:var(--ink-2);stroke-width:1.6;}
+  .dp.sel{stroke:var(--ink);stroke-width:2.6;}
+  .bub{stroke:var(--surface);stroke-width:1.6;fill-opacity:.82;pointer-events:none;}
+  .pinlabel{font-family:var(--font-body);font-size:19px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:5px;stroke-linejoin:round;pointer-events:none;}
+  .maplegend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;font-size:13px;color:var(--ink-2);align-items:center;}
+  .maplegend span{display:inline-flex;align-items:center;gap:7px;}
+  .maplegend i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+  .gradbar{display:flex;align-items:center;gap:8px;}
+  .gradbar .gb{width:150px;height:10px;border-radius:5px;}
+  .yearbar{display:flex;align-items:center;gap:12px;margin-top:10px;}
+  .yearbar input[type=range]{flex:1;accent-color:var(--ink);}
+  .yearbar .yr{font-family:var(--font-display);font-size:1.5rem;font-weight:800;min-width:3.4ch;}
+  .play{width:34px;height:34px;border-radius:50%;border:1px solid var(--axis);background:var(--surface);cursor:pointer;display:grid;place-items:center;flex:none;}
+  .play:hover{border-color:var(--ink-2);}
+  .play svg{width:14px;height:14px;fill:var(--ink);}
+  .hint{margin-top:6px;font-size:12.5px;color:var(--muted);}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--axis);border-radius:14px;box-shadow:var(--shadow);padding:clamp(14px,2.4vw,22px);}
+  .card[data-q="aa"]{border-top-color:var(--q-aa);} .card[data-q="ba"]{border-top-color:var(--q-ba);} .card[data-q="bb"]{border-top-color:var(--q-bb);} .card[data-q="ab"]{border-top-color:var(--q-ab);}
+  .pill{display:inline-flex;align-items:center;gap:10px;font-size:clamp(14.5px,2.2vw,17px);font-weight:800;line-height:1.2;border:2px solid var(--line);border-radius:999px;padding:6px 16px 6px 12px;background:var(--surface);}
+  .pill .dot{width:13px;height:13px;}
+  .pill.aa{border-color:var(--q-aa);background:color-mix(in srgb,var(--q-aa) 16%,var(--surface));}
+  .pill.ba{border-color:var(--q-ba);background:color-mix(in srgb,var(--q-ba) 16%,var(--surface));}
+  .pill.bb{border-color:var(--q-bb);background:color-mix(in srgb,var(--q-bb) 16%,var(--surface));}
+  .pill.ab{border-color:var(--q-ab);background:color-mix(in srgb,var(--q-ab) 16%,var(--surface));}
+  .card h3{font-size:clamp(1.25rem,2.4vw,1.6rem);font-weight:700;line-height:1.2;margin-top:10px;letter-spacing:-.01em;}
+  .verdict{margin-top:4px;color:var(--ink-2);font-size:15px;max-width:68ch;}
+  .verdict b{color:var(--ink);}
+  .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;}
+  .tile{background:var(--bg);border-radius:10px;padding:10px 12px;min-width:0;}
+  .tile .tl{font-size:12px;font-weight:600;color:var(--muted);line-height:1.3;}
+  .tile .tv{font-family:var(--font-display);font-size:clamp(1.3rem,2.4vw,1.65rem);font-weight:700;letter-spacing:-.015em;line-height:1.1;margin-top:4px;white-space:nowrap;}
+  .tile .tv .of{font-family:var(--font-body);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:5px;}
+  .track{position:relative;height:5px;border-radius:3px;background:var(--line);margin:11px 6px 9px;}
+  .track i{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:var(--ink);border:2.5px solid var(--surface);box-shadow:0 0 0 1px var(--ink);}
+  .track u{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--muted);opacity:.7;}
+  .tile .tc{font-size:12.5px;color:var(--ink-2);line-height:1.35;}
+  .tile .tc b{color:var(--ink);}
+  .tiles-note{margin-top:8px;font-size:12.5px;color:var(--muted);}
+  .cardchart{margin-top:14px;}
+  .cardchart h4{margin:0 0 4px;font-size:12.5px;font-weight:600;color:var(--muted);}
+  .cardchart svg{display:block;width:100%;height:auto;overflow:visible;}
+  .lgd{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:6px;font-size:12.5px;color:var(--ink-2);}
+  .lgd span{display:inline-flex;align-items:center;gap:6px;}
+  .lgd i{width:16px;height:3px;border-radius:2px;display:inline-block;}
+  .extra{margin-top:10px;font-size:13px;color:var(--ink-2);}
+  .extra b{color:var(--ink);}
+
+  .ax{font-family:var(--font-body);font-size:11.5px;fill:var(--muted);}
+  .axt{font-family:var(--font-body);font-size:12px;font-weight:600;fill:var(--ink-2);}
+  .zl{font-family:var(--font-body);font-size:11.5px;font-weight:700;fill:var(--muted);}
+  .lab{font-family:var(--font-body);font-size:11px;font-weight:600;fill:var(--ink-2);paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round;pointer-events:none;}
+  .lab.sel{fill:var(--ink);font-weight:800;}
+  .sp{stroke:var(--surface);stroke-width:1.6;fill-opacity:.82;cursor:pointer;}
+  .sp:hover{fill-opacity:1;}
+  .sp.sel{stroke:var(--ink);stroke-width:2.6;fill-opacity:1;}
+  .chart svg{display:block;width:100%;height:auto;overflow:visible;}
+  .cap{margin-top:10px;font-size:13.5px;color:var(--muted);max-width:70ch;}
+  .cap b{color:var(--ink-2);}
+  .scroll-x{overflow-x:auto;}
+
+  table.t{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px;}
+  table.t th,table.t td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line-soft);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  table.t th:first-child,table.t td:first-child{text-align:left;}
+  table.t th{color:var(--muted);font-weight:600;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--bg);}
+  table.t th:hover{color:var(--ink);}
+  table.t th[aria-sort]::after{content:" ↓";}
+  table.t th[aria-sort="ascending"]::after{content:" ↑";}
+  table.t tbody tr{cursor:pointer;}
+  table.t tbody tr:hover{background:var(--surface-2);}
+  table.t tr.sel td{font-weight:700;}
+  table.t td .dot{margin-right:8px;width:9px;height:9px;}
+  table.cv{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:12px;min-width:480px;}
+  table.cv th,table.cv td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line-soft);text-align:right;font-variant-numeric:tabular-nums;}
+  table.cv th:first-child,table.cv td:first-child{text-align:left;}
+  table.cv th{color:var(--muted);font-weight:600;}
+
+  .tip{position:fixed;z-index:50;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:10px 12px;font-size:13px;max-width:280px;opacity:0;transition:opacity .1s;}
+  .tip.show{opacity:1;}
+  .tip .tt{font-weight:700;margin-bottom:6px;line-height:1.25;}
+  .tip .tr{display:flex;justify-content:space-between;gap:18px;color:var(--ink-2);}
+  .tip .tr b{color:var(--ink);font-variant-numeric:tabular-nums;}
+  .tip .tr i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;}
+
+  details.more{margin-top:12px;font-size:14px;color:var(--ink-2);}
+  details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);}
+  details.more summary:hover{color:var(--ink);}
+  footer{border-top:1px solid var(--line);padding-block:26px 32px;font-size:14px;color:var(--ink-2);}
+  footer .grid{display:grid;grid-template-columns:1.4fr 1fr;gap:36px;}
+  @media (max-width:760px){footer .grid{grid-template-columns:1fr;}}
+  footer h4{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--ink);}
+  footer p{margin-top:8px;max-width:64ch;}
+  footer details summary{cursor:pointer;font-weight:600;color:var(--ink);}
+  footer .cite{font-size:12.5px;color:var(--muted);}
+  footer .end{margin-top:18px;padding-top:12px;border-top:1px solid var(--line-soft);display:flex;flex-wrap:wrap;gap:6px 24px;font-size:13px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">Centro Javeriano de Competitividad <span>· Informe 02</span></div>
+    <nav class="links" aria-label="Secciones">
+      <a href="#mapa">Mapa</a>
+      <a href="#explora">Explora</a>
+      <a href="#metodo">Metodología</a>
+    </nav>
+    <button class="theme-btn" id="theme-btn" type="button" aria-label="Cambiar entre tema claro y oscuro">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"></path></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Productividad y trabajo en Colombia · GEIH 2010–2025</div>
+    <h1>La geografía de la remuneración laboral en Colombia</h1>
+    <p class="sub">Cuánto se remunera el trabajo en cada departamento, cuánto ha crecido desde 2010 y si los departamentos rezagados están alcanzando a los líderes. <b>Cada departamento cae en uno de cuatro grupos</b> según su nivel y su crecimiento frente al promedio nacional.</p>
+    <div class="split" aria-label="Departamentos según su nivel y crecimiento de la remuneración por hora">
+      <div class="bar" id="hero-bar" role="img"></div>
+      <div class="cols" id="hero-cols"></div>
+    </div>
+    <p class="note">Remuneración por hora, en pesos de 2025, para los 24 departamentos con información comparable. Cada cuadro de la barra es un departamento.</p>
+  </div>
+</div>
+
+<section id="mapa">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">El mapa</div>
+      <h2>Elige un departamento o tócalo en el mapa</h2>
+    </div>
+    <label class="picker-lab" for="dep-input">Escribe para buscar un departamento o elígelo de la lista</label>
+    <div class="picker" id="combo">
+      <input id="dep-input" type="text" role="combobox" aria-expanded="false" aria-controls="dep-list" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Por ejemplo: Atlántico, Antioquia, Nariño…">
+      <button type="button" class="combo-btn" id="dep-toggle" aria-label="Mostrar todos los departamentos" tabindex="-1"></button>
+      <ul class="combo-list" id="dep-list" role="listbox" aria-label="Departamentos" hidden></ul>
+    </div>
+
+    <div class="controls">
+      <div class="grp"><span class="gl">Medida</span><div class="chips ind-chips" role="group" aria-label="Medida">
+        <button class="chip" type="button" data-ind="rh" aria-pressed="true">Por hora</button>
+        <button class="chip" type="button" data-ind="rt" aria-pressed="false">Por trabajador</button></div></div>
+      <div class="grp"><span class="gl">Ver</span><div class="chips" id="view-chips" role="group" aria-label="Qué mostrar en el mapa">
+        <button class="chip" type="button" data-view="nivel" aria-pressed="true">Nivel</button>
+        <button class="chip" type="button" data-view="crec" aria-pressed="false">Crecimiento 2010–2025</button>
+        <button class="chip" type="button" data-view="cuad" aria-pressed="false">Cuadrante</button></div></div>
+      <div class="grp"><div class="chips"><button class="chip" type="button" id="bub-chip" aria-pressed="false">Burbujas por ocupados</button></div></div>
+    </div>
+
+    <div class="mapgrid">
+      <div class="mapbox">
+        <p class="insight" id="map-insight"></p>
+        <div id="map"></div>
+        <div class="maplegend" id="map-legend"></div>
+        <div class="yearbar" id="yearbar">
+          <button class="play" id="play" type="button" aria-label="Reproducir años"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z"></path></svg></button>
+          <input id="year" type="range" min="0" max="14" step="1" value="14" aria-label="Año">
+          <span class="yr num" id="yr">2025</span>
+        </div>
+        <p class="hint" id="year-hint">Mueve el año para ver cómo cambia el nivel. La escala de colores es la misma para todos los años. No hay GEIH comparable para 2020.</p>
+      </div>
+      <article class="card" id="dep-detail" aria-live="polite"></article>
+    </div>
+  </div>
+</section>
+
+<section id="explora">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Explora los datos</div>
+      <h2>Cuadrantes, convergencia y tabla</h2>
+    </div>
+    <div class="chips" id="tab-chips" role="group" aria-label="Elige qué ver">
+      <button class="chip" type="button" data-tab="cuad" aria-pressed="true">¿Quién crece y quién se rezaga?</button>
+      <button class="chip" type="button" data-tab="conv" aria-pressed="false">¿Alcanzan los rezagados?</button>
+      <button class="chip" type="button" data-tab="tabla" aria-pressed="false">Tabla de departamentos</button>
+    </div>
+
+    <div id="tab-cuad">
+      <div class="chips ind-chips" role="group" aria-label="Medida">
+        <button class="chip" type="button" data-ind="rh" aria-pressed="true">Por hora</button>
+        <button class="chip" type="button" data-ind="rt" aria-pressed="false">Por trabajador</button></div>
+      <p class="insight" id="cuad-insight"></p>
+      <div class="chart" id="scatter"></div>
+      <p class="cap">Cada burbuja es un departamento; el tamaño muestra cuántos ocupados tiene. Las líneas son el promedio nacional de los 24 departamentos: a la derecha de la vertical crece más que el país y arriba de la horizontal remunera más.</p>
+    </div>
+
+    <div id="tab-conv" hidden>
+      <div class="chips ind-chips" role="group" aria-label="Medida">
+        <button class="chip" type="button" data-ind="rh" aria-pressed="true">Por hora</button>
+        <button class="chip" type="button" data-ind="rt" aria-pressed="false">Por trabajador</button></div>
+      <p class="insight" id="conv-insight"></p>
+      <div class="chart" id="convchart"></div>
+      <p class="cap">Si los departamentos con menor remuneración inicial hubieran crecido más rápido, la línea bajaría hacia la derecha (convergencia). Aquí sube: los que partían más arriba no crecieron menos. En el eje horizontal, miles de pesos por hora o millones de pesos al mes, según la medida.</p>
+      <div class="scroll-x"><table class="cv" id="conv-table"></table></div>
+    </div>
+
+    <div id="tab-tabla" hidden>
+      <p class="insight">Toca el título de una columna para ordenar y una fila para verla en el mapa.</p>
+      <div class="scroll-x"><table class="t" id="tabla"></table></div>
+      <p class="cap">Remuneración en pesos de 2025: por trabajador en millones al mes y por hora en miles. La brecha es la distancia porcentual frente al departamento líder (0 % = líder). El crecimiento es anual promedio entre 2010 y 2025. El punto de color es el cuadrante de la remuneración por hora.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer id="metodo">
+  <div class="wrap">
+    <div class="grid">
+      <div>
+        <h4>Cómo se calcula</h4>
+        <details>
+          <summary>Ver la metodología</summary>
+          <p>Usamos los microdatos armonizados de la Gran Encuesta Integrada de Hogares (GEIH) del DANE, entre 2010 y 2025. Se seleccionan los ocupados con ingreso horario positivo y horas válidas. La <b>remuneración por trabajador</b> es el promedio ponderado de la remuneración mensual; la <b>remuneración por hora</b> divide la remuneración mensual total de ese grupo entre sus horas mensuales totales. Todo está en pesos constantes de 2025, con el IPC nacional (IPC<sub>2025</sub> = 152,27), porque el objetivo es comparar cuánto se remunera el trabajo en una unidad común de precios y no el poder adquisitivo local.</p>
+          <p>El panel cubre 24 departamentos. San Andrés, la Amazonía y la Orinoquía (salvo Meta) no se incluyen porque su medición separada empieza más tarde, y se excluye 2020, cuando el DANE redujo el cuestionario y pasó a recolección telefónica. El valor nacional se calcula con los 24 departamentos. El crecimiento es la tasa anualizada entre 2010 y 2025.</p>
+          <p><b>Cuadrantes.</b> Nivel alto es una remuneración de 2025 igual o superior a la nacional; crecimiento alto es una tasa anual igual o superior a la nacional. <b>Convergencia.</b> Se relaciona el crecimiento anualizado con el logaritmo del nivel inicial de 2010. Un coeficiente beta negativo indicaría cierre de brechas; aquí es positivo y no es estadísticamente distinto de cero.</p>
+          <p class="cite">Acosta, K. y Bonet, J. (2022). <i>Convergencia regional en Colombia en el siglo XXI</i>. Banco de la República.<br>DANE (2020). <i>Ajustes metodológicos en la GEIH en el marco de la coyuntura sanitaria por el COVID-19</i>.</p>
+        </details>
+      </div>
+      <div>
+        <h4>Sobre esta herramienta</h4>
+        <p>Acompaña el Informe 02, <i>La geografía de la remuneración laboral en Colombia 2010–2025</i>, de Oliver Pardo y Jorge Orozco, del Centro Javeriano de Competitividad (CJC), Pontificia Universidad Javeriana. Las cifras son las mismas del informe.</p>
+      </div>
+    </div>
+    <div class="end"><span>Centro Javeriano de Competitividad · Pontificia Universidad Javeriana</span><span>Fuente: cálculos propios con GEIH</span></div>
+  </div>
+</footer>
+
+<div class="tip" id="tip" role="tooltip"></div>
+<script type="application/json" id="geo-data">{"years":[2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2021,2022,2023,2024,2025],"nat":{"rt":[1510772,1524055,1527504,1590562,1624335,1533646,1544872,1547900,1574736,1603137,1728267,1733576,1779547,1854576,1904803],"rh":[7442.8,7554.5,7629.1,7988.3,8185.4,7783.4,7846.8,7904.2,8052.8,8207.2,8884.7,8902.3,9191.8,9693.6,10055.1],"oc":[16824151,17407688,17761525,17884024,18007030,18400356,18360636,18332486,18538213,19407326,17435589,20459691,21371937,21454106,22741061]},"depts":[{"id":5,"n":"Antioquia","s":"ANT","rt":[1685997,1681724,1633926,1710729,1866049,1748044,1774289,1788149,1818458,1858575,1831341,1957950,2025598,2120169,2182042],"rh":[8274.0,8277.9,8024.6,8578.3,9266.7,8652.8,8736.3,8923.0,9117.4,9359.7,9285.9,9883.6,10251.7,10858.4,11233.4],"oc":[2216839,2245733,2318399,2372682,2310906,2323629,2282716,2241280,2236933,2393451,2211451,2937649,3075272,3130339,3311770],"hs":[47.02,46.88,46.99,46.02,46.47,46.62,46.87,46.25,46.03,45.82,45.51,45.72,45.6,45.06,44.83],"crt":0.01734,"crh":0.02059,"prt":2,"prh":2,"pcrt":7,"pcrh":9,"bgt":0.2461,"bgh":0.2477,"lt":1685997,"lh":8274.0},{"id":8,"n":"Atlántico","s":"ATL","rt":[1359575,1210048,1275940,1286540,1251657,1306794,1351790,1403087,1422766,1509278,1405481,1386495,1561973,1582619,1614860],"rh":[6611.4,5912.6,6214.4,6346.2,6144.5,6562.6,6938.9,7181.3,7319.3,7626.8,7363.3,7290.1,7940.1,8120.0,8477.3],"oc":[760919,840843,841100,815295,757055,845442,934004,937429,966033,1069738,990511,1166497,1233057,1209187,1256860],"hs":[47.46,47.23,47.38,46.78,47.01,45.95,44.96,45.09,44.86,45.67,44.05,43.89,45.4,44.98,43.96],"crt":0.01154,"crh":0.01671,"prt":10,"prh":11,"pcrt":15,"pcrh":15,"bgt":0.4421,"bgh":0.4323,"lt":1359575,"lh":6611.4},{"id":11,"n":"Bogotá D.C.","s":"BOG","rt":[2268062,2269615,2199097,2386917,2368367,2200013,2254458,2277573,2368913,2393752,2942734,2857560,2887258,2948916,2894373],"rh":[10834.0,11023.9,10648.8,11624.0,11592.9,10743.3,11084.7,11174.7,11573.8,11757.4,14431.0,13855.9,14350.2,15001.4,14932.2],"oc":[3269609,3418873,3509967,3548110,3620902,3617818,3535659,3329230,3406081,3568695,3134441,3588030,3808991,3964950,4160820],"hs":[48.31,47.51,47.66,47.39,47.14,47.26,46.94,47.03,47.23,46.98,47.06,47.59,46.43,45.36,44.73],"crt":0.01639,"crh":0.02162,"prt":1,"prh":1,"pcrt":9,"pcrh":7,"bgt":0.0,"bgh":0.0,"lt":2268062,"lh":10834.0},{"id":13,"n":"Bolívar","s":"BOL","rt":[1125702,1114882,1155644,1177415,1161526,1135955,1111368,1096161,1132306,1150307,1109072,1185883,1174483,1330631,1363169],"rh":[5414.9,5541.9,5886.2,5934.6,5979.9,6081.9,5799.7,5692.0,6021.5,6249.1,5953.1,6497.8,6398.4,7000.3,7196.8],"oc":[646900,697369,677644,659619,655328,714401,683619,721236,743475,930911,749764,818789,903078,796377,885761],"hs":[47.97,46.42,45.31,45.78,44.82,43.1,44.22,44.44,43.39,42.48,42.99,42.12,42.36,43.87,43.71],"crt":0.01284,"crh":0.01915,"prt":17,"prh":16,"pcrt":13,"pcrh":11,"bgt":0.529,"bgh":0.518,"lt":1125702,"lh":5414.9},{"id":15,"n":"Boyacá","s":"BOY","rt":[1181958,1353858,1411125,1295050,1281983,1263659,1399400,1422165,1335980,1355921,1310234,1360000,1400917,1487879,1562313],"rh":[6497.9,7552.5,7633.4,6866.8,6841.4,6708.9,7552.2,7584.5,7259.0,7520.7,7145.4,7525.2,7841.4,8491.5,8979.9],"oc":[428967,460676,481083,491035,511819,536271,525761,543437,566619,550387,405784,510274,518281,529806,522604],"hs":[41.98,41.37,42.66,43.52,43.24,43.47,42.76,43.27,42.47,41.61,42.32,41.71,41.23,40.44,40.15],"crt":0.01877,"crh":0.0218,"prt":13,"prh":9,"pcrt":4,"pcrh":6,"bgt":0.4602,"bgh":0.3986,"lt":1181958,"lh":6497.9},{"id":17,"n":"Caldas","s":"CAL","rt":[1349005,1416139,1390060,1450157,1458390,1409022,1447105,1469096,1500495,1441423,1742047,1642333,1708315,1852934,1784957],"rh":[6493.0,6662.0,6706.8,6977.7,7112.6,6848.6,7031.6,7395.0,7434.3,7153.5,8498.1,8117.4,8719.5,9448.7,9443.2],"oc":[392289,392141,406426,401159,417250,431008,434534,440345,450152,445289,371043,415216,430648,429958,466840],"hs":[47.95,49.05,47.83,47.96,47.32,47.48,47.49,45.84,46.58,46.5,47.31,46.69,45.21,45.25,43.62],"crt":0.01884,"crh":0.02529,"prt":8,"prh":6,"pcrt":3,"pcrh":3,"bgt":0.3833,"bgh":0.3676,"lt":1349005,"lh":6493.0},{"id":18,"n":"Caquetá","s":"CAQ","rt":[1287343,1363157,1381443,1351086,1348284,1260115,1374257,1317252,1272789,1294849,1378990,1374453,1379793,1475927,1566127],"rh":[6096.5,6443.7,6595.2,6470.0,6573.6,6096.0,6926.1,6537.9,6414.9,6710.8,6798.0,6734.5,6907.4,7445.5,7803.4],"oc":[172190,178113,180929,177714,188742,188419,202725,206916,213115,207087,142594,150181,155222,156652,153618],"hs":[48.73,48.82,48.34,48.19,47.33,47.7,45.79,46.5,45.79,44.53,46.81,47.1,46.1,45.75,46.31],"crt":0.01315,"crh":0.01659,"prt":12,"prh":13,"pcrt":12,"pcrh":17,"bgt":0.4589,"bgh":0.4774,"lt":1287343,"lh":6096.5},{"id":19,"n":"Cauca","s":"CAU","rt":[898017,950647,956339,994847,1037623,979577,960575,961671,962584,1017851,1142644,1101002,977172,1061046,1152488],"rh":[5092.7,5371.1,5468.4,5686.8,6071.7,5757.1,5765.6,5801.0,5711.1,6026.5,6384.9,6354.5,5801.5,6542.6,6855.2],"oc":[482915,488993,497557,498472,510662,518883,536746,548289,570583,555848,514765,593730,639628,653618,627654],"hs":[40.69,40.84,40.36,40.37,39.44,39.27,38.45,38.26,38.9,38.98,41.3,39.98,38.87,37.42,38.8],"crt":0.01677,"crh":0.02001,"prt":20,"prh":18,"pcrt":8,"pcrh":10,"bgt":0.6018,"bgh":0.5409,"lt":898017,"lh":5092.7},{"id":20,"n":"Cesar","s":"CES","rt":[1236828,1262102,1314134,1313107,1273733,1267332,1297566,1235709,1252852,1251390,1265283,1233345,1206874,1260869,1379241],"rh":[5802.1,5908.0,6277.4,6141.8,6145.1,6118.2,6421.3,6359.1,6445.9,6179.4,6564.7,6129.7,6120.4,6431.0,7137.7],"oc":[353504,371646,384694,377635,375681,390229,392542,416588,389292,438458,416790,448084,471891,466650,515871],"hs":[49.19,49.3,48.31,49.34,47.83,47.8,46.63,44.84,44.85,46.73,44.48,46.43,45.51,45.24,44.59],"crt":0.00729,"crh":0.01391,"prt":16,"prh":17,"pcrt":21,"pcrh":19,"bgt":0.5235,"bgh":0.522,"lt":1236828,"lh":5802.1},{"id":27,"n":"Chocó","s":"CHO","rt":[997286,989342,1120571,1150359,1033146,1069008,1093499,1040198,983555,1076731,1120457,1118046,1141191,1159389,1217817],"rh":[4826.9,4841.3,5868.5,5743.9,5744.3,5461.2,5841.2,5369.0,5189.4,5443.9,6081.6,5994.2,5916.8,5803.5,6362.9],"oc":[199424,213435,199817,187068,147374,148479,136778,169353,198842,213202,127010,143304,130223,131820,137366],"hs":[47.68,47.16,44.06,46.22,41.51,45.17,43.2,44.71,43.74,45.64,42.52,43.04,44.51,46.1,44.17],"crt":0.01341,"crh":0.01859,"prt":19,"prh":21,"pcrt":11,"pcrh":12,"bgt":0.5792,"bgh":0.5739,"lt":997286,"lh":4826.9},{"id":25,"n":"Cundinamarca","s":"CUN","rt":[1287544,1322193,1390062,1598883,1489870,1437022,1443596,1462781,1428608,1472440,1773220,1622167,1705051,1789208,1986619],"rh":[6476.9,6715.4,7123.8,8155.8,7555.8,7413.6,7378.7,7364.7,7114.5,7445.8,8752.6,8174.7,8771.3,9228.0,10426.0],"oc":[902925,916012,936699,950856,965223,991151,990807,1001219,987279,1017674,1159111,1413965,1495205,1497470,1706608],"hs":[45.87,45.44,45.03,45.24,45.5,44.73,45.15,45.84,46.34,45.64,46.75,45.79,44.86,44.74,43.97],"crt":0.02934,"crh":0.03225,"prt":3,"prh":3,"pcrt":1,"pcrh":1,"bgt":0.3136,"bgh":0.3018,"lt":1287544,"lh":6476.9},{"id":23,"n":"Córdoba","s":"COR","rt":[936210,966826,981983,1162008,1154852,988223,1085403,1063335,1010327,1075100,999339,900556,960691,1044832,1083436],"rh":[4865.5,5015.6,5190.9,6348.6,6650.7,5644.9,5790.4,5831.4,5561.4,5871.3,5825.6,5159.4,5593.6,6072.9,6272.3],"oc":[598140,597579,614209,638240,631624,688851,681287,717601,733492,714653,717622,716491,754656,774002,791370],"hs":[44.4,44.48,43.66,42.24,40.07,40.4,43.26,42.08,41.92,42.26,39.59,40.28,39.63,39.7,39.86],"crt":0.00978,"crh":0.01707,"prt":22,"prh":22,"pcrt":19,"pcrh":14,"bgt":0.6257,"bgh":0.58,"lt":936210,"lh":4865.5},{"id":41,"n":"Huila","s":"HUI","rt":[1192525,1269724,1325646,1227883,1306758,1218387,1203121,1262255,1366076,1255121,1416402,1381589,1348444,1359906,1404581],"rh":[6227.5,6534.6,7112.5,6566.3,6732.8,6429.9,6247.5,6734.1,7345.6,6667.4,7264.0,7141.5,7040.5,7340.1,7366.7],"oc":[364174,381741,379659,378641,385504,399250,410507,405580,379140,381682,366628,432783,452254,485561,467606],"hs":[44.19,44.84,43.01,43.15,44.79,43.73,44.44,43.26,42.92,43.44,45.0,44.64,44.2,42.75,44.0],"crt":0.01097,"crh":0.01126,"prt":15,"prh":15,"pcrt":16,"pcrh":23,"bgt":0.5147,"bgh":0.5067,"lt":1192525,"lh":6227.5},{"id":44,"n":"La Guajira","s":"LAG","rt":[1158698,1218974,1133265,1114098,1291875,1119422,1150543,1102438,1034207,1060175,789917,745468,893280,892333,1015443],"rh":[5976.1,6350.2,5939.8,5747.8,6720.2,6248.7,6174.8,5859.7,5278.8,5368.9,4180.2,3894.0,4742.1,4792.2,5358.6],"oc":[271571,275950,306516,306488,327326,347496,348154,371601,398410,391706,425085,367463,323615,331294,348364],"hs":[44.74,44.3,44.03,44.73,44.36,41.34,43.0,43.42,45.21,45.57,43.61,44.18,43.47,42.97,43.73],"crt":-0.00876,"crh":-0.00724,"prt":23,"prh":24,"pcrt":24,"pcrh":24,"bgt":0.6492,"bgh":0.6411,"lt":1158698,"lh":5976.1},{"id":47,"n":"Magdalena","s":"MAG","rt":[1115738,1097558,1128383,1148961,1160802,1160261,1002613,1027866,1119724,1179662,1082946,1093028,1133251,1153517,1227025],"rh":[5204.0,5193.0,5541.7,5738.8,5881.2,6008.8,5319.5,5416.7,5824.9,6136.2,5735.2,5668.3,5914.3,5947.5,6480.9],"oc":[391450,370747,401426,406411,424611,426992,388645,372316,394800,487172,479966,533606,573466,550091,594008],"hs":[49.48,48.77,46.99,46.2,45.55,44.56,43.5,43.79,44.36,44.36,43.57,44.5,44.22,44.76,43.69],"crt":0.00636,"crh":0.01474,"prt":18,"prh":20,"pcrt":22,"pcrh":18,"bgt":0.5761,"bgh":0.566,"lt":1115738,"lh":5204.0},{"id":50,"n":"Meta","s":"MET","rt":[1506813,1513112,1683983,1628656,1686379,1633637,1565691,1555976,1660030,1668467,1897276,1687910,1717031,1834312,1796562],"rh":[6914.9,6956.5,7738.5,7451.6,7808.8,7614.4,7301.1,7321.5,7896.3,7884.9,9173.5,8292.7,8331.9,9030.5,8864.9],"oc":[339225,341430,348085,348753,361230,384429,380522,389665,403110,416169,425914,473223,484339,508098,524443],"hs":[50.29,50.19,50.22,50.44,49.84,49.51,49.49,49.04,48.51,48.83,47.73,46.97,47.56,46.87,46.77],"crt":0.01179,"crh":0.0167,"prt":7,"prh":10,"pcrt":14,"pcrh":16,"bgt":0.3793,"bgh":0.4063,"lt":1506813,"lh":6914.9},{"id":52,"n":"Nariño","s":"NAR","rt":[968050,1043242,988381,999072,1015781,990297,975193,1039159,1020136,1040992,1047393,984395,1036856,1056312,1102293],"rh":[5228.1,5797.3,5440.3,5644.0,5688.5,5542.7,5511.9,6014.4,6007.1,6330.0,6181.9,6004.4,6054.5,6502.3,6846.9],"oc":[596192,635106,623276,640149,619345,686184,680110,707524,727787,724806,751108,806822,824827,824688,849083],"hs":[42.73,41.53,41.93,40.85,41.21,41.23,40.83,39.87,39.19,37.95,39.1,37.83,39.52,37.49,37.15],"crt":0.0087,"crh":0.01815,"prt":21,"prh":19,"pcrt":20,"pcrh":13,"bgt":0.6192,"bgh":0.5415,"lt":968050,"lh":5228.1},{"id":54,"n":"Norte de Santander","s":"NSA","rt":[1286990,1368818,1330815,1308900,1315636,1269237,1224821,1183223,1191863,1180476,1241500,1363344,1438439,1490170,1504981],"rh":[6210.5,6603.3,6482.6,6394.1,6600.0,6317.2,5967.2,5666.7,5702.4,5660.2,5967.6,6585.1,7067.6,7367.7,7613.1],"oc":[522223,567182,577500,565524,552810,555526,561297,560793,556434,615449,520097,625856,653260,642195,673287],"hs":[47.82,47.84,47.38,47.24,46.0,46.37,47.37,48.19,48.23,48.13,48.01,47.78,46.97,46.67,45.62],"crt":0.01049,"crh":0.01367,"prt":14,"prh":14,"pcrt":18,"pcrh":21,"bgt":0.48,"bgh":0.4902,"lt":1286990,"lh":6210.5},{"id":63,"n":"Quindío","s":"QUI","rt":[1385982,1305417,1244792,1198095,1297086,1271523,1310385,1378237,1391170,1364251,1550802,1566877,1626657,1705686,1707688],"rh":[6623.7,6119.8,6078.5,5955.1,6318.4,6155.8,6428.5,6783.0,6959.5,6891.3,8033.2,8136.5,8584.4,9128.9,9203.1],"oc":[254040,281729,294493,299103,362483,291035,333567,351782,346669,342214,190359,222289,220049,235889,256407],"hs":[48.29,49.23,47.26,46.43,47.37,47.67,47.04,46.89,46.13,45.68,44.55,44.44,43.73,43.12,42.82],"crt":0.01401,"crh":0.02217,"prt":9,"prh":8,"pcrt":10,"pcrh":4,"bgt":0.41,"bgh":0.3837,"lt":1385982,"lh":6623.7},{"id":66,"n":"Risaralda","s":"RIS","rt":[1230221,1319198,1318761,1364770,1472314,1392570,1383297,1419819,1449702,1416827,1794477,1669754,1717917,1817350,1821953],"rh":[5946.3,6462.0,6381.0,6536.5,6949.6,6624.2,6703.7,6913.4,7117.4,6930.8,8993.5,8335.4,8644.8,9244.7,9353.4],"oc":[418703,447679,439461,427518,445498,458081,482840,501530,492377,483463,339148,397628,416550,422915,449848],"hs":[47.74,47.11,47.69,48.18,48.89,48.51,47.62,47.39,47.0,47.18,46.05,46.23,45.86,45.37,44.95],"crt":0.02653,"crh":0.03066,"prt":6,"prh":7,"pcrt":2,"pcrh":2,"bgt":0.3705,"bgh":0.3736,"lt":1230221,"lh":5946.3},{"id":68,"n":"Santander","s":"SAN","rt":[1650471,1659748,1758230,1716440,1822621,1668129,1579729,1579724,1707891,1693191,1692472,1705580,1809575,1798645,1936680],"rh":[8069.5,8106.8,8574.4,8458.5,8963.0,8278.5,7894.7,7789.9,8496.2,8588.1,8564.2,8556.2,8943.8,9099.9,9840.3],"oc":[875956,933125,932271,949893,967062,976332,974751,963393,958465,972663,807385,946070,1011343,1009903,1045570],"hs":[47.2,47.25,47.32,46.83,46.93,46.5,46.18,46.8,46.39,45.5,45.6,46.0,46.69,45.61,45.42],"crt":0.01072,"crh":0.01331,"prt":4,"prh":5,"pcrt":17,"pcrh":22,"bgt":0.3309,"bgh":0.341,"lt":1650471,"lh":8069.5},{"id":70,"n":"Sucre","s":"SUC","rt":[961999,1087515,993681,1043116,1091616,1074810,1038415,1075213,1054687,1079997,921969,865671,971513,1009876,1007487],"rh":[4884.9,5752.4,5342.5,5563.3,5731.9,5739.8,5638.0,5947.6,5940.8,6119.4,5313.9,5053.9,5415.5,5710.3,6000.2],"oc":[298256,306966,342986,356179,359469,342656,362170,373983,383939,378069,370641,381737,363495,369316,403196],"hs":[45.45,43.63,42.92,43.27,43.95,43.21,42.5,41.72,40.97,40.73,40.04,39.53,41.4,40.81,38.75],"crt":0.00308,"crh":0.0138,"prt":24,"prh":23,"pcrt":23,"pcrh":20,"bgt":0.6519,"bgh":0.5982,"lt":961999,"lh":4884.9},{"id":73,"n":"Tolima","s":"TOL","rt":[1210095,1220533,1197365,1314647,1330125,1334837,1292675,1239524,1286372,1327960,1495674,1513343,1410123,1495908,1577399],"rh":[6035.1,6148.8,6230.4,6653.4,6749.2,6771.4,6560.9,6457.9,6680.9,6513.4,7622.8,7759.8,7178.6,7588.7,8208.8],"oc":[491271,488669,505363,512221,510845,521433,507059,506031,482354,458227,403814,480781,504771,507518,580410],"hs":[46.27,45.81,44.35,45.6,45.48,45.49,45.47,44.29,44.43,47.05,45.28,45.01,45.33,45.49,44.34],"crt":0.01783,"crh":0.02072,"prt":11,"prh":12,"pcrt":5,"pcrh":8,"bgt":0.455,"bgh":0.4503,"lt":1210095,"lh":6035.1},{"id":76,"n":"Valle del Cauca","s":"VAC","rt":[1466843,1430900,1510422,1478914,1540904,1492185,1523476,1598189,1576910,1641441,1699337,1801538,1756305,1795559,1907175],"rh":[7211.4,6925.8,7462.8,7414.2,7694.7,7610.5,7767.8,8241.2,8068.7,8382.3,8556.7,9114.9,8998.6,9266.1,9999.3],"oc":[1576469,1555953,1561965,1575262,1598280,1616361,1593836,1555366,1552833,1650314,1414557,1889225,1927816,1825808,2011697],"hs":[46.94,47.68,46.71,46.03,46.21,45.25,45.26,44.75,45.1,45.19,45.83,45.61,45.04,44.72,44.01],"crt":0.01765,"crh":0.02203,"prt":5,"prh":4,"pcrt":6,"pcrh":5,"bgt":0.3411,"bgh":0.3304,"lt":1466843,"lh":7211.4}],"B":{"rt0":1510772,"rt1":1904803,"rh0":7442.8,"rh1":10055.1,"crt":0.01557,"crh":0.02026,"oc1":22741061},"CV":{"rt":{"beta":0.00892,"se":0.00729,"t":1.224,"r2":0.0638,"alpha":-0.11222,"pts":[{"id":5,"x":14.3379,"y":0.01719},{"id":8,"x":14.1227,"y":0.01147},{"id":11,"x":14.6344,"y":0.01626},{"id":13,"x":13.9339,"y":0.01276},{"id":15,"x":13.9827,"y":0.0186},{"id":17,"x":14.1149,"y":0.01867},{"id":18,"x":14.0681,"y":0.01307},{"id":19,"x":13.7079,"y":0.01663},{"id":20,"x":14.0281,"y":0.00727},{"id":23,"x":13.7496,"y":0.00974},{"id":25,"x":14.0682,"y":0.02891},{"id":27,"x":13.8128,"y":0.01332},{"id":41,"x":13.9916,"y":0.01091},{"id":44,"x":13.9628,"y":-0.0088},{"id":47,"x":13.925,"y":0.00634},{"id":50,"x":14.2255,"y":0.01173},{"id":52,"x":13.783,"y":0.00866},{"id":54,"x":14.0678,"y":0.01043},{"id":63,"x":14.1419,"y":0.01392},{"id":66,"x":14.0227,"y":0.02618},{"id":68,"x":14.3166,"y":0.01066},{"id":70,"x":13.7768,"y":0.00308},{"id":73,"x":14.0062,"y":0.01767},{"id":76,"x":14.1986,"y":0.0175}]},"rh":{"beta":0.006,"se":0.0082,"t":0.732,"r2":0.0238,"alpha":-0.03452,"pts":[{"id":5,"x":9.0209,"y":0.02039},{"id":8,"x":8.7965,"y":0.01657},{"id":11,"x":9.2904,"y":0.02139},{"id":13,"x":8.5969,"y":0.01897},{"id":15,"x":8.7792,"y":0.02157},{"id":17,"x":8.7785,"y":0.02497},{"id":18,"x":8.7155,"y":0.01646},{"id":19,"x":8.5356,"y":0.01981},{"id":20,"x":8.666,"y":0.01381},{"id":23,"x":8.4899,"y":0.01693},{"id":25,"x":8.776,"y":0.03174},{"id":27,"x":8.482,"y":0.01842},{"id":41,"x":8.7367,"y":0.0112},{"id":44,"x":8.6955,"y":-0.00727},{"id":47,"x":8.5572,"y":0.01463},{"id":50,"x":8.8414,"y":0.01656},{"id":52,"x":8.5618,"y":0.01798},{"id":54,"x":8.734,"y":0.01357},{"id":63,"x":8.7984,"y":0.02193},{"id":66,"x":8.6905,"y":0.0302},{"id":68,"x":8.9958,"y":0.01323},{"id":70,"x":8.4939,"y":0.01371},{"id":73,"x":8.7054,"y":0.02051},{"id":76,"x":8.8834,"y":0.02179}]}},"geo":{"w":560.0,"h":770.2,"items":[{"n":"Amazonas","id":null,"d":"M421.9 746.9L417.2 770.2L414.4 768.8L411.6 763.5L407.1 761.6L406.0 755.7L402.8 754.6L400.9 751.8L398.3 750.9L395.5 753.5L391.7 754.4L389.6 753.8L388.0 752.3L384.6 752.4L383.5 750.4L381.9 750.1L411.4 703.9L412.1 702.6L411.6 698.7L410.6 697.3L409.1 699.7L408.0 699.7L407.2 699.1L406.9 696.7L405.7 697.8L404.7 697.5L403.2 692.8L402.1 692.6L400.0 694.2L398.2 693.6L398.5 692.6L400.8 691.8L400.7 690.7L397.9 690.2L395.1 691.7L393.3 688.6L391.2 689.2L389.3 686.9L387.6 687.1L389.4 688.1L389.3 689.2L386.3 689.5L385.6 688.6L386.2 685.8L383.8 686.0L384.5 683.6L380.7 682.5L379.6 681.1L376.9 680.6L375.0 677.6L373.7 677.7L372.3 679.1L370.4 677.2L368.7 677.1L368.2 678.0L369.3 681.2L366.8 679.5L363.0 680.3L361.9 681.1L362.5 683.0L360.9 682.9L360.3 684.9L357.7 683.0L355.4 685.2L355.8 683.6L355.1 683.0L353.7 684.8L350.2 686.2L350.3 683.6L347.6 680.1L345.7 680.2L346.4 683.3L345.5 683.5L344.5 678.9L341.8 678.4L338.6 676.6L335.3 677.7L335.0 673.9L331.5 676.8L330.2 676.2L327.8 681.7L325.5 681.8L326.0 684.8L324.5 683.8L322.4 684.4L319.8 682.8L316.5 686.2L315.1 689.4L314.9 687.3L312.5 687.9L311.1 687.2L310.4 687.5L310.6 688.5L305.4 689.9L303.7 686.5L301.9 687.4L296.3 685.8L295.1 684.3L293.3 683.9L291.0 688.2L290.5 686.1L289.3 685.1L288.3 687.0L286.2 685.6L284.3 687.1L279.4 688.4L279.6 686.8L277.6 683.3L276.4 684.0L274.6 682.4L274.5 683.8L273.5 684.1L272.9 682.9L270.7 682.3L270.7 680.3L268.8 678.0L268.6 676.1L270.3 675.8L271.1 673.4L273.2 671.7L271.2 670.7L272.2 669.1L270.8 667.7L271.4 661.9L269.3 660.7L269.7 658.3L267.6 657.6L266.2 655.7L265.6 658.2L264.6 658.4L265.0 657.2L262.7 657.0L262.6 659.2L261.8 659.3L258.8 656.9L256.7 657.6L256.0 655.8L251.7 653.5L252.7 650.6L255.3 647.5L253.5 647.2L254.4 645.7L253.6 644.8L253.9 643.5L252.4 642.9L251.9 641.2L249.5 640.8L251.1 639.7L249.8 637.7L250.3 636.1L248.4 636.0L247.9 633.3L246.8 633.6L245.1 632.2L242.9 632.8L242.3 630.4L241.2 633.2L240.3 632.2L239.3 632.7L236.8 631.7L234.7 626.7L232.1 627.1L232.3 625.0L231.3 626.1L230.1 625.6L229.5 621.3L227.6 623.7L218.0 620.2L217.8 616.9L215.8 615.5L216.7 615.0L218.0 615.7L218.1 614.0L219.2 613.2L217.1 612.9L217.5 610.9L215.9 611.7L216.2 610.1L214.7 610.1L213.3 608.9L213.2 608.0L214.9 606.7L213.2 605.3L213.9 604.0L212.6 600.5L237.4 593.1L239.8 594.1L243.4 592.6L245.0 594.3L247.0 594.3L246.5 596.1L248.5 595.3L249.7 595.8L249.3 598.1L250.4 598.9L251.9 597.5L252.6 599.1L253.9 599.4L256.7 598.6L259.1 599.7L261.0 598.3L267.0 603.9L271.1 602.9L273.0 603.7L273.4 601.1L275.1 599.4L278.3 600.8L280.2 603.4L284.9 602.7L287.7 600.7L291.4 604.3L296.9 607.6L302.7 601.0L303.6 601.1L304.3 603.4L307.4 604.9L311.0 603.4L311.8 602.1L311.4 597.0L313.6 594.9L315.9 590.9L318.9 589.9L320.6 587.0L329.9 587.4L333.5 585.9L334.9 580.3L340.3 575.8L350.1 573.8L353.9 570.0L355.1 570.5L354.9 571.8L358.1 572.5L360.2 570.6L361.8 572.2L362.3 574.8L363.7 573.8L364.9 575.4L366.1 575.2L365.5 576.3L366.5 577.1L367.3 576.9L367.1 575.5L369.2 575.3L369.4 576.5L371.1 577.3L371.2 579.2L372.7 580.0L372.3 581.0L370.8 581.1L370.3 582.2L371.7 584.2L373.2 584.6L373.4 587.7L375.8 591.6L379.1 590.1L378.3 589.1L380.6 588.0L383.4 591.2L385.7 589.8L388.0 593.1L389.1 591.8L390.3 592.4L390.8 591.6L393.8 595.2L393.6 597.9L396.6 596.4L397.5 598.0L399.8 598.0L400.2 596.6L398.2 596.0L400.9 595.3L401.7 594.1L403.9 595.6L405.3 595.3L405.6 597.1L403.9 596.7L400.0 601.1L400.6 602.2L401.4 600.7L402.7 601.7L403.3 609.0L401.5 609.7L401.1 611.7L404.7 615.9L402.9 618.4L401.4 618.3L400.8 619.6L403.0 622.1L405.8 620.5L404.5 623.6L406.8 624.7L407.1 626.4L408.9 626.4L411.2 622.9L410.7 621.8L408.7 622.0L408.9 620.4L411.2 618.8L413.4 620.4L414.1 618.3L414.9 620.2L417.7 618.8L419.4 620.1L417.0 621.1L417.6 622.8L416.2 624.9L417.1 625.8L420.7 624.9L422.5 622.6L426.0 625.9L427.1 625.2L425.3 623.0L426.5 622.6L428.5 623.6L431.1 626.9L429.6 627.0L429.6 630.7L430.4 631.8L431.5 631.3L431.7 629.0L433.5 628.1L435.0 630.0L438.7 631.2L439.3 629.3L438.2 628.4L439.6 627.8L439.1 625.7L439.9 624.7L441.0 624.9L442.5 627.1L440.9 631.9L442.2 637.9L440.8 639.2L440.8 642.4L439.8 644.0L421.9 746.9Z","c":[338.0,642.6]},{"n":"Antioquia","id":5,"d":"M156.9 312.9L158.1 313.5L157.3 314.6L157.8 320.5L156.0 319.7L152.5 320.3L150.8 318.2L147.4 319.9L145.9 321.7L144.8 320.9L144.5 321.7L142.8 322.0L138.8 319.8L137.5 320.4L136.6 315.9L133.9 313.5L133.1 307.1L133.4 302.8L135.8 301.3L136.0 299.8L133.2 297.2L131.5 298.0L131.2 296.1L129.5 295.4L129.8 291.8L128.7 289.5L127.5 288.5L115.5 290.4L111.3 289.4L106.8 290.6L105.4 290.2L105.1 287.2L103.6 286.3L104.0 285.2L102.4 284.7L102.0 283.2L102.9 281.3L102.2 280.6L103.2 280.1L101.8 278.7L103.4 278.1L101.8 277.7L103.1 276.0L101.6 274.7L100.6 275.7L100.7 274.0L99.7 274.0L99.2 272.2L97.1 271.5L97.5 270.1L98.9 269.5L96.5 268.9L97.2 267.3L95.8 268.2L95.1 266.5L94.1 266.8L95.5 265.2L93.9 263.8L94.4 261.5L93.7 260.6L95.5 260.6L96.3 259.2L97.1 259.7L98.1 258.8L100.0 259.8L100.8 259.4L100.2 258.4L102.0 258.0L101.6 254.3L101.0 253.6L100.3 254.0L100.8 253.0L100.2 252.6L107.5 250.8L108.9 251.7L111.3 251.5L112.3 253.0L114.4 251.5L113.8 248.9L115.2 245.6L116.3 245.9L116.4 245.3L114.0 240.2L111.8 237.9L104.7 236.7L103.5 229.0L101.7 225.5L96.6 224.9L95.0 223.6L92.7 224.1L92.7 221.8L90.3 219.6L89.4 217.7L86.3 216.9L86.2 216.0L87.3 215.9L86.5 213.7L88.0 213.9L91.0 211.3L92.5 204.9L95.1 203.0L93.5 193.9L94.7 194.1L94.4 195.0L93.9 194.6L94.4 197.2L95.4 197.1L95.0 196.1L95.7 196.5L95.3 197.8L96.4 196.9L95.5 198.5L94.7 198.1L95.0 201.3L96.9 201.1L97.2 199.7L100.0 199.7L99.0 201.0L100.1 201.8L98.2 202.5L100.3 203.5L98.3 203.3L99.9 204.9L98.2 204.8L97.3 203.7L95.9 204.7L95.9 209.6L98.7 210.4L103.9 209.5L105.0 206.5L104.1 204.9L105.5 202.9L104.2 201.9L104.5 198.1L102.8 193.6L103.7 190.8L103.5 187.4L100.5 183.0L96.3 180.6L95.4 180.5L96.5 181.2L95.8 181.5L95.3 180.2L97.4 178.5L97.7 177.0L108.5 174.8L109.3 172.0L114.3 170.1L115.0 168.6L118.9 166.2L119.3 165.0L120.8 169.2L119.3 170.9L121.3 172.6L122.5 176.4L124.0 175.6L126.2 176.3L128.1 179.7L126.7 182.1L128.6 183.3L128.7 186.1L129.9 186.8L129.9 187.6L126.3 189.4L124.5 191.4L124.8 192.5L123.7 193.5L122.7 197.2L119.2 202.1L119.6 208.9L117.2 211.7L115.4 218.4L115.0 227.2L117.3 229.6L118.9 234.8L145.6 235.4L146.8 232.7L146.5 231.5L148.1 230.9L149.1 227.8L158.1 222.4L161.9 218.4L163.1 215.8L163.1 213.2L165.3 213.2L168.4 211.4L168.9 208.2L171.0 207.7L174.0 202.9L178.8 203.5L180.1 202.2L181.6 203.5L185.1 202.2L187.6 202.3L190.5 198.4L190.2 196.6L192.4 196.6L194.1 198.6L194.2 200.0L196.4 199.5L196.3 200.3L199.7 203.0L202.7 204.1L206.4 210.1L206.3 215.8L207.2 218.6L208.5 219.5L204.6 221.9L204.9 227.7L203.1 229.3L202.9 230.6L208.0 236.1L211.5 234.1L211.3 231.1L213.7 230.0L214.9 232.8L211.9 236.3L212.6 239.0L211.6 242.6L214.3 248.2L214.1 251.5L220.5 251.8L223.4 247.5L234.4 238.1L233.2 244.1L236.3 250.6L234.5 253.2L228.2 257.8L225.0 262.9L223.7 263.0L222.5 264.6L220.2 264.9L218.3 267.5L216.7 267.4L215.2 269.1L213.8 268.8L211.7 270.8L211.1 272.9L212.3 274.4L211.7 276.3L213.5 279.1L210.8 279.8L208.9 283.6L205.6 285.9L202.5 291.6L203.0 293.6L204.7 294.6L204.0 295.8L204.6 298.2L202.3 299.3L203.4 302.5L201.1 304.0L199.9 308.9L197.6 308.5L196.9 311.6L194.8 312.5L190.7 309.8L184.8 311.2L184.0 312.8L180.1 314.0L180.3 317.3L178.1 319.9L174.3 321.0L171.7 324.9L171.4 322.3L169.9 322.2L168.8 316.4L166.8 315.5L167.5 314.7L167.2 313.2L164.7 312.1L162.4 313.6L159.8 312.4L159.4 311.0L156.9 310.2L156.9 312.9Z","c":[140.4,245.0]},{"n":"Arauca","id":null,"d":"M429.9 279.4L440.9 293.4L437.3 295.5L433.4 296.2L424.1 295.5L421.7 296.6L420.2 296.0L418.9 294.9L419.1 293.4L417.1 291.7L411.9 290.7L412.7 289.4L409.3 287.3L407.0 284.3L406.4 285.3L405.3 284.4L402.0 285.4L396.9 284.1L390.1 287.5L387.8 286.6L381.0 288.1L377.6 286.3L374.9 287.0L374.6 287.9L373.3 287.2L369.2 287.5L366.9 285.8L365.6 286.3L364.2 285.2L361.3 286.0L358.4 284.3L357.7 285.9L356.2 285.0L355.9 286.1L354.6 285.6L351.1 287.7L350.9 286.9L349.3 286.9L349.2 287.7L347.8 286.8L348.2 288.2L347.6 287.7L346.0 288.7L345.6 288.1L345.1 288.9L343.9 287.7L343.0 289.0L342.0 288.4L342.1 289.4L340.0 287.5L338.7 288.7L333.8 288.5L328.5 290.6L324.7 290.1L315.9 294.9L309.9 292.0L309.2 288.8L306.6 287.7L305.7 285.5L305.7 284.0L309.5 280.4L309.6 278.7L310.6 277.9L311.6 278.7L312.6 276.6L314.3 276.8L314.3 275.2L316.4 274.0L317.9 263.6L320.1 262.6L324.3 251.9L329.8 251.1L330.5 249.4L334.2 248.2L335.9 250.4L341.5 249.5L341.4 251.1L345.6 250.4L346.5 251.2L347.0 250.0L347.6 251.5L348.9 250.2L351.4 251.2L356.2 250.4L357.4 251.4L357.9 250.7L362.5 250.4L363.7 251.6L363.3 252.4L367.4 253.1L369.8 251.2L372.0 250.8L372.3 249.5L372.8 250.0L373.6 249.0L375.4 249.3L375.2 248.3L378.7 248.4L379.4 247.4L382.9 247.1L385.0 248.7L388.9 248.3L391.4 251.7L394.7 251.6L395.3 252.8L397.4 252.8L399.6 254.9L402.3 254.6L404.2 253.1L408.9 252.9L429.9 279.4Z","c":[363.9,273.5]},{"n":"Atlántico","id":8,"d":"M190.3 98.1L188.6 101.8L185.2 97.7L181.0 94.6L178.6 95.1L176.3 91.8L173.4 90.0L174.1 84.3L172.1 81.9L174.7 75.9L182.3 72.1L184.4 68.1L186.1 68.0L188.1 65.2L191.5 64.4L191.2 62.8L192.2 64.9L195.1 67.2L195.8 70.3L197.4 71.5L196.3 74.4L197.3 81.6L196.3 83.7L197.2 86.6L192.7 92.1L192.3 94.8L190.7 96.2L190.3 98.1Z","c":[187.6,81.9]},{"n":"Bogotá D.C.","id":11,"d":"M219.4 381.8L221.0 379.3L220.2 373.6L222.5 367.1L221.9 365.8L222.5 363.8L220.2 361.8L220.2 360.7L223.1 359.8L222.3 358.0L223.3 357.7L223.2 356.9L224.6 356.8L225.2 353.9L226.8 353.1L226.4 352.0L228.1 351.9L230.5 353.2L229.6 355.0L230.3 359.3L228.9 361.0L230.0 361.0L230.8 362.9L226.9 369.1L225.4 370.0L225.2 372.5L226.1 373.6L223.4 378.7L225.4 382.0L225.0 384.2L226.3 384.7L224.5 386.2L224.7 387.8L223.5 390.2L223.0 389.5L220.6 389.8L218.4 392.7L218.6 393.7L216.7 395.9L215.9 395.8L216.8 398.8L215.0 398.6L212.4 401.0L212.2 402.4L209.6 403.0L213.9 394.4L214.0 391.7L213.2 391.1L215.3 384.4L218.7 385.8L219.4 381.8Z","c":[222.0,376.0]},{"n":"Bolívar","id":13,"d":"M219.2 251.8L214.1 251.5L214.3 248.2L211.6 243.0L212.7 238.1L211.9 236.3L214.9 232.8L213.6 230.0L211.3 231.1L211.5 234.1L208.1 236.1L202.9 230.6L203.1 229.3L204.9 227.7L204.6 221.9L208.5 219.5L207.2 218.6L206.3 215.8L206.4 210.2L205.6 208.0L202.7 204.1L199.7 203.0L196.3 200.3L196.4 199.5L194.2 200.0L194.1 198.6L192.0 196.0L193.9 194.4L193.2 193.1L195.0 192.4L196.5 192.0L197.1 192.8L199.2 192.0L200.4 192.9L200.6 191.3L202.2 189.8L202.3 187.2L204.5 187.9L205.6 186.0L205.8 183.6L204.3 182.3L204.2 179.1L203.0 178.3L202.4 170.9L205.6 168.6L203.5 167.0L203.8 165.2L203.1 165.2L201.0 160.7L199.6 159.4L196.5 158.9L195.8 157.6L192.5 157.0L191.3 153.0L188.9 152.0L188.8 149.0L187.6 147.9L187.5 144.5L186.7 143.6L189.4 139.7L186.6 138.9L187.1 137.9L185.6 139.2L183.0 138.1L183.8 135.2L180.8 135.1L178.3 132.1L176.7 131.3L176.0 131.8L175.8 130.6L176.8 129.8L173.7 129.8L172.0 128.7L172.1 127.9L169.6 129.4L169.3 131.3L168.6 129.9L167.3 130.6L167.6 126.2L169.1 122.9L168.3 122.3L169.6 119.4L168.0 118.4L167.5 119.5L164.0 118.5L163.3 117.5L162.1 117.7L163.1 115.5L162.6 111.8L160.5 112.3L159.4 111.4L161.5 106.8L158.1 109.5L157.6 108.0L160.4 105.6L160.3 102.9L159.7 102.9L160.4 102.5L159.4 102.2L155.1 104.8L153.6 107.1L152.0 106.9L154.3 105.9L156.6 102.5L157.5 103.0L155.8 101.9L157.6 101.4L157.4 99.7L158.6 101.3L161.3 99.5L161.0 96.0L159.7 95.3L160.3 94.5L159.2 94.0L159.4 95.4L158.4 95.2L162.0 91.1L161.3 90.3L161.7 88.2L160.8 87.2L163.4 86.2L163.7 84.5L166.3 82.2L171.8 80.5L172.4 76.5L174.2 76.7L174.3 77.6L172.1 81.9L174.1 84.3L173.4 90.0L176.3 91.8L178.6 95.1L181.0 94.6L186.1 98.5L188.6 101.7L186.9 106.8L187.4 108.4L191.6 109.6L194.0 112.5L193.8 113.9L190.7 116.1L189.9 119.1L190.7 121.4L193.6 123.6L192.2 126.6L194.9 131.8L193.3 134.3L194.7 136.5L193.2 138.3L193.5 139.2L195.5 138.3L196.6 140.3L199.5 140.6L200.1 141.8L202.0 142.5L202.2 144.0L204.4 145.1L206.6 148.8L210.4 147.0L211.9 149.7L214.6 148.9L216.7 150.2L216.7 152.2L219.0 152.0L223.3 157.0L224.2 156.6L225.0 157.4L224.1 158.3L225.2 157.7L225.9 158.9L227.8 158.7L228.8 157.5L231.1 159.1L230.2 159.6L231.4 160.3L235.7 160.6L236.5 164.5L240.3 168.4L238.7 175.4L239.4 178.2L241.0 180.0L240.7 182.3L242.0 184.7L241.9 193.2L240.2 196.5L240.8 199.0L237.4 201.6L236.4 204.7L237.7 208.0L236.9 209.3L238.0 210.2L239.8 216.8L238.5 219.0L239.7 222.1L238.8 222.3L239.1 223.7L235.9 228.6L234.4 229.2L235.2 232.8L234.4 238.1L223.4 247.5L220.5 251.8L219.2 251.8ZM158.0 95.9L159.7 97.4L158.0 97.8L157.7 98.8L157.2 97.0L158.0 95.9Z","c":[194.8,153.9]},{"n":"Boyacá","id":15,"d":"M266.8 359.0L265.6 358.3L266.2 356.6L262.3 356.6L261.7 354.4L259.3 353.5L259.6 352.4L257.9 349.8L254.2 349.2L252.7 349.8L251.7 349.1L251.4 346.9L253.1 344.4L252.5 342.9L254.4 341.3L253.7 339.3L254.4 337.5L252.4 335.3L252.0 331.4L249.0 329.6L249.2 325.8L245.3 324.2L245.3 323.1L244.6 323.7L243.2 322.2L242.4 322.7L242.1 321.7L241.2 321.9L239.4 317.9L236.4 319.6L234.2 324.9L231.7 324.9L230.8 327.0L229.2 327.7L227.8 327.1L226.1 323.4L223.0 323.6L220.8 321.2L219.1 322.3L218.7 321.7L219.4 319.4L216.7 317.8L215.9 315.6L217.7 312.3L216.4 311.5L217.2 309.8L215.1 305.6L210.5 309.2L206.1 307.7L204.5 309.3L202.7 309.8L201.6 309.1L200.5 310.2L199.9 308.7L200.8 304.8L203.4 302.5L202.2 299.4L204.6 298.2L204.0 295.8L204.7 294.6L202.3 292.3L204.0 288.3L206.2 285.5L207.1 288.2L208.8 288.8L208.3 290.6L209.6 291.9L209.6 293.5L211.7 294.1L212.8 296.2L214.4 296.3L216.7 294.2L218.5 295.0L218.5 297.5L220.2 299.6L219.5 300.7L219.8 302.5L217.6 304.5L218.2 305.8L220.0 306.0L221.3 304.9L222.1 302.2L224.3 303.8L225.7 303.8L226.8 306.5L229.2 307.0L231.2 311.0L233.9 309.9L236.4 310.3L236.6 311.3L238.1 310.1L239.1 311.3L241.2 308.6L243.6 308.2L246.8 311.2L248.8 304.1L247.2 302.2L248.7 300.9L249.7 297.5L251.6 296.3L252.7 293.5L253.7 293.1L257.4 294.7L259.4 297.8L257.8 303.1L256.2 302.4L254.8 306.3L256.6 307.8L256.7 308.9L258.5 309.6L260.5 305.4L263.6 304.8L267.3 298.0L270.2 300.0L273.1 300.3L274.2 299.1L275.9 299.8L280.2 293.1L282.3 292.3L282.5 291.4L284.2 291.3L285.4 288.1L288.1 287.4L288.2 284.9L289.2 284.5L287.9 282.6L289.1 280.9L289.1 277.0L288.6 275.3L287.2 275.0L285.2 272.3L287.3 271.2L289.3 272.5L292.5 277.9L297.7 275.6L297.5 271.2L300.1 267.8L299.6 261.3L300.6 259.3L299.4 257.7L299.6 255.6L304.7 257.7L308.0 255.1L309.5 251.4L310.9 251.6L310.7 252.7L311.7 252.9L314.3 249.3L315.4 250.3L318.8 249.9L322.2 251.6L324.9 251.4L320.1 262.6L317.9 263.6L316.4 274.0L314.3 275.2L314.3 276.8L312.6 276.6L311.6 278.7L310.6 277.9L309.6 278.7L309.5 280.4L307.9 281.6L307.9 282.6L304.2 285.4L303.3 289.4L304.4 289.4L304.3 290.6L305.2 291.2L304.8 292.8L307.8 294.4L305.6 296.2L306.1 298.5L304.7 301.5L304.9 302.7L303.3 302.5L301.4 305.0L307.7 307.6L311.1 312.1L309.1 313.7L309.6 315.8L308.4 316.3L308.2 321.0L306.6 320.9L304.2 317.9L303.1 318.3L299.2 324.0L295.6 326.6L296.3 327.0L295.8 327.9L293.4 328.5L290.2 331.6L289.1 329.6L285.2 326.6L281.3 329.9L280.7 332.2L278.7 333.0L279.4 334.6L277.6 337.3L279.8 339.7L280.6 339.5L280.9 341.1L277.6 345.4L275.7 344.1L275.0 345.1L274.5 349.9L272.8 353.1L274.3 356.2L273.2 356.2L271.6 360.1L266.8 359.0Z","c":[262.5,306.2]},{"n":"Caldas","id":17,"d":"M149.7 342.4L147.9 345.2L148.0 347.1L147.0 347.8L144.5 347.3L142.0 342.2L142.4 340.2L144.2 338.0L145.9 339.0L147.5 335.0L146.5 331.8L150.0 331.1L152.6 332.5L155.0 330.2L155.2 328.7L151.1 325.9L147.2 327.5L144.8 327.0L144.9 321.5L146.3 321.6L147.4 319.9L150.8 318.2L152.5 320.3L158.2 320.2L157.3 314.6L158.1 313.5L156.8 312.8L156.9 310.2L159.4 311.0L159.8 312.4L162.4 313.6L164.7 312.1L167.2 313.2L167.5 314.7L166.8 315.5L168.8 316.4L169.9 322.2L171.4 322.3L171.6 324.9L174.3 321.0L178.1 319.9L180.3 317.3L180.1 314.0L184.0 312.8L184.8 311.2L190.7 309.8L194.8 312.5L196.9 311.6L197.6 308.5L199.9 308.9L200.2 310.8L201.7 312.2L200.4 317.6L201.1 319.0L199.5 320.6L200.5 323.8L199.3 324.0L199.2 326.9L197.9 327.1L197.7 329.6L196.7 331.0L192.4 329.5L190.3 330.6L187.2 329.8L181.8 331.5L179.1 336.8L176.5 336.3L173.6 338.4L171.2 337.8L168.6 340.5L168.4 341.6L169.8 342.8L168.2 347.3L169.8 349.2L167.2 353.3L164.8 352.7L161.9 348.0L159.7 348.1L158.3 346.9L156.1 347.4L155.7 345.6L155.0 345.4L154.2 346.9L152.3 346.8L149.7 342.4Z","c":[168.3,328.4]},{"n":"Caquetá","id":18,"d":"M275.5 599.4L273.4 601.1L273.0 603.7L271.1 602.9L267.0 603.9L261.0 598.3L259.1 599.7L256.7 598.6L253.9 599.4L252.6 599.1L251.9 597.5L250.4 598.9L249.3 598.1L249.7 595.8L248.5 595.3L246.5 596.1L247.0 594.3L245.0 594.3L243.6 592.7L241.4 593.9L238.7 593.9L236.1 592.1L230.0 590.7L228.5 587.8L226.7 588.0L225.2 585.8L222.2 587.3L221.1 584.7L219.7 586.0L217.2 584.4L218.1 581.7L216.3 581.8L214.6 580.1L209.9 581.5L211.0 579.8L209.7 578.3L207.9 581.4L206.6 579.1L205.9 579.2L206.0 580.9L201.3 579.1L202.0 577.5L200.7 576.8L199.1 577.7L200.3 575.6L198.0 573.2L200.3 572.0L197.6 570.8L199.4 570.4L199.0 567.2L196.8 565.4L191.7 565.2L189.1 563.5L186.4 563.9L184.1 562.3L185.3 560.5L183.7 557.4L185.1 556.6L185.1 555.7L183.1 552.8L179.6 553.2L179.5 551.3L177.3 552.8L174.3 552.6L175.3 551.7L173.2 548.8L174.7 547.2L174.2 545.5L171.8 544.3L172.2 541.5L169.4 540.6L168.9 539.4L165.7 541.0L162.2 538.8L161.1 539.5L159.7 538.8L159.6 536.7L156.4 536.3L155.4 534.4L153.2 535.4L150.7 535.3L149.4 536.4L147.7 533.7L145.1 534.3L142.6 530.1L140.8 529.9L142.0 527.4L138.8 525.6L138.7 527.6L138.2 526.3L134.5 526.2L131.3 523.4L130.1 524.0L126.4 523.2L124.5 520.7L125.1 519.2L124.5 518.0L128.6 514.1L129.2 509.4L130.3 508.1L130.0 506.3L131.6 503.8L134.3 502.7L134.0 504.9L134.6 505.2L135.5 503.7L138.8 502.2L142.5 495.3L145.0 495.5L150.8 491.5L154.4 486.1L157.7 483.0L159.2 478.7L164.8 476.2L165.5 469.8L168.7 468.2L170.9 463.8L174.6 460.2L176.6 456.4L180.0 454.1L182.0 450.8L182.0 445.5L187.4 438.4L193.4 439.3L196.6 442.3L200.8 444.2L202.8 447.5L203.8 451.7L199.3 457.0L199.7 466.8L202.4 474.9L202.1 479.6L205.7 489.6L207.3 491.6L210.2 491.8L212.8 493.6L216.5 493.1L218.5 498.4L221.3 497.6L223.4 495.7L225.5 496.9L226.3 499.2L227.8 498.4L229.6 499.5L233.8 498.6L235.3 500.2L237.1 500.7L240.8 499.8L246.3 501.1L248.0 505.5L251.4 508.8L251.3 510.3L254.7 512.3L255.5 515.3L256.8 515.2L256.6 516.9L257.7 517.7L257.1 520.1L258.4 520.9L258.1 521.8L260.7 523.2L260.8 524.3L263.5 525.8L263.7 526.7L264.9 526.6L265.6 528.4L268.2 528.8L267.7 530.4L269.7 531.5L269.8 532.6L271.4 532.4L272.9 533.7L277.0 532.2L276.6 531.1L279.2 529.7L279.5 528.2L282.5 527.7L282.0 526.7L283.0 526.9L282.8 525.5L281.8 525.7L282.4 524.9L281.8 524.4L283.3 524.0L282.3 522.6L283.3 522.2L282.9 521.2L284.4 522.0L284.5 520.6L286.9 520.4L286.6 522.0L288.0 522.9L289.2 521.9L289.1 520.2L292.0 521.9L292.7 520.5L293.8 522.5L298.9 525.7L301.4 525.1L304.1 528.6L304.0 530.3L305.1 530.7L304.5 532.6L306.9 532.3L307.3 536.2L307.6 534.6L309.2 534.7L308.6 536.2L309.3 537.2L308.2 537.6L310.1 539.8L310.0 538.4L311.0 538.6L312.4 542.5L313.2 542.7L313.7 541.4L314.8 542.1L314.9 541.1L316.0 541.9L316.7 540.8L317.4 542.5L319.3 543.2L318.6 544.7L322.5 544.7L323.3 545.9L321.9 547.5L324.6 550.1L325.3 548.7L326.5 551.2L325.7 552.5L327.0 553.3L326.2 554.2L327.6 554.3L327.7 553.4L330.6 556.3L329.3 558.9L330.5 559.4L331.6 558.7L331.0 557.8L333.2 558.0L332.2 559.6L333.8 559.7L334.5 561.9L336.1 560.3L336.2 561.2L335.1 562.1L336.4 564.1L339.8 565.1L340.1 566.1L339.2 566.5L340.6 566.6L342.7 565.0L341.4 567.3L344.0 567.3L343.9 569.4L345.6 568.9L346.7 566.5L347.5 566.9L346.9 567.9L347.7 568.6L349.7 568.0L350.1 566.4L351.4 567.2L351.7 568.3L352.8 568.6L353.0 567.8L353.7 568.6L353.9 570.0L351.1 573.3L341.0 575.4L335.6 579.6L333.7 585.8L329.9 587.4L320.6 587.0L318.9 589.9L315.9 590.9L313.6 594.9L311.6 596.7L311.1 599.4L311.8 602.2L308.9 604.3L306.0 604.4L302.7 601.0L296.7 607.6L291.4 604.3L288.0 600.7L284.9 602.7L280.2 603.4L278.3 600.8L275.5 599.4Z","c":[247.7,542.6]},{"n":"Casanare","id":null,"d":"M280.9 341.1L280.6 339.5L279.8 339.7L277.7 337.5L279.4 334.6L278.6 333.3L280.7 332.2L281.3 330.0L285.2 326.6L289.1 329.6L290.2 331.6L293.4 328.5L295.8 327.9L296.3 327.0L295.6 326.6L299.2 324.0L303.1 318.3L304.2 317.9L306.6 320.9L308.2 321.0L308.4 316.3L309.6 315.8L309.1 313.7L311.1 312.1L307.7 307.6L301.4 305.0L303.3 302.5L304.9 302.7L304.7 301.5L306.1 298.5L305.6 296.2L307.8 294.5L304.8 292.8L305.2 291.2L304.3 290.6L304.4 289.4L303.3 289.3L304.2 285.4L305.4 284.1L306.6 287.7L309.3 288.9L309.9 292.0L315.9 294.9L324.7 290.1L328.5 290.6L333.8 288.5L338.7 288.7L340.0 287.5L342.1 289.4L342.0 288.4L343.0 289.0L343.9 287.7L345.1 288.9L345.6 288.1L346.0 288.7L347.6 287.7L348.2 288.2L347.8 286.8L349.2 287.7L349.3 286.9L350.9 286.9L351.1 287.7L354.6 285.6L355.9 286.1L356.2 285.0L357.7 285.9L358.4 284.3L361.3 286.0L364.2 285.2L365.6 286.3L366.9 285.8L369.2 287.5L373.3 287.2L374.6 287.9L374.9 287.0L377.6 286.3L381.0 288.1L387.8 286.6L390.1 287.5L396.9 284.1L402.0 285.4L405.3 284.4L406.4 285.3L407.0 284.3L409.3 287.3L412.7 289.4L411.9 290.7L417.1 291.7L419.1 293.4L419.3 295.3L422.1 296.6L415.9 304.5L414.9 307.7L408.5 315.6L402.7 318.3L398.1 316.9L395.9 319.6L392.7 320.5L387.6 323.9L387.2 324.9L383.0 326.5L383.5 329.3L382.1 331.6L375.3 337.2L372.4 337.8L370.9 339.1L368.2 345.6L365.5 348.0L364.7 347.6L363.6 349.5L358.6 352.8L355.1 353.3L348.4 357.3L342.0 359.2L340.7 360.8L334.8 363.8L331.3 363.5L323.1 372.5L319.9 373.0L318.8 371.2L316.0 370.1L311.6 370.3L303.8 375.7L303.0 374.2L300.9 375.7L297.2 374.0L296.0 376.5L291.3 376.0L289.6 377.4L289.0 376.4L288.1 376.4L288.3 375.4L285.9 374.1L287.0 373.4L285.7 373.0L286.2 372.1L284.6 371.2L285.1 370.6L282.5 369.6L279.4 366.4L276.8 360.4L274.5 359.1L274.3 355.4L272.8 353.1L274.5 349.9L274.2 347.8L275.6 344.2L277.6 345.4L280.9 341.1Z","c":[333.0,320.5]},{"n":"Cauca","id":19,"d":"M132.4 524.2L134.7 525.9L134.1 526.5L135.0 527.3L134.6 527.9L132.6 528.6L130.3 527.5L130.6 528.4L129.0 528.1L129.7 529.1L127.5 529.7L127.6 530.5L125.7 529.7L123.4 530.8L123.0 529.8L121.4 529.6L119.5 530.7L118.0 530.3L115.7 527.8L113.8 527.8L112.3 525.0L113.7 519.2L111.5 515.0L112.0 511.0L107.7 507.3L103.6 509.6L98.7 507.7L97.1 505.1L98.9 504.6L100.1 500.8L96.8 498.2L95.3 495.2L93.7 496.1L91.1 495.9L89.0 498.0L86.1 498.7L85.5 497.2L81.2 498.5L77.2 497.4L78.9 493.5L78.1 491.8L79.1 489.7L80.6 488.7L81.1 486.8L82.5 486.5L83.1 484.9L82.3 483.3L80.5 483.0L77.3 480.5L78.6 476.1L77.5 472.5L72.3 472.0L69.0 474.9L62.7 475.0L57.9 476.8L53.4 474.1L53.6 472.2L52.3 470.1L52.3 466.0L50.9 464.4L51.3 463.1L50.3 461.1L50.2 456.6L51.1 454.7L50.4 452.8L50.7 452.2L51.2 452.7L50.3 452.1L50.6 451.3L52.3 450.5L53.3 451.1L53.9 450.2L56.2 452.7L55.8 447.8L56.5 448.3L58.3 446.9L59.2 447.3L58.8 447.8L59.4 446.4L60.4 446.4L57.2 446.1L59.2 444.7L59.9 442.9L61.1 442.9L60.2 441.7L61.1 439.5L61.5 440.3L61.4 439.5L62.6 439.6L61.1 437.2L61.5 436.6L60.1 438.0L60.6 436.5L65.7 430.5L67.3 427.0L70.6 426.8L70.7 425.6L72.6 424.8L74.9 427.2L75.6 429.8L76.5 430.1L77.8 428.5L79.5 429.2L79.1 430.2L81.6 431.6L85.1 428.5L86.4 429.1L88.4 428.0L92.5 429.4L93.7 431.1L98.9 433.8L104.0 429.9L107.2 432.0L109.4 430.6L110.3 432.4L112.1 430.6L112.6 431.7L114.7 431.1L113.9 430.3L115.4 429.9L115.0 429.2L116.0 428.7L115.4 427.3L117.2 425.2L117.1 424.1L116.1 423.7L116.7 423.2L115.7 423.1L117.2 421.4L121.3 423.2L127.9 423.8L129.6 426.0L136.0 426.3L135.3 427.5L134.2 427.3L135.1 430.9L133.4 431.8L137.5 436.4L136.8 439.2L144.3 446.3L146.3 446.4L149.9 448.5L149.6 451.1L148.1 452.3L145.8 456.9L147.0 460.4L144.8 463.0L143.5 463.1L141.9 460.5L139.5 459.4L136.3 464.8L133.2 464.6L131.1 468.8L131.8 470.8L133.8 471.8L131.6 473.5L121.2 469.9L119.9 473.0L118.4 474.5L118.6 477.1L112.9 476.3L111.2 477.7L111.8 482.6L110.3 482.9L109.7 484.1L109.9 486.1L111.4 487.0L111.3 488.7L113.6 489.3L116.6 487.5L117.8 488.8L118.9 499.9L124.6 502.4L131.5 503.8L130.0 506.3L130.3 508.1L129.2 509.4L128.6 514.1L124.3 518.3L125.1 519.2L124.5 520.7L125.3 520.9L125.8 522.7L130.1 524.0L131.3 523.4L132.4 524.2Z","c":[99.9,470.2]},{"n":"Cesar","id":20,"d":"M262.9 206.4L263.6 206.3L263.6 208.7L262.5 210.1L260.4 210.5L260.7 214.4L256.3 219.8L253.9 220.8L250.4 218.0L246.4 216.8L245.2 211.8L244.5 211.6L245.6 210.7L245.4 208.5L243.1 207.3L243.2 205.3L240.0 201.0L241.0 200.4L240.2 196.5L241.9 193.2L242.0 184.7L240.7 182.3L241.0 180.0L238.7 175.6L240.3 168.4L236.4 164.0L239.7 156.8L236.5 154.2L236.4 151.2L232.2 151.0L233.1 146.2L230.9 145.0L230.8 141.3L224.0 136.8L228.8 132.4L231.4 133.1L232.8 132.4L234.9 133.4L239.5 132.1L239.6 133.2L240.8 132.5L237.8 125.9L238.4 124.9L237.7 122.8L235.2 121.0L232.4 116.7L230.4 116.2L226.6 110.3L227.5 105.7L228.8 103.0L232.1 100.1L232.2 97.9L234.2 96.0L237.7 95.0L238.8 95.7L240.6 95.2L242.4 93.4L244.0 93.6L244.1 92.1L246.4 92.3L247.0 90.4L250.5 90.3L250.2 88.5L248.2 87.4L249.1 85.7L249.0 84.0L248.1 83.7L249.1 81.0L250.5 80.5L251.5 78.7L247.0 77.2L247.1 76.5L249.5 74.6L255.1 73.4L261.0 73.7L262.1 74.4L263.7 73.9L265.0 76.4L263.8 80.0L266.3 79.6L266.9 81.0L269.4 81.2L272.6 83.6L271.9 88.1L270.1 89.0L268.1 92.0L269.9 93.3L269.8 95.1L272.2 93.8L276.0 94.7L281.2 94.1L281.8 95.7L280.7 97.3L281.2 103.5L280.0 107.1L280.5 108.3L278.5 110.4L278.6 112.2L276.5 117.1L277.5 118.6L276.8 119.2L279.0 120.8L276.0 124.5L272.1 133.2L269.8 134.6L268.4 137.5L267.2 137.9L267.9 138.9L265.4 141.0L264.3 144.5L263.4 144.8L261.3 149.3L260.0 149.7L259.4 152.2L257.5 152.5L256.7 154.9L257.5 157.2L256.2 160.7L256.9 164.2L255.8 165.6L257.4 170.3L255.1 171.4L254.7 173.1L253.2 174.0L251.3 177.3L251.3 179.7L252.7 181.5L249.8 182.7L251.3 184.0L252.4 183.5L254.5 184.1L253.7 186.6L252.1 188.2L254.0 188.0L255.7 189.9L258.4 188.2L257.4 184.5L258.8 184.2L260.8 185.9L260.6 190.4L256.4 198.9L259.0 200.9L259.5 205.2L262.2 205.1L262.9 206.4Z","c":[253.2,141.1]},{"n":"Chocó","id":27,"d":"M77.7 364.1L77.4 359.6L78.4 362.8L78.0 360.7L79.1 361.2L78.3 360.6L78.3 357.4L78.5 358.7L77.3 358.6L77.4 356.1L79.5 356.4L78.4 355.8L78.2 354.3L76.4 354.5L78.3 352.8L76.5 353.3L75.7 350.4L76.0 349.8L77.6 351.9L76.4 349.4L76.9 348.8L75.9 349.2L75.1 346.2L75.0 340.4L77.1 341.5L76.5 340.4L75.4 340.5L74.7 337.8L74.9 337.2L75.6 338.6L75.1 337.4L76.9 337.8L76.2 337.7L75.9 336.4L76.5 336.4L75.8 336.3L76.0 337.7L75.0 335.7L77.1 335.1L75.3 335.1L74.8 336.9L74.2 336.5L74.5 330.9L75.6 332.3L75.2 333.3L75.7 332.2L76.4 332.7L75.3 331.8L75.0 329.3L75.6 329.0L73.8 329.1L74.6 327.5L73.9 328.1L73.4 325.5L74.8 326.3L74.2 324.9L74.9 323.6L73.6 323.3L72.8 324.3L72.6 322.7L71.5 321.7L69.7 322.6L67.6 321.9L69.0 320.0L69.9 316.2L71.2 316.8L73.3 315.2L75.2 316.1L76.6 315.8L77.8 313.3L80.3 311.1L80.7 308.1L81.4 309.0L80.9 306.9L80.7 307.8L79.6 305.2L79.0 305.3L79.0 303.9L78.3 303.9L78.3 301.8L75.9 295.4L76.3 298.3L75.6 298.1L75.2 296.0L71.9 292.6L70.2 289.3L70.6 284.4L74.0 287.6L75.4 281.7L73.4 280.3L75.9 279.9L75.1 278.5L77.4 272.6L74.0 269.4L73.7 266.4L72.7 266.5L72.3 265.4L70.6 265.6L69.1 266.4L69.2 268.0L68.2 268.2L65.4 260.4L61.7 257.7L60.9 257.9L60.6 259.5L60.1 259.2L60.2 254.7L61.9 254.1L62.1 252.2L60.9 249.9L55.8 245.1L54.5 245.0L51.9 241.8L55.7 230.6L57.3 231.3L60.3 228.7L58.6 225.3L58.8 221.5L61.0 221.2L62.6 222.2L63.9 226.7L66.6 228.5L69.1 224.6L75.8 217.9L77.8 217.4L77.0 215.3L77.8 212.0L80.5 209.7L83.9 209.3L86.4 206.8L83.8 205.2L83.3 203.9L82.1 203.9L81.4 197.4L77.6 193.2L76.6 187.1L74.3 183.9L72.1 183.4L72.7 180.0L74.6 178.4L74.2 176.4L76.0 175.4L79.5 179.9L80.0 183.0L86.4 186.8L90.5 193.9L93.3 194.1L94.7 197.9L95.1 203.0L92.5 204.9L91.0 211.3L88.0 213.9L86.6 213.6L87.3 215.9L86.2 216.0L86.3 216.9L89.4 217.7L90.3 219.6L92.7 221.8L92.7 224.1L95.0 223.6L96.6 224.9L101.7 225.5L103.5 229.0L104.7 236.7L111.8 237.9L114.0 240.2L116.4 245.3L116.3 245.9L115.2 245.6L113.8 248.9L114.4 251.5L112.3 253.0L111.3 251.5L108.9 251.7L107.5 250.8L100.2 252.6L100.8 253.0L100.3 254.0L101.0 253.6L101.6 254.3L102.0 258.0L100.2 258.4L100.8 259.4L100.0 259.8L98.1 258.8L97.1 259.7L96.3 259.2L95.5 260.6L93.7 260.6L94.4 261.5L93.9 263.8L95.5 265.2L94.1 266.8L95.1 266.5L95.8 268.2L97.2 267.3L96.5 268.9L98.9 269.5L97.5 270.1L97.1 271.5L99.2 272.2L99.7 274.0L100.7 274.0L100.6 275.7L101.6 274.7L103.1 276.0L101.8 277.7L103.4 278.1L101.8 278.7L103.2 280.1L102.2 280.6L102.9 281.3L102.0 283.2L102.4 284.7L104.0 285.2L103.6 286.3L105.1 287.2L105.4 290.2L106.8 290.6L111.3 289.4L115.5 290.4L127.5 288.5L128.7 289.5L129.8 291.8L129.5 295.4L131.2 296.1L131.5 298.0L133.2 297.2L136.0 299.7L135.8 301.3L133.4 302.8L133.1 307.1L133.9 313.5L136.6 315.9L138.5 322.4L134.6 323.5L132.4 325.9L129.1 326.2L128.6 329.5L126.9 331.6L128.6 333.7L133.0 334.3L135.7 343.5L133.9 344.1L134.3 346.7L133.7 348.1L132.4 348.4L133.2 349.3L132.1 351.5L128.7 351.6L124.3 355.7L125.3 357.5L124.6 360.2L122.7 364.3L121.4 365.1L120.8 368.9L119.0 370.5L113.5 372.2L113.5 377.1L114.6 378.9L116.7 379.2L117.3 381.3L117.1 385.6L113.5 389.8L110.2 389.1L102.8 390.7L100.8 390.0L99.7 388.4L98.0 389.1L98.6 388.3L97.0 386.1L94.9 385.0L93.0 384.5L92.5 385.9L89.4 386.0L88.4 384.8L87.0 385.1L85.2 382.0L82.2 383.2L80.4 379.6L78.4 382.7L76.1 381.3L74.4 383.6L72.2 383.8L72.7 386.1L71.3 387.3L68.9 385.0L70.9 383.1L69.0 383.4L68.3 384.4L68.3 382.0L69.0 381.4L69.3 382.3L69.2 381.4L70.7 380.3L72.8 380.8L70.9 380.1L68.3 381.2L68.2 378.7L70.1 376.8L68.8 379.0L69.6 378.2L69.8 379.3L71.3 379.0L70.1 378.4L71.7 377.3L71.9 378.3L72.0 377.3L73.4 376.9L72.2 376.1L74.7 373.2L75.4 374.8L74.2 375.7L74.8 376.6L74.3 375.7L75.5 374.8L74.7 373.5L76.1 373.7L76.1 372.8L76.6 373.4L76.1 372.7L75.7 373.7L75.6 371.9L77.8 370.3L76.2 370.7L76.8 366.7L77.4 368.3L77.0 367.1L78.0 365.6L76.9 365.7L77.1 364.4L78.3 364.0L77.7 364.1Z","c":[87.7,306.4]},{"n":"Córdoba","id":23,"d":"M146.8 232.8L145.6 235.4L144.3 235.7L119.0 234.8L117.3 229.6L115.0 227.2L114.8 224.8L116.5 213.9L119.6 208.9L119.2 202.1L122.7 197.2L125.3 190.3L129.9 187.6L129.9 186.7L128.7 186.1L128.6 183.3L126.6 181.8L128.1 179.7L127.2 178.0L125.5 175.9L122.5 176.4L121.3 172.6L119.3 170.9L120.8 169.2L119.2 164.8L122.8 163.3L123.6 161.6L126.2 159.8L126.9 156.9L129.8 154.2L130.6 149.0L133.7 147.1L133.3 145.9L134.5 144.2L139.3 142.4L141.9 139.3L142.8 140.1L147.6 139.6L148.0 140.7L146.4 140.5L145.9 141.5L148.3 141.5L150.1 140.2L152.4 140.6L152.8 141.5L151.9 143.2L152.9 143.0L154.5 144.4L155.6 143.4L159.4 147.7L161.3 146.9L161.8 148.3L163.4 147.7L162.8 150.7L165.0 152.0L164.8 153.2L167.1 152.7L171.2 155.3L171.0 156.5L173.0 156.1L174.9 157.4L174.1 158.9L176.4 161.3L175.0 161.4L175.1 163.5L170.2 165.6L170.1 167.0L167.3 166.6L166.0 167.2L167.8 169.8L169.9 171.1L168.9 171.5L168.5 174.8L169.3 175.6L170.3 182.8L174.4 183.4L175.4 184.2L174.2 185.8L174.5 186.9L175.3 186.3L175.9 187.5L177.2 187.9L181.9 184.3L183.1 184.2L183.4 182.6L185.9 184.5L186.0 183.3L186.9 183.2L189.4 184.8L190.4 187.3L192.2 187.4L193.4 188.5L193.3 191.6L193.6 192.8L194.6 192.9L193.2 193.1L193.9 194.4L192.1 195.5L192.3 196.6L190.1 196.7L190.5 198.4L187.6 202.3L185.1 202.2L181.6 203.5L180.1 202.2L178.8 203.5L174.0 202.9L171.0 207.7L168.9 208.2L168.4 211.4L165.3 213.2L163.1 213.2L163.1 215.8L161.6 218.9L155.3 224.5L149.1 227.8L148.1 230.9L146.5 231.5L146.8 232.8Z","c":[157.5,179.7]},{"n":"Cundinamarca","id":25,"d":"M213.7 388.9L213.2 391.1L214.0 391.7L213.9 394.4L209.6 403.0L209.5 400.0L207.7 400.1L207.7 398.8L205.5 398.1L206.8 393.4L206.0 391.8L206.1 388.3L208.6 384.5L206.5 379.3L204.6 377.9L203.3 378.1L200.2 381.3L200.2 380.5L198.3 380.7L196.7 379.0L196.1 379.5L194.2 377.1L193.0 376.8L190.1 378.1L189.5 377.0L191.0 374.9L192.1 369.9L193.3 369.5L194.2 367.1L193.0 363.6L193.9 363.1L192.9 362.1L194.3 360.2L192.7 357.0L196.2 354.0L196.1 352.2L195.1 351.5L195.8 349.3L196.8 349.2L196.8 347.2L196.0 346.4L198.0 345.1L196.3 344.0L197.5 339.9L196.6 330.9L197.7 329.6L197.9 327.1L199.2 326.9L199.3 324.0L200.5 323.8L199.5 320.6L201.1 319.0L200.4 317.6L201.7 312.2L200.0 309.5L200.7 310.2L201.6 309.1L203.1 309.8L207.1 307.7L208.0 308.7L210.5 309.2L215.1 305.6L217.2 309.8L216.4 311.5L217.7 312.3L215.9 315.6L216.7 317.8L219.4 319.4L218.6 321.2L219.1 322.3L220.8 321.2L223.0 323.6L226.1 323.4L227.8 327.1L229.2 327.7L230.8 327.0L231.7 324.9L234.2 324.9L236.4 319.6L239.4 317.9L241.2 321.9L242.1 321.7L242.4 322.7L243.2 322.2L244.6 323.7L245.3 323.1L245.3 324.2L249.2 325.8L249.0 329.6L252.0 331.4L252.4 335.3L254.4 337.5L253.7 339.3L254.4 341.3L252.5 342.9L253.1 344.4L251.4 346.9L251.7 349.1L252.7 349.8L254.2 349.2L257.9 349.8L259.6 352.4L259.3 353.5L261.7 354.4L262.4 356.7L266.2 356.6L265.6 358.3L266.3 359.2L271.6 360.1L273.2 356.2L274.1 356.5L270.4 380.5L267.3 378.7L266.6 377.4L260.4 375.7L257.4 376.0L254.7 377.7L252.0 376.8L251.1 376.1L250.1 371.0L248.7 369.3L248.9 368.0L250.3 367.2L249.9 365.1L247.9 364.4L246.8 365.2L246.5 368.1L244.9 366.4L243.7 366.6L242.4 369.2L240.6 369.7L238.9 371.9L240.0 372.9L240.3 377.0L241.8 378.2L242.3 381.2L239.2 381.0L238.4 382.6L236.8 382.5L235.2 383.8L233.5 383.5L232.2 386.1L230.2 385.3L228.8 387.6L227.3 387.7L225.8 389.8L224.3 390.4L223.5 390.2L224.7 387.8L224.5 386.2L226.3 384.7L225.0 384.2L225.4 382.0L223.4 378.7L226.1 373.6L225.2 372.5L225.3 370.2L226.9 369.0L230.8 362.9L230.0 361.0L228.9 361.0L230.3 359.3L229.6 355.0L230.5 353.2L226.7 351.8L226.4 353.7L225.0 354.4L224.6 356.8L223.2 356.9L223.3 357.7L222.3 358.0L223.1 359.8L220.2 360.7L220.2 361.8L222.5 363.8L221.9 365.8L222.5 367.1L220.2 373.6L221.0 378.8L219.2 381.2L218.8 385.8L216.7 385.5L215.3 384.4L213.7 388.9Z","c":[225.3,357.2]},{"n":"Guainía","id":null,"d":"M560.0 520.0L549.1 523.8L547.8 518.9L547.9 505.4L543.2 492.1L538.3 489.3L536.4 485.3L536.9 480.8L538.4 476.9L538.2 472.9L534.1 472.2L532.2 475.0L530.2 475.6L524.7 481.3L520.1 482.5L518.2 481.7L515.2 484.8L513.9 484.3L512.5 486.9L512.0 491.9L503.0 487.5L500.2 483.5L498.8 483.7L497.9 481.0L497.1 484.5L493.4 489.9L493.9 491.1L496.1 490.6L495.5 493.3L497.7 492.9L498.3 493.5L497.9 495.2L442.3 495.2L439.0 493.9L438.6 494.6L435.9 493.0L431.6 495.5L427.4 494.9L424.5 496.9L423.3 496.8L419.1 494.6L415.8 494.8L412.7 493.5L407.7 488.9L406.3 488.6L409.0 481.4L408.7 479.3L409.7 478.4L409.0 477.6L412.0 475.2L413.0 475.4L412.8 474.3L414.2 474.3L414.7 473.3L414.7 472.4L413.3 471.8L413.3 470.1L412.0 469.9L412.4 469.2L411.3 469.2L410.5 470.6L407.7 469.9L407.9 471.2L407.2 470.5L407.2 471.7L405.7 471.1L405.6 472.1L403.1 471.5L403.3 470.5L401.9 471.8L400.5 471.0L401.0 472.2L400.0 473.1L398.7 471.3L397.7 471.9L396.2 470.3L391.6 471.9L390.9 470.8L392.0 471.0L391.0 469.7L390.1 470.3L385.5 468.3L383.3 462.6L380.8 460.3L380.0 458.0L378.0 458.7L376.3 458.1L375.3 456.4L373.3 456.9L371.9 454.6L391.4 446.5L391.8 445.2L398.1 443.3L398.2 440.5L401.7 439.5L400.5 435.1L402.7 434.7L399.7 432.6L401.7 432.2L401.3 430.8L403.0 429.6L403.2 428.3L405.0 428.6L404.5 427.0L405.6 428.5L406.9 428.1L406.2 425.7L407.2 425.8L407.8 427.7L408.6 427.1L408.4 425.3L407.2 423.8L407.8 423.0L409.1 423.7L409.5 423.0L406.7 420.2L408.4 419.7L408.8 418.0L409.9 418.8L412.9 417.1L414.1 419.3L417.1 418.4L417.2 417.3L416.1 416.3L416.7 415.3L418.9 417.0L420.2 416.7L420.9 414.4L419.3 412.6L419.6 411.6L421.3 413.9L422.9 414.5L421.6 411.6L422.2 410.8L423.0 411.2L423.4 413.2L424.3 412.4L424.5 410.5L427.6 411.3L427.4 410.3L426.3 409.9L426.6 409.2L428.5 411.6L430.0 409.4L431.5 410.3L432.6 409.0L433.2 410.3L434.3 405.7L433.4 405.1L437.4 405.3L437.8 406.6L438.3 404.7L439.6 403.8L441.2 406.0L442.7 404.9L443.5 405.9L446.5 403.5L447.2 404.2L446.3 406.4L446.9 406.9L448.1 405.2L447.6 403.1L449.0 403.3L449.6 405.5L451.0 404.1L451.3 405.7L452.6 405.4L451.9 407.4L455.0 405.3L455.7 407.0L457.0 406.3L457.9 407.1L460.7 404.6L463.3 405.0L463.4 402.3L464.0 405.0L466.9 404.0L468.3 405.7L467.2 402.6L468.0 402.2L470.0 403.3L471.6 400.4L474.0 401.2L475.8 400.7L476.6 401.5L476.7 400.7L475.1 399.9L475.6 399.1L477.3 400.9L480.1 400.1L481.2 401.4L480.3 398.7L483.1 400.7L483.1 398.3L484.6 397.2L486.3 397.8L486.0 395.7L488.4 397.4L488.4 396.2L486.4 394.3L490.6 393.9L490.6 390.8L497.1 392.4L497.0 390.5L498.5 391.1L500.5 390.4L500.4 392.9L501.5 393.0L502.1 391.4L503.0 391.3L503.0 393.3L504.9 389.9L505.2 391.5L509.7 392.1L510.5 394.6L512.3 394.1L514.5 391.6L519.9 388.3L520.7 393.5L522.6 396.7L523.3 400.4L525.1 402.0L528.5 400.6L529.6 401.0L531.3 404.9L532.1 405.2L532.3 409.3L533.9 411.6L534.0 414.3L537.0 415.6L538.4 418.9L537.0 421.6L535.3 422.9L535.3 425.0L532.7 425.1L513.2 442.7L513.1 446.2L515.2 444.2L518.6 443.9L518.7 445.0L522.3 446.0L524.3 445.2L526.5 447.2L527.5 452.7L529.1 451.9L530.9 452.5L531.5 454.3L537.0 459.0L539.1 462.9L542.4 464.7L544.0 467.1L542.6 469.1L542.3 471.6L545.2 477.2L546.9 476.9L547.5 477.7L548.0 480.7L546.8 484.3L549.5 487.0L550.9 493.2L554.2 499.9L554.1 501.9L556.2 504.7L556.8 509.3L559.5 511.7L558.6 516.7L560.0 520.0Z","c":[462.6,440.9]},{"n":"Guaviare","id":null,"d":"M320.6 544.5L318.6 544.7L319.3 543.2L317.4 542.5L316.7 540.8L316.0 541.9L314.9 541.1L314.8 542.1L313.7 541.4L313.2 542.7L312.4 542.5L311.0 538.6L310.0 538.4L310.1 539.8L308.2 537.6L309.3 537.2L308.6 536.2L309.2 534.7L307.6 534.6L307.3 536.2L306.9 532.3L304.5 532.6L305.1 530.7L304.0 530.3L304.1 528.6L301.4 525.1L298.9 525.7L293.8 522.5L292.5 520.4L292.0 521.9L289.1 520.2L289.2 521.9L288.0 522.9L286.6 522.0L286.9 520.4L284.5 520.6L284.4 522.0L282.9 521.2L283.3 522.2L282.3 522.6L283.3 524.0L281.8 524.4L282.4 524.9L281.8 525.7L282.8 525.5L283.0 526.9L282.0 526.7L282.5 527.7L279.5 528.2L279.2 529.7L276.6 531.1L277.0 532.2L273.0 533.7L271.4 532.4L269.8 532.6L269.7 531.5L267.7 530.4L268.2 528.8L265.6 528.4L264.9 526.6L263.7 526.7L263.5 525.8L260.8 524.3L260.7 523.2L258.4 522.1L258.4 520.9L257.1 520.1L257.7 517.7L256.6 516.9L256.8 515.2L255.5 515.3L254.7 512.3L251.7 510.7L251.4 508.8L248.0 505.5L246.4 502.4L246.4 469.1L247.3 469.5L247.3 467.6L248.2 467.0L247.5 465.8L249.5 464.7L250.2 466.3L252.1 464.8L252.7 467.3L253.2 466.2L254.7 466.0L255.5 467.1L256.1 464.9L256.4 467.7L257.6 466.3L259.0 467.7L259.2 466.0L260.0 465.7L260.1 467.7L261.2 467.3L261.2 466.1L262.6 467.2L264.1 466.1L265.3 466.6L265.4 465.6L264.1 465.2L266.5 464.0L266.5 464.9L267.2 465.1L268.8 464.2L269.0 465.9L270.8 465.2L270.2 463.9L271.4 465.1L274.4 462.5L274.9 463.7L277.1 461.8L278.1 461.9L278.2 460.4L279.6 461.1L279.5 459.5L278.6 459.8L278.4 459.2L280.0 458.1L280.1 456.7L284.9 454.3L287.7 456.4L290.9 453.9L292.5 456.3L292.9 454.6L294.2 453.7L295.3 455.8L295.6 452.8L297.0 452.5L296.2 451.9L296.6 451.0L298.7 453.0L299.4 452.6L299.5 451.7L297.9 451.2L297.8 450.2L300.5 451.0L300.8 448.8L303.8 449.2L307.8 445.8L309.9 446.8L310.5 444.6L313.5 447.1L314.0 446.2L313.0 445.1L313.2 442.7L315.9 442.8L316.3 441.7L318.7 444.6L322.2 444.4L323.3 445.7L324.6 444.4L330.4 444.1L330.7 442.7L329.3 442.5L330.7 442.1L332.2 442.6L332.5 445.0L333.6 443.1L333.4 441.3L336.4 444.0L337.2 442.4L338.0 442.5L337.5 444.7L339.4 445.0L339.9 443.9L342.1 443.7L341.7 442.4L343.4 443.0L344.1 442.1L345.3 442.3L346.8 443.4L347.1 441.2L350.4 443.7L351.4 441.5L352.4 443.1L353.2 440.3L354.0 440.0L355.4 442.6L356.6 441.8L357.1 442.9L358.1 442.8L360.0 440.9L361.4 442.4L362.1 441.0L363.3 442.4L365.0 442.0L366.7 443.6L365.6 444.2L366.6 445.3L367.6 443.1L368.9 444.4L370.5 443.9L370.2 445.7L370.9 446.4L371.8 445.5L371.3 443.1L372.5 443.5L373.7 446.0L374.4 445.4L374.1 443.5L375.2 444.5L374.3 446.8L376.8 445.2L377.9 446.2L377.2 447.7L381.2 446.1L382.0 448.7L385.0 445.6L383.9 443.2L385.2 443.5L385.9 446.1L387.1 444.0L388.4 444.3L391.4 446.5L371.9 454.6L372.5 456.0L373.5 457.0L375.3 456.4L376.3 458.1L378.0 458.7L380.0 458.0L380.8 460.3L383.3 462.6L385.5 468.3L390.1 470.3L391.0 469.7L392.0 471.0L390.9 470.8L391.6 471.9L396.2 470.3L397.7 471.9L398.7 471.3L400.0 473.1L401.0 472.2L400.5 471.0L401.9 471.8L403.3 470.5L403.1 471.5L405.6 472.1L405.7 471.1L407.2 471.7L407.2 470.5L407.9 471.2L407.7 469.9L410.5 470.6L411.3 469.2L412.3 469.1L413.4 471.8L414.7 472.4L414.2 474.3L412.8 474.3L413.0 475.4L409.9 476.7L409.0 477.6L409.5 479.0L407.6 479.4L406.2 481.6L402.9 481.4L402.5 482.1L399.9 482.2L398.3 483.5L397.6 482.6L396.7 483.4L394.5 482.7L392.1 485.2L390.1 484.7L388.4 485.8L385.9 486.0L385.2 487.2L384.0 486.7L382.7 487.4L380.8 486.2L379.5 486.9L379.0 486.1L377.6 487.1L375.5 486.4L374.6 486.9L374.1 485.8L373.3 486.1L373.0 487.8L370.3 490.0L368.5 491.2L364.1 491.9L364.2 492.9L362.7 492.8L356.6 498.0L354.2 495.8L352.9 496.0L350.9 494.5L350.5 501.5L348.9 503.1L348.3 502.5L347.4 507.4L345.9 508.3L346.6 510.3L344.2 516.0L343.0 516.0L343.7 518.3L343.0 519.3L343.9 519.4L346.2 523.7L344.4 523.6L344.0 521.5L342.9 521.6L343.6 523.5L341.7 523.0L341.8 526.0L338.2 530.1L334.4 529.5L332.4 533.5L331.3 533.7L320.6 544.5Z","c":[328.3,481.3]},{"n":"Huila","id":41,"d":"M126.1 502.8L118.7 499.7L118.2 497.9L118.9 494.6L117.8 488.8L116.6 487.5L113.6 489.3L111.3 488.7L111.4 487.0L109.9 486.1L109.7 484.1L110.3 482.9L111.8 482.6L111.2 477.7L112.9 476.3L118.6 477.1L118.4 474.5L119.9 473.0L121.2 469.9L131.6 473.5L133.8 471.8L131.8 470.8L131.1 468.8L133.2 464.6L136.3 464.8L139.5 459.4L141.9 460.5L143.5 463.1L144.8 463.0L147.0 460.4L145.8 456.9L148.1 452.3L149.6 451.1L149.9 448.5L144.3 446.3L136.8 439.2L137.3 437.9L138.9 437.4L140.6 440.4L141.7 440.2L144.9 442.5L146.3 442.5L147.8 438.1L157.6 430.9L157.9 426.1L160.0 423.4L160.2 421.8L161.9 421.5L162.4 419.9L164.1 420.6L165.3 419.4L167.1 419.2L167.8 417.7L168.8 418.2L169.7 417.2L172.8 419.7L173.9 417.4L176.4 419.1L176.3 417.7L177.6 416.4L182.8 416.7L183.1 418.5L181.8 419.1L181.1 422.9L184.3 423.8L188.8 423.1L191.4 420.8L192.9 417.8L195.2 416.1L194.5 413.0L196.9 411.1L196.5 409.3L198.2 408.1L199.4 405.6L204.6 401.8L205.8 398.2L207.8 399.0L207.7 400.1L209.5 400.0L209.5 402.9L211.7 402.4L211.8 404.0L207.7 406.1L203.7 411.2L202.6 421.8L197.7 429.6L197.5 431.3L196.0 432.9L193.9 432.5L190.8 435.0L188.9 437.9L186.2 439.3L182.0 445.6L182.0 450.8L180.0 454.1L176.6 456.4L174.6 460.2L170.9 463.8L168.7 468.2L165.5 469.8L164.7 476.3L159.6 478.2L158.1 480.5L157.7 483.0L154.4 486.1L150.8 491.5L145.0 495.5L142.5 495.3L138.8 502.2L135.5 503.7L134.8 505.1L134.0 504.9L134.3 502.7L131.5 503.8L126.1 502.8Z","c":[159.1,449.2]},{"n":"La Guajira","id":44,"d":"M269.7 95.0L269.9 93.3L268.1 92.0L270.1 89.0L271.9 88.1L272.9 84.0L271.1 82.0L266.9 81.0L266.3 79.6L263.8 80.0L264.9 77.7L264.3 74.5L263.2 73.7L262.1 74.4L261.0 73.7L255.1 73.4L249.5 74.6L247.4 71.9L246.9 68.9L245.9 67.8L247.2 65.4L246.4 61.0L249.3 59.1L250.4 55.5L260.2 55.2L264.4 53.8L269.9 48.5L272.2 47.6L271.0 48.8L272.7 49.4L272.2 48.4L273.1 47.5L272.3 47.5L274.9 44.8L282.3 40.7L283.5 40.7L283.3 39.9L282.5 40.3L287.3 35.9L293.7 34.1L298.9 31.5L297.3 32.7L297.7 33.3L301.6 32.3L302.2 31.1L311.1 26.2L311.2 26.8L316.1 16.5L315.8 12.1L314.3 11.2L315.9 10.1L318.6 10.5L324.2 9.3L322.4 12.6L323.3 12.7L323.1 14.3L324.0 14.3L324.3 13.4L324.2 14.3L325.7 14.2L326.6 13.6L326.1 12.9L327.5 12.6L326.6 12.5L329.1 12.1L329.4 10.8L328.6 10.1L330.3 9.7L330.4 8.6L328.5 8.9L327.2 7.9L324.5 8.6L328.9 4.7L331.3 4.2L329.9 5.5L331.2 7.3L329.9 7.0L329.6 5.7L328.2 6.5L328.7 7.6L329.2 6.9L330.1 7.6L329.3 8.1L331.2 8.3L333.9 7.2L334.3 5.6L331.7 6.5L333.8 5.7L334.8 4.0L336.3 4.7L337.1 3.6L338.9 3.7L336.2 3.0L339.6 2.3L337.4 2.5L338.6 1.1L336.3 1.9L336.9 0.6L335.7 2.2L334.7 2.3L335.4 1.0L337.7 0.0L340.5 1.0L344.3 1.0L348.4 3.6L354.6 4.8L358.0 7.3L363.2 17.2L362.2 21.0L358.3 22.8L355.8 25.3L353.4 24.8L353.4 25.7L355.1 25.2L353.6 28.9L352.8 27.9L350.8 28.8L350.7 29.7L347.1 30.9L324.0 37.3L311.0 60.9L306.4 60.3L302.3 62.0L302.1 61.4L299.6 63.4L300.3 64.6L298.3 66.8L296.6 70.7L294.3 72.8L292.7 72.9L291.2 78.2L289.7 78.8L288.5 83.3L283.7 88.6L283.6 91.0L281.2 92.7L281.2 94.1L276.0 94.7L272.2 93.8L269.7 95.0ZM335.5 2.1L334.8 2.9L335.5 2.4L335.3 4.0L337.0 4.0L336.3 4.6L335.1 3.3L335.0 4.0L333.5 3.7L335.5 2.1Z","c":[307.4,36.5]},{"n":"Magdalena","id":47,"d":"M236.4 163.5L235.7 160.6L231.4 160.3L230.2 159.6L231.1 159.1L228.8 157.5L227.8 158.7L225.9 158.9L225.2 157.7L224.1 158.3L225.0 157.4L224.2 156.6L223.3 157.0L219.0 152.0L216.7 152.2L216.7 150.2L214.6 148.9L211.9 149.7L210.4 147.0L206.6 148.8L204.4 145.1L202.2 144.0L202.0 142.5L200.1 141.8L199.5 140.6L196.6 140.3L195.5 138.3L193.5 139.2L193.2 138.3L194.7 136.5L193.3 134.3L194.9 131.8L192.2 126.6L193.6 123.6L190.7 121.4L189.9 119.1L190.7 116.1L193.8 113.9L194.0 112.5L191.6 109.6L189.7 108.5L187.7 108.6L186.9 107.1L190.7 96.3L192.3 94.8L192.7 92.1L197.2 86.6L196.3 83.7L197.3 81.6L196.3 74.4L197.4 71.5L195.8 70.3L195.1 67.2L192.2 64.9L191.1 62.4L207.2 68.0L210.0 68.6L217.0 67.8L207.5 69.3L206.8 72.0L208.3 73.6L209.4 79.9L210.8 80.1L213.2 79.1L214.1 76.2L215.3 75.4L215.4 72.7L218.2 67.5L217.5 67.5L220.0 67.2L219.0 66.5L220.6 64.0L219.3 57.1L221.6 55.1L220.9 54.7L221.5 53.3L223.6 53.5L223.0 52.4L223.7 51.8L224.2 52.7L224.7 51.9L225.6 52.6L225.4 51.3L226.6 52.8L227.0 51.5L227.9 52.2L228.3 51.2L231.5 51.6L238.7 55.3L250.5 55.4L249.3 59.1L246.4 61.0L247.2 65.4L245.9 67.8L246.9 68.9L247.4 71.9L249.5 74.6L247.5 75.8L247.0 77.1L251.5 78.7L250.5 80.5L249.1 81.0L248.1 83.7L249.0 84.0L249.1 85.7L248.2 87.4L250.2 88.5L250.5 90.3L247.0 90.4L246.4 92.3L244.1 92.1L244.0 93.6L242.4 93.4L240.6 95.2L238.8 95.7L237.7 95.0L234.0 96.2L232.2 97.9L232.1 100.1L228.5 103.3L226.5 110.0L230.4 116.2L232.4 116.7L235.2 121.0L237.7 122.8L238.4 124.9L237.8 125.9L240.8 132.1L239.6 133.2L239.5 132.1L234.9 133.4L232.8 132.4L231.4 133.1L228.8 132.4L224.0 136.8L230.8 141.3L230.9 145.0L233.1 146.2L232.2 151.0L236.4 151.2L236.5 154.2L239.7 156.8L236.4 163.5Z","c":[221.8,103.6]},{"n":"Meta","id":50,"d":"M246.0 501.2L240.8 499.8L237.1 500.7L235.3 500.2L233.8 498.6L229.6 499.5L227.8 498.4L226.3 499.2L225.5 496.9L223.4 495.7L221.3 497.6L218.5 498.4L216.5 493.1L212.2 493.4L210.2 491.8L207.5 491.7L205.7 489.6L202.1 479.6L202.4 474.9L199.7 466.8L199.3 457.0L203.8 451.7L202.9 447.6L200.8 444.2L196.6 442.3L193.7 439.5L188.5 438.2L192.9 433.2L193.9 432.5L196.0 432.9L197.5 431.3L197.7 429.6L202.6 421.8L203.4 411.8L204.8 409.7L207.7 406.1L211.7 404.1L211.7 402.4L214.1 399.3L215.4 398.4L216.8 398.8L215.8 395.9L218.6 393.7L218.4 392.7L220.6 389.8L223.0 389.5L224.6 390.4L227.2 387.8L228.8 387.6L230.2 385.3L232.2 386.1L233.5 383.5L235.2 383.8L236.8 382.5L238.4 382.6L239.2 381.0L242.3 381.2L241.8 378.2L240.3 377.0L240.0 372.9L238.9 371.9L240.6 369.7L242.4 369.2L243.7 366.6L244.9 366.4L246.5 368.1L246.8 365.2L247.8 364.5L249.9 365.1L250.3 367.2L248.9 368.0L248.7 369.3L250.1 371.0L251.1 376.1L252.0 376.8L254.7 377.7L257.4 376.0L260.4 375.7L266.6 377.4L267.3 378.7L270.4 380.6L274.1 356.5L274.1 358.4L276.8 360.4L279.4 366.3L282.5 369.6L285.1 370.6L284.6 371.2L286.2 372.1L285.7 373.0L287.0 373.4L285.9 374.1L288.3 375.4L288.0 376.4L289.0 376.4L289.6 377.4L291.3 376.0L296.0 376.5L297.2 374.0L300.9 375.7L303.0 374.2L303.8 375.7L311.6 370.3L316.0 370.1L318.8 371.2L319.9 373.0L323.1 372.5L331.3 363.5L334.8 363.8L340.7 360.8L342.0 359.2L348.4 357.3L355.1 353.3L358.6 352.8L363.6 349.5L364.9 347.7L364.9 442.0L363.3 442.4L362.1 441.0L361.4 442.4L360.0 440.9L358.1 442.8L357.1 442.9L356.6 441.8L355.4 442.6L353.6 440.0L352.4 443.1L351.4 441.5L350.4 443.7L347.1 441.2L346.8 443.4L345.3 442.3L344.1 442.1L343.4 443.0L341.7 442.4L342.1 443.7L339.9 443.9L339.4 445.0L337.5 444.7L338.0 442.5L337.2 442.4L336.4 444.0L333.4 441.3L333.6 443.1L332.5 445.0L332.2 442.6L330.7 442.1L329.3 442.5L330.7 442.7L330.4 444.1L324.6 444.4L323.3 445.7L322.2 444.4L318.7 444.6L316.3 441.7L315.9 442.8L313.2 442.7L313.0 445.1L314.0 446.2L313.5 447.1L310.5 444.6L309.9 446.8L307.8 445.8L303.8 449.2L300.8 448.8L300.5 451.0L297.8 450.2L297.9 451.2L299.5 451.7L299.4 452.6L298.7 453.0L296.6 451.0L296.2 451.9L297.0 452.5L295.6 452.8L295.3 455.8L294.2 453.7L292.9 454.6L292.5 456.3L290.9 453.9L287.7 456.4L284.9 454.3L280.1 456.7L280.0 458.1L278.4 459.2L278.6 459.8L279.5 459.5L279.6 461.1L278.2 460.4L278.1 461.9L277.1 461.8L274.9 463.7L274.4 462.5L271.4 465.1L270.2 463.9L270.8 465.2L269.3 465.9L268.8 464.2L267.2 465.1L266.5 464.9L266.5 464.0L264.1 465.2L265.4 465.6L265.3 466.6L264.1 466.1L262.6 467.2L261.2 466.1L261.2 467.3L260.1 467.7L260.6 466.4L260.0 465.7L259.0 467.7L258.2 467.5L258.5 466.5L257.5 466.3L256.5 467.7L256.2 464.9L255.5 465.1L255.8 467.0L254.8 466.0L253.4 466.2L253.0 467.3L252.2 464.8L250.2 466.3L249.5 464.7L248.1 465.3L247.3 466.2L248.2 467.0L247.3 467.6L247.5 469.2L246.4 469.1L246.0 501.2Z","c":[274.6,428.9]},{"n":"Nariño","id":52,"d":"M95.7 505.8L96.2 509.1L95.6 511.0L96.7 514.1L95.3 516.2L93.5 515.3L93.5 517.9L88.2 520.4L87.9 521.7L88.3 526.2L89.0 525.8L89.7 527.3L90.5 526.9L91.0 527.8L89.4 532.3L89.6 535.4L86.5 540.0L81.1 543.2L84.4 546.6L87.0 547.6L86.4 550.8L88.4 556.8L87.2 557.8L84.2 557.0L82.4 558.3L79.5 558.3L73.8 556.4L68.9 558.0L68.0 556.1L68.7 554.3L68.4 550.6L70.3 546.9L70.3 544.7L66.6 545.0L62.0 542.4L61.9 541.4L60.2 540.6L61.9 538.6L61.8 537.3L59.6 535.8L55.8 536.5L53.7 538.2L49.8 537.5L48.1 538.2L37.9 527.8L38.0 529.0L37.4 529.0L33.4 526.3L34.8 524.3L33.4 523.7L32.0 520.0L28.1 521.8L27.1 521.5L27.1 522.5L26.2 519.9L25.4 520.8L23.5 519.7L23.4 520.7L21.6 520.2L19.6 518.5L19.7 517.7L16.9 516.6L15.9 514.1L10.5 510.8L8.0 508.1L8.9 507.2L6.4 505.8L6.2 503.2L4.9 503.9L4.1 502.7L1.0 501.4L0.0 498.7L3.0 496.8L3.7 494.8L7.6 491.4L8.8 491.4L8.7 492.1L9.9 491.6L10.9 492.6L13.4 492.2L14.2 493.5L14.4 492.6L18.6 492.2L20.0 494.6L21.3 494.0L20.5 493.4L20.6 492.2L22.0 492.0L21.2 491.5L21.3 487.3L18.9 487.6L19.3 483.9L17.4 482.2L16.6 483.7L15.4 483.6L15.5 480.3L13.6 475.5L14.5 472.4L15.1 471.3L16.0 472.1L15.5 471.3L16.5 470.9L15.8 469.9L17.1 467.9L17.3 468.9L18.1 466.0L19.0 466.1L17.9 465.3L21.1 460.2L22.7 459.7L25.7 455.1L28.2 454.8L31.0 452.5L39.6 451.2L40.6 453.1L41.9 452.9L43.8 453.9L44.9 452.8L46.8 452.5L49.3 454.0L50.4 452.8L51.1 454.7L50.0 459.2L51.3 463.1L50.9 464.4L52.3 466.0L52.3 470.1L53.6 472.2L53.4 474.1L56.5 476.2L57.9 476.8L62.7 475.0L69.0 474.9L72.6 472.0L77.5 472.5L78.6 476.1L77.3 480.5L80.5 483.0L82.3 483.3L83.1 484.9L82.5 486.5L81.1 486.8L80.6 488.7L79.1 489.7L78.1 491.8L78.9 493.5L77.2 497.4L81.2 498.5L85.5 497.2L86.1 498.7L89.0 498.0L91.1 495.9L93.7 496.1L95.2 495.2L96.8 498.2L100.1 500.9L98.9 504.7L95.7 505.8ZM47.5 452.3L48.1 452.8L47.2 453.1L46.8 452.4L47.5 452.3Z","c":[49.7,502.0]},{"n":"Norte de Santander","id":54,"d":"M309.0 252.2L308.0 255.1L304.7 257.7L302.6 257.4L300.0 255.4L299.0 257.1L297.3 257.2L297.5 254.2L296.6 252.0L292.4 252.1L291.8 253.5L291.3 251.6L288.1 252.5L285.9 250.1L281.9 249.5L282.2 247.3L284.5 244.6L284.1 242.3L283.0 241.9L282.0 239.8L284.0 237.9L283.9 235.3L281.0 232.0L281.2 229.7L277.6 227.5L277.4 223.3L270.8 223.9L266.2 222.7L264.5 224.8L264.7 227.3L263.4 226.6L260.3 226.9L258.6 225.1L257.6 225.9L253.2 224.4L252.6 222.3L250.7 220.9L251.3 220.3L250.1 218.4L247.3 217.7L250.4 218.0L253.9 220.8L256.2 219.8L260.7 214.4L260.4 210.5L262.5 210.1L263.8 208.3L263.5 206.1L262.8 206.5L262.2 205.1L259.5 205.2L259.0 200.9L256.4 198.9L260.6 190.4L260.8 185.9L258.8 184.2L257.4 184.5L258.4 188.2L255.7 189.9L254.0 188.0L252.1 188.2L253.7 186.6L254.5 184.1L252.4 183.5L251.3 184.0L249.7 182.8L252.7 181.5L251.3 179.7L251.3 177.3L253.2 174.0L254.7 173.1L255.1 171.4L257.4 170.3L255.8 165.6L256.8 164.4L256.3 160.0L257.5 157.2L256.7 154.6L257.8 152.1L259.4 152.2L260.2 149.6L260.5 151.6L264.9 152.3L266.6 151.1L268.3 151.4L270.4 149.0L272.3 149.2L273.2 147.4L274.5 147.5L276.0 146.1L277.1 147.9L276.6 149.4L277.8 149.8L278.5 151.3L277.1 153.0L278.9 155.4L281.7 154.8L282.0 153.4L284.7 154.0L284.6 153.1L285.9 154.8L287.2 154.7L292.2 177.1L304.4 189.3L304.9 191.7L304.3 194.1L306.1 198.1L305.2 200.8L306.3 202.1L306.5 205.0L306.3 205.6L304.8 204.2L303.3 204.2L303.1 206.0L300.0 208.4L302.0 212.3L300.7 216.9L300.6 222.8L301.7 226.2L300.7 229.4L302.8 233.5L307.5 234.6L309.1 233.9L313.5 234.2L315.4 236.8L314.5 240.1L322.1 251.5L319.7 250.1L316.5 250.5L314.3 249.3L312.3 252.6L311.2 253.0L310.0 251.3L309.0 252.2Z","c":[278.5,204.9]},{"n":"Putumayo","id":null,"d":"M222.7 597.6L211.1 600.4L211.1 598.1L208.7 596.9L207.5 597.5L207.4 596.3L206.1 596.6L205.3 594.2L202.3 591.2L200.0 592.3L199.3 590.3L197.7 591.1L196.9 590.7L196.8 588.4L193.8 583.7L191.2 585.9L189.7 586.1L188.4 584.3L187.7 585.5L185.5 582.0L183.8 581.7L180.9 578.8L176.5 576.9L174.7 577.3L171.9 580.8L168.1 579.2L164.8 579.0L160.0 575.9L157.9 576.1L157.7 574.4L155.5 573.8L155.1 572.8L154.5 573.6L147.3 572.7L145.2 569.0L143.9 569.5L143.7 568.5L142.8 568.6L143.2 567.6L140.4 565.5L141.0 564.4L138.2 563.6L139.2 563.1L138.1 561.2L136.3 560.9L135.2 559.5L133.2 560.4L132.4 557.9L131.1 557.0L130.2 557.8L128.0 557.6L125.7 554.9L124.7 555.6L124.0 555.0L122.5 557.5L121.4 556.8L119.5 557.5L118.9 564.2L118.4 563.1L117.8 563.9L115.3 564.1L113.8 563.1L111.3 564.9L109.6 562.9L108.3 563.4L108.2 562.5L105.6 562.6L104.7 561.7L103.2 562.8L103.6 563.6L101.8 562.8L99.5 564.0L96.7 563.6L95.5 562.2L93.1 562.7L92.0 561.4L91.1 562.2L88.8 561.8L87.2 557.8L88.4 556.8L86.4 550.8L87.0 547.6L84.4 546.6L81.1 543.2L86.5 540.0L89.6 535.4L89.4 532.3L91.0 527.8L90.5 526.9L89.7 527.3L89.0 525.8L88.3 526.2L87.9 521.7L88.2 520.4L93.5 517.9L93.5 515.3L95.3 516.2L96.7 514.1L95.6 511.0L96.2 509.1L95.6 505.7L97.1 505.1L98.7 507.7L103.6 509.6L107.7 507.3L111.9 510.9L111.5 512.9L112.2 513.7L111.5 515.0L113.7 519.2L112.3 525.0L113.8 527.8L115.7 527.8L118.0 530.3L119.5 530.7L121.4 529.6L123.0 529.8L123.4 530.8L125.7 529.7L127.6 530.5L127.5 529.7L129.7 529.1L129.0 528.1L130.6 528.4L130.3 527.5L132.6 528.6L134.8 527.9L134.4 526.2L138.2 526.3L138.7 527.6L138.8 525.6L142.1 527.5L140.8 529.9L142.6 530.1L143.3 531.9L144.7 532.5L144.8 534.1L146.0 534.6L147.7 533.7L149.4 536.4L150.7 535.3L153.2 535.4L155.4 534.4L156.4 536.3L159.6 536.7L159.7 538.8L161.1 539.5L162.2 538.8L165.7 541.0L168.9 539.4L169.4 540.6L172.2 541.5L171.8 544.3L174.2 545.5L174.7 547.2L173.2 548.8L175.3 551.7L174.3 552.6L177.3 552.8L179.5 551.3L179.6 553.2L183.1 552.8L185.1 555.7L185.1 556.6L183.7 557.4L185.3 560.5L184.1 562.3L186.4 563.9L189.1 563.5L191.7 565.2L196.8 565.4L199.0 567.2L199.4 570.4L197.6 570.7L200.3 571.8L199.4 573.0L198.0 573.1L200.3 575.6L199.2 577.8L201.2 577.0L202.1 577.8L201.3 579.1L206.0 580.9L205.9 579.2L206.6 579.1L207.5 581.4L208.5 581.2L209.7 578.3L211.0 579.8L209.9 581.5L214.6 580.1L216.3 581.8L218.1 581.7L217.1 584.3L219.3 585.9L221.1 584.7L221.7 587.0L222.7 587.3L225.2 585.8L226.7 588.0L228.5 587.8L230.0 590.7L237.4 593.1L222.7 597.6Z","c":[151.8,556.3]},{"n":"Quindío","id":63,"d":"M154.1 380.3L152.6 384.0L149.7 386.9L145.8 385.9L145.7 383.2L148.2 376.9L148.1 374.2L147.1 371.9L143.2 371.1L143.6 369.8L144.6 369.4L143.9 368.8L144.6 362.0L146.4 359.8L152.0 360.2L152.1 357.1L154.1 358.1L158.5 357.8L162.4 359.8L166.5 357.4L165.0 360.1L165.1 362.1L162.8 362.8L160.7 364.8L160.3 367.4L157.8 369.5L157.0 377.4L154.1 380.3Z","c":[153.1,369.2]},{"n":"Risaralda","id":66,"d":"M158.4 357.8L154.1 358.1L152.3 357.1L150.6 357.7L146.2 356.3L145.1 356.8L145.2 354.5L143.5 355.6L142.0 355.3L142.2 353.7L141.4 353.1L142.5 352.7L143.0 351.1L142.4 350.0L141.3 350.8L139.5 350.7L139.0 348.3L137.1 347.1L133.8 338.4L133.1 334.4L132.4 333.7L128.6 333.7L126.9 332.0L128.7 329.3L129.1 326.2L132.4 325.9L134.6 323.5L138.3 322.7L137.5 320.4L138.8 319.8L142.8 322.0L145.1 321.1L144.8 327.0L147.2 327.5L151.1 325.9L155.2 328.7L155.0 330.2L152.6 332.5L150.0 331.1L146.5 331.8L147.5 335.0L145.9 339.0L143.4 338.3L142.0 342.2L144.5 347.3L147.0 347.8L148.0 347.1L148.5 343.8L150.1 342.1L152.3 346.8L154.2 346.9L155.0 345.4L155.7 345.6L156.1 347.4L158.3 346.9L159.7 348.1L162.3 348.2L164.8 352.7L167.2 353.3L167.0 356.7L162.4 359.8L158.4 357.8Z","c":[146.5,342.3]},{"n":"Santander","id":68,"d":"M279.9 293.8L275.9 299.8L274.2 299.1L273.1 300.3L270.2 300.0L267.3 298.0L263.6 304.8L260.5 305.4L258.5 309.6L256.7 308.9L256.6 307.8L254.8 306.3L256.2 302.4L257.8 303.1L259.4 297.8L257.4 294.7L253.2 293.2L251.6 296.3L249.5 297.7L248.6 301.1L247.2 302.2L248.8 304.1L246.8 311.2L243.6 308.2L241.2 308.6L239.1 311.3L238.1 310.1L236.6 311.3L236.4 310.3L233.9 309.9L231.2 311.0L229.2 307.0L226.8 306.5L225.7 303.8L224.3 303.8L222.1 302.2L221.3 304.9L220.0 306.0L217.9 305.5L217.6 304.4L220.1 301.6L219.5 300.7L220.2 299.6L218.4 297.4L218.5 295.1L216.7 294.2L214.4 296.3L212.8 296.2L211.7 294.1L209.6 293.5L209.6 291.9L208.3 290.6L208.8 288.8L207.1 288.2L206.4 286.9L206.2 285.5L208.9 283.6L210.8 279.8L213.5 279.1L211.7 276.3L212.3 274.4L211.1 272.9L211.7 270.8L213.8 268.8L215.2 269.1L216.7 267.4L218.3 267.5L220.2 264.9L222.5 264.6L223.7 263.0L225.0 262.9L228.2 257.8L234.5 253.2L236.3 250.6L233.2 244.0L235.2 232.8L234.4 229.2L235.9 228.6L239.1 223.7L238.8 222.3L239.7 221.9L238.5 219.0L239.8 216.8L238.0 210.2L236.9 209.3L237.7 208.0L236.4 204.7L237.3 201.7L239.4 199.6L240.7 199.2L240.8 201.0L240.0 201.0L243.2 205.3L243.1 207.3L245.4 208.5L245.6 210.7L244.5 211.6L245.2 211.8L246.4 216.8L248.3 218.2L250.1 218.4L251.3 220.3L250.7 220.9L252.6 222.3L253.2 224.4L257.6 225.9L258.6 225.1L259.7 226.7L263.4 226.6L264.4 227.5L265.1 226.1L264.5 224.8L266.2 222.7L270.8 223.9L277.4 223.3L277.6 227.5L281.2 229.7L281.0 232.0L283.9 235.3L284.0 237.9L282.0 239.8L283.0 241.9L284.1 242.3L284.5 244.6L282.2 247.3L281.9 249.4L286.0 250.1L288.1 252.5L291.3 251.6L291.8 253.5L292.4 252.1L296.6 252.0L297.5 254.2L297.3 257.2L299.7 256.7L299.4 257.7L300.6 259.3L299.6 261.3L300.1 267.8L297.5 271.2L297.9 275.3L292.5 277.9L289.3 272.5L287.3 271.2L285.2 272.3L287.1 274.9L288.6 275.3L289.1 280.9L287.9 282.7L289.2 284.5L288.2 284.9L288.1 287.4L285.4 288.1L284.2 291.3L282.5 291.4L279.9 293.8Z","c":[251.4,265.0]},{"n":"Sucre","id":70,"d":"M204.4 182.4L205.8 183.6L205.7 185.9L204.5 187.9L202.3 187.2L202.2 189.8L200.2 192.9L199.2 192.0L193.6 192.8L193.4 188.5L192.2 187.4L190.4 187.3L189.4 184.8L186.9 183.2L186.0 183.3L185.9 184.5L183.4 182.6L183.1 184.2L181.9 184.3L177.2 187.9L175.9 187.5L175.3 186.3L174.5 186.9L174.2 185.8L175.4 184.2L174.4 183.4L170.3 182.8L169.3 175.6L168.5 174.8L168.9 171.5L169.9 171.1L167.8 169.8L166.0 167.2L167.3 166.6L170.1 167.0L170.2 165.6L175.1 163.5L175.0 161.4L176.4 161.3L174.1 158.9L174.9 157.4L173.0 156.1L171.0 156.5L171.2 155.3L167.1 152.7L164.8 153.2L165.0 152.0L162.8 150.7L163.3 147.7L161.8 148.3L161.3 146.9L159.4 147.7L155.6 143.4L154.5 144.4L152.9 143.0L151.8 143.1L152.8 141.5L152.4 140.6L153.3 141.0L154.8 140.2L156.3 138.3L158.1 132.6L156.3 127.6L152.2 127.2L154.8 124.6L155.7 122.4L155.8 119.2L157.9 114.7L158.1 109.5L161.5 106.8L159.4 111.4L160.5 112.3L162.6 111.8L163.1 115.5L162.1 117.7L163.3 117.5L164.0 118.5L167.5 119.5L168.0 118.4L169.6 119.4L168.3 122.3L169.1 122.9L167.6 126.2L167.3 130.6L168.6 129.9L169.3 131.3L169.6 129.4L172.1 127.9L172.0 128.7L173.7 129.8L176.8 129.8L175.8 130.6L176.0 131.8L176.7 131.3L178.3 132.1L180.8 135.1L183.8 135.2L183.0 138.1L185.6 139.2L187.1 137.9L186.6 138.9L189.6 140.0L188.3 140.5L186.7 143.6L187.5 144.5L187.6 147.9L188.8 149.0L188.9 152.0L191.3 153.0L192.5 157.0L195.8 157.6L196.5 158.9L199.6 159.4L201.0 160.7L203.1 165.2L203.8 165.2L203.5 167.0L205.6 168.6L202.4 170.9L203.0 178.3L204.2 179.1L204.4 182.4Z","c":[176.6,152.9]},{"n":"Tolima","id":73,"d":"M133.4 431.6L135.1 430.9L134.2 427.3L135.6 427.2L136.6 425.0L135.6 420.1L137.0 418.9L136.5 416.3L139.2 410.7L138.7 407.0L140.7 405.4L140.3 403.9L142.1 402.4L143.3 399.0L145.2 397.2L144.9 395.9L147.0 394.1L148.0 390.0L150.5 388.0L150.0 386.1L152.4 384.3L154.1 380.3L157.0 377.5L157.8 369.5L160.3 367.4L160.7 364.8L162.8 362.8L165.1 362.1L165.0 360.1L166.8 357.9L167.2 353.3L169.8 349.2L168.2 347.3L169.8 342.8L168.4 341.6L168.6 340.5L171.4 337.8L173.6 338.4L176.5 336.3L179.1 336.8L181.7 331.8L183.1 330.9L187.2 329.8L190.3 330.6L192.4 329.5L196.7 331.0L197.5 339.9L196.3 344.0L198.0 345.1L196.0 346.4L196.8 347.2L196.8 349.2L195.8 349.3L195.1 351.5L196.1 352.2L196.2 354.0L192.7 357.0L194.3 360.2L192.9 362.1L193.9 363.1L193.0 363.6L194.2 367.1L193.3 369.5L192.1 369.9L191.0 374.9L189.8 375.8L189.5 377.2L190.1 378.1L193.0 376.8L194.2 377.1L196.1 379.5L196.7 379.0L198.3 380.7L200.2 380.5L200.2 381.3L203.3 378.1L204.6 377.9L206.5 379.3L208.6 384.5L206.1 388.3L206.0 391.8L206.8 393.4L204.6 401.8L199.4 405.6L198.2 408.1L197.0 408.5L196.4 409.5L196.9 411.2L194.5 413.0L195.2 416.1L192.9 417.8L191.4 420.8L188.7 423.1L184.3 423.8L181.1 422.9L181.8 419.1L183.1 418.5L182.7 416.7L177.6 416.4L176.3 417.7L176.4 419.1L173.9 417.4L172.8 419.7L169.7 417.2L168.8 418.2L167.6 417.8L167.1 419.2L165.3 419.4L164.1 420.6L162.3 419.9L161.9 421.5L160.2 421.8L160.0 423.4L157.9 426.1L157.6 430.9L147.8 438.1L146.3 442.5L144.9 442.5L141.7 440.2L140.6 440.4L138.9 437.4L137.3 437.9L136.8 439.2L137.5 436.4L133.4 431.6Z","c":[173.3,389.5]},{"n":"Valle del Cauca","id":76,"d":"M112.9 431.5L112.1 430.6L110.3 432.4L109.4 430.6L108.4 431.9L107.2 432.0L104.0 429.9L98.8 433.8L93.7 431.1L92.5 429.4L88.4 428.0L86.4 429.1L85.1 428.5L81.6 431.6L79.1 430.2L79.5 429.2L77.8 428.5L76.5 430.1L75.6 429.8L74.9 427.2L72.6 424.8L70.7 425.6L70.6 426.8L67.5 426.8L67.4 425.5L70.5 421.6L73.0 420.0L72.9 421.1L74.2 421.2L72.9 421.0L74.1 420.1L73.3 420.1L73.7 418.9L75.9 415.4L75.4 414.5L77.7 412.6L77.2 412.1L78.6 410.4L78.8 411.6L80.0 411.7L79.0 411.6L78.9 410.7L79.7 411.0L79.3 410.2L80.9 409.8L82.0 410.3L82.8 408.6L83.4 409.0L83.7 407.1L84.4 407.8L83.7 406.4L86.4 407.3L85.9 406.2L87.4 406.1L84.8 406.5L84.6 404.6L86.6 404.7L87.2 403.9L84.0 404.3L83.7 405.1L83.4 402.2L86.6 403.4L84.3 402.2L84.5 401.5L86.3 401.8L86.0 400.8L86.9 401.1L85.6 399.2L87.4 400.1L86.3 399.1L88.1 399.2L87.3 398.6L87.5 397.4L88.2 397.8L87.9 397.2L90.1 396.0L91.4 397.0L89.5 395.3L91.2 395.5L90.2 394.9L91.7 394.2L87.7 395.1L84.0 398.2L79.5 397.8L78.4 396.2L79.7 395.1L77.6 394.9L77.8 392.6L78.6 392.3L78.6 393.0L79.0 391.4L81.3 391.1L83.4 389.2L83.3 388.2L84.7 388.0L82.7 387.8L82.9 386.5L82.6 387.5L80.9 387.9L81.9 386.5L80.0 385.7L80.7 387.2L79.0 387.4L79.4 388.0L78.3 388.4L77.5 391.6L75.9 393.8L74.9 391.4L72.3 389.6L72.9 388.0L72.0 384.3L74.4 383.6L76.1 381.3L78.4 382.7L80.6 379.6L80.9 381.7L82.2 383.2L85.2 382.0L87.0 385.1L88.4 384.8L89.4 386.0L92.5 385.9L93.0 384.5L94.9 385.0L97.0 386.1L98.6 388.3L98.0 389.1L99.7 388.4L100.8 390.0L102.8 390.7L110.2 389.1L113.5 389.8L117.1 385.6L117.3 381.3L116.7 379.2L114.6 378.9L113.5 377.1L113.5 372.2L119.0 370.5L120.8 368.9L121.4 365.1L122.7 364.3L124.6 360.2L125.3 357.5L124.3 355.7L128.7 351.6L132.1 351.5L133.2 349.3L132.4 348.4L133.7 348.1L134.3 346.7L133.9 344.1L135.6 343.6L137.1 347.1L139.0 348.3L139.3 350.4L141.3 350.8L142.4 350.0L143.0 351.1L142.5 352.7L141.4 353.1L142.2 353.7L142.0 355.3L143.5 355.6L145.2 354.5L145.0 356.8L151.6 357.4L152.0 360.2L146.4 359.8L144.6 362.0L143.9 368.8L144.6 369.4L143.2 370.8L147.1 371.9L148.1 374.2L148.2 376.9L145.7 383.2L145.8 385.9L149.8 386.8L150.5 388.0L148.0 390.0L147.0 394.1L144.9 395.9L145.2 397.2L143.3 399.0L142.1 402.4L140.3 403.9L140.7 405.4L138.7 407.0L139.2 410.7L136.5 416.3L137.0 418.9L135.6 420.1L136.7 422.6L136.6 425.0L135.6 426.7L131.2 425.6L129.6 426.0L127.9 423.8L121.3 423.2L117.2 421.4L115.7 423.1L116.7 423.2L116.1 423.7L117.3 424.6L116.6 426.6L115.4 427.3L116.0 428.8L115.0 429.2L115.4 429.9L113.9 430.3L114.7 431.1L112.9 431.5ZM84.2 399.2L85.4 399.6L85.6 401.0L84.4 401.1L84.2 399.2ZM89.4 395.3L89.5 396.3L88.7 395.4L89.4 395.3Z","c":[103.0,396.7]},{"n":"Vaupés","id":null,"d":"M412.6 580.0L414.1 582.5L413.6 584.6L418.0 590.0L419.5 590.9L421.5 590.6L422.3 592.2L425.1 593.1L427.4 595.6L432.7 598.2L432.6 599.9L433.5 601.0L433.0 602.5L434.8 604.6L431.9 609.7L434.7 612.5L434.7 614.3L436.4 615.3L436.4 618.0L439.5 619.9L439.6 621.1L441.5 621.3L440.3 622.5L441.4 623.5L441.3 624.7L439.2 625.5L439.6 627.8L438.2 628.3L439.3 629.3L438.7 631.2L435.0 630.0L433.5 628.1L431.7 629.0L431.6 631.1L430.7 631.9L429.8 631.3L429.6 627.0L431.1 626.9L428.5 623.6L426.5 622.6L425.3 623.1L427.1 625.2L426.0 625.9L422.7 622.6L420.4 625.0L416.6 625.6L416.4 624.3L417.6 622.8L417.1 621.0L419.3 619.9L417.7 618.8L415.1 620.2L414.1 618.3L413.4 620.4L411.0 618.8L408.5 620.9L409.1 622.2L411.0 622.0L411.2 623.1L408.9 626.4L407.5 626.7L406.8 624.7L404.5 623.6L405.8 620.5L403.0 622.1L400.8 619.6L401.4 618.3L402.9 618.4L404.7 615.9L401.1 611.7L401.5 609.7L403.3 609.0L402.7 601.7L401.4 600.7L400.6 602.2L400.0 601.1L403.9 596.7L405.6 597.1L405.3 595.3L403.9 595.6L401.7 594.1L400.9 595.3L398.2 596.0L400.2 596.6L399.8 598.0L397.5 598.0L396.6 596.4L393.6 597.9L393.8 595.2L390.8 591.6L390.3 592.4L389.1 591.8L388.0 593.1L385.7 589.8L383.4 591.2L380.6 588.0L378.3 589.1L379.1 590.1L375.8 591.6L373.4 587.7L373.2 584.6L371.7 584.2L370.3 582.2L370.8 581.1L372.3 581.0L372.7 580.0L371.2 579.2L371.1 577.3L369.4 576.5L369.2 575.3L367.3 575.4L367.2 577.0L366.3 577.1L365.5 576.3L366.1 575.2L364.9 575.4L363.7 573.8L362.3 574.8L361.8 572.2L360.0 570.5L358.1 572.5L355.0 571.8L355.1 570.5L353.4 569.8L353.1 567.9L352.8 568.6L351.7 568.3L351.4 567.2L350.1 566.4L350.0 567.7L348.8 568.6L347.0 568.1L347.6 567.0L346.7 566.5L345.6 568.9L343.9 569.4L344.0 567.3L341.4 567.3L342.7 565.0L340.6 566.6L339.2 566.5L340.1 566.1L339.8 565.1L336.4 564.1L335.1 562.1L336.2 561.2L336.1 560.3L334.5 561.9L333.8 559.7L332.2 559.6L333.2 558.0L331.0 557.8L331.5 558.9L330.3 559.4L329.2 558.7L330.6 556.3L327.7 553.4L327.6 554.3L326.2 554.2L327.0 553.3L325.7 552.5L326.5 551.2L325.7 549.5L325.2 548.7L324.6 550.1L323.0 549.1L323.0 547.9L321.9 547.4L323.3 545.8L322.5 544.6L320.9 544.4L331.3 533.7L332.4 533.5L334.4 529.5L338.2 530.1L341.8 526.0L341.7 523.0L343.6 523.5L342.9 521.6L344.0 521.5L344.4 523.6L346.2 523.7L343.9 519.4L343.0 519.3L343.7 518.3L343.0 516.0L344.2 516.0L346.6 510.3L345.9 508.3L347.4 507.4L348.3 502.5L348.9 503.1L350.5 501.5L350.9 494.5L352.9 496.0L354.2 495.8L356.6 498.0L362.7 492.8L364.2 492.9L364.1 491.9L368.5 491.2L370.3 490.0L373.0 487.8L373.3 486.1L374.1 485.8L374.6 486.9L375.5 486.4L377.6 487.1L379.0 486.1L379.5 486.9L380.8 486.2L382.7 487.4L384.0 486.7L385.2 487.2L385.9 486.0L388.4 485.8L390.1 484.7L392.1 485.2L394.5 482.7L396.7 483.4L397.6 482.6L398.3 483.5L399.9 482.2L402.5 482.1L402.9 481.4L406.2 481.6L407.6 479.4L408.7 479.3L409.0 481.4L406.3 488.7L407.6 488.8L412.7 493.5L421.3 495.7L421.5 525.3L423.5 525.8L425.8 523.6L428.2 523.4L428.2 525.5L432.6 524.3L434.4 525.6L440.4 525.5L441.5 527.0L443.1 525.0L445.7 524.8L447.3 526.4L449.2 526.2L451.1 528.3L450.4 529.9L452.8 531.0L452.3 533.3L454.6 534.8L454.2 535.8L453.1 535.9L454.0 539.3L452.2 541.1L454.4 542.7L455.4 545.4L452.4 544.7L451.3 546.9L448.0 547.2L446.9 547.1L447.0 545.0L445.8 546.1L445.0 545.4L444.3 546.7L440.6 542.2L438.4 541.1L436.0 542.7L435.8 543.7L434.5 543.5L432.6 546.7L430.6 544.4L429.3 544.3L427.2 546.6L426.0 546.4L423.6 548.6L422.7 547.7L419.7 548.4L418.3 547.8L417.4 549.5L415.5 548.3L414.5 548.5L414.3 549.9L412.6 548.9L412.6 580.0Z","c":[391.9,561.9]},{"n":"Vichada","id":null,"d":"M468.1 405.7L466.9 404.0L464.0 405.0L463.4 402.3L463.3 405.0L460.7 404.6L457.9 407.1L457.0 406.3L455.7 407.0L455.0 405.3L451.9 407.4L452.6 405.4L451.3 405.7L451.0 404.1L449.6 405.5L449.0 403.3L447.6 403.1L448.1 405.2L446.9 406.9L446.3 406.4L447.2 404.2L446.5 403.5L443.5 405.9L442.7 404.9L441.2 406.0L439.6 403.8L438.3 404.7L437.8 406.6L437.4 405.3L433.5 405.1L433.1 405.5L434.3 405.7L433.2 410.3L432.6 409.0L431.5 410.3L430.0 409.4L428.5 411.6L426.6 409.2L426.3 409.9L427.4 410.3L427.6 411.3L424.5 410.5L424.3 412.4L423.4 413.2L423.0 411.2L422.2 410.8L421.6 411.6L422.9 414.5L421.3 413.9L419.6 411.6L419.3 412.6L420.9 414.4L420.2 416.7L418.9 417.0L416.7 415.3L416.1 416.3L417.2 417.3L417.1 418.4L414.1 419.3L412.9 417.1L409.9 418.8L408.8 418.0L408.4 419.7L406.7 420.2L409.5 423.0L409.1 423.7L407.8 423.0L407.2 423.8L408.4 425.3L408.6 427.1L407.8 427.7L407.2 425.8L406.2 425.7L406.9 428.1L405.6 428.5L404.5 427.0L405.0 428.6L403.2 428.3L403.0 429.6L401.3 430.8L401.7 432.2L399.7 432.6L402.7 434.7L400.5 435.1L401.7 439.5L398.2 440.5L398.0 443.4L391.8 445.2L391.3 446.4L387.5 443.9L385.9 446.1L385.2 443.5L384.1 443.1L385.0 445.6L382.0 448.7L381.2 446.1L377.2 447.7L377.9 446.2L376.8 445.2L374.3 446.8L375.2 444.5L374.1 443.5L374.4 445.4L373.7 446.0L371.4 443.1L371.3 446.3L370.2 445.8L370.6 443.9L368.9 444.4L367.8 443.1L366.5 445.3L365.6 444.2L366.7 443.6L364.9 442.0L364.9 347.7L365.5 348.0L368.2 345.6L370.9 339.1L372.4 337.8L375.3 337.2L382.1 331.6L383.5 329.3L383.0 326.5L387.2 324.9L387.6 323.9L392.7 320.5L395.9 319.6L398.1 316.9L402.7 318.3L408.5 315.6L414.9 307.7L415.9 304.5L422.5 296.0L424.1 295.5L435.9 295.9L444.1 291.7L445.5 292.4L446.9 294.9L448.5 295.2L450.6 294.1L451.4 292.0L453.6 291.2L455.6 288.2L461.0 288.6L463.7 290.4L468.0 289.7L470.1 291.0L472.4 290.4L476.9 292.2L478.8 290.6L481.5 291.4L485.8 289.5L493.8 290.3L495.2 288.9L500.8 287.2L507.4 289.2L516.6 283.3L517.5 284.7L521.9 284.2L527.3 285.2L531.2 289.2L529.8 292.0L533.9 298.1L525.3 305.5L523.2 313.1L523.8 317.5L524.9 319.1L523.6 322.5L514.7 328.5L513.4 330.7L515.3 332.6L515.2 335.3L513.8 336.5L514.6 340.4L514.0 341.1L515.3 342.1L513.8 346.8L514.7 358.0L513.7 359.7L513.8 364.3L513.0 366.2L515.6 368.4L515.8 370.3L516.9 371.1L516.3 372.3L517.3 374.6L515.4 375.5L516.0 377.6L515.4 379.3L518.9 385.1L519.8 388.5L514.5 391.6L512.3 394.1L510.5 394.6L509.7 392.1L505.2 391.5L504.9 389.9L503.0 393.3L503.0 391.3L502.1 391.4L501.5 393.0L500.4 392.9L500.5 390.4L498.5 391.1L497.0 390.5L497.1 392.4L490.6 390.8L490.6 393.9L486.4 394.3L488.4 396.2L488.4 397.4L486.0 395.7L486.3 397.8L484.6 397.2L483.1 398.3L483.1 400.7L480.3 398.7L481.2 401.4L480.1 400.1L477.3 400.9L475.6 399.1L475.1 399.9L476.7 400.7L476.6 401.5L475.8 400.7L474.0 401.2L471.6 400.4L470.0 403.3L468.0 402.2L467.2 402.6L468.1 405.7Z","c":[446.4,384.0]}]}}</script>
+<script>
+(function(){
+  "use strict";
+  var DATA = JSON.parse(document.getElementById('geo-data').textContent);
+  var YEARS = DATA.years, NY = YEARS.length, LAST = NY - 1, D = DATA.depts, NAT = DATA.nat, B = DATA.B, CV = DATA.CV, GEO = DATA.geo;
+  var byId = {}; D.forEach(function(d){ byId[d.id] = d; });
+  var N = D.length;
+
+  /* ---------- formato ---------- */
+  var loc = function(v, a, b){ return v.toLocaleString('es-CO', {minimumFractionDigits:a, maximumFractionDigits:b == null ? a : b}).replace('-', '−'); };
+  var fmtN = function(v){ return loc(v, 0); };
+  var fmtM = function(v){ return '$' + loc(v/1e6, 2) + 'M'; };
+  var fmtK = function(v){ return '$' + loc(v/1e3, 1) + ' mil'; };
+  var pct1 = function(v){ return loc(v*100, 1) + '%'; };
+  var pct0 = function(v){ return loc(v*100, 0) + '%'; };
+  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
+  var $ = function(id){ return document.getElementById(id); };
+
+  var IND = {
+    rh:{name:'Remuneración por hora', short:'por hora', lv:'rh', g:'crh', rk:'prh', gk:'pcrh', bg:'bgh', ref:B.rh1, gref:B.crh, fmt:fmtK, l0:'lh', unit:'miles de pesos por hora'},
+    rt:{name:'Remuneración por trabajador', short:'por trabajador', lv:'rt', g:'crt', rk:'prt', gk:'pcrt', bg:'bgt', ref:B.rt1, gref:B.crt, fmt:fmtM, l0:'lt', unit:'millones de pesos al mes'}
+  };
+  var QN = {
+    aa:{t:'Nivel alto y crecimiento alto', s:'Líder que sigue creciendo'},
+    ab:{t:'Nivel alto y crecimiento bajo', s:'Líder que crece menos que el país'},
+    ba:{t:'Nivel bajo y crecimiento alto', s:'Rezagado que está alcanzando'},
+    bb:{t:'Nivel bajo y crecimiento bajo', s:'Rezagado que no está alcanzando'}
+  };
+  var QORD = ['aa','ba','bb','ab'];
+  var ind = 'rh', view = 'nivel', yi = LAST, bubbles = false, sel = 11, tab = 'cuad';
+
+  function quad(d, k){ var m = IND[k]; return (d[m.lv][LAST] >= m.ref ? 'a' : 'b') + (d[m.g] >= m.gref ? 'a' : 'b'); }
+  function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  function rgb(h){ h = h.replace('#',''); return [0,2,4].map(function(i){ return parseInt(h.substr(i,2),16); }); }
+  function mix(a, b, t){ return 'rgb(' + a.map(function(v,i){ return Math.round(v + (b[i]-v)*t); }).join(',') + ')'; }
+  function seqColor(t){
+    var st = ['--s0','--s1','--s2','--s3','--s4'].map(function(v){ return rgb(css(v)); });
+    var p = Math.min(Math.max(t,0),1)*(st.length-1), i = Math.min(Math.floor(p), st.length-2);
+    return mix(st[i], st[i+1], p - i);
+  }
+  function divColor(t){
+    var lo = rgb(css('--d-lo')), mid = rgb(css('--d-mid')), hi = rgb(css('--d-hi'));
+    return t < 0 ? mix(mid, lo, Math.min(-t,1)) : mix(mid, hi, Math.min(t,1));
+  }
+  function rank(arr){ return arr; }
+  function niceTicks(lo, hi, n){
+    var span = hi - lo, step = Math.pow(10, Math.floor(Math.log10(span/n))), err = span/n/step;
+    step *= err >= 7 ? 10 : err >= 3 ? 5 : err >= 1.5 ? 2 : 1;
+    var out = [], v = Math.ceil(lo/step - 1e-9)*step;
+    for(; v <= hi + 1e-9; v += step) out.push(Math.round(v/step)*step);
+    return out;
+  }
+
+  /* ---------- tooltip ---------- */
+  var tip = $('tip');
+  function showTip(evt, title, html){
+    tip.innerHTML = '<div class="tt">' + title + '</div>' + html; tip.classList.add('show');
+    var w = tip.offsetWidth, h = tip.offsetHeight, x = evt.clientX + 14, y = evt.clientY + 14;
+    if(x + w > window.innerWidth - 8) x = evt.clientX - w - 14;
+    if(y + h > window.innerHeight - 8) y = evt.clientY - h - 14;
+    tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+  }
+  function hideTip(){ tip.classList.remove('show'); }
+  function trow(label, value, cat){ return '<div class="tr"><span>' + (cat ? '<i class="bg-' + cat + '"></i>' : '') + label + '</span><b>' + value + '</b></div>'; }
+  function depTip(d, yidx){
+    var m = IND[ind], q = quad(d, ind);
+    return trow(IND.rt.name, fmtM(d.rt[yidx])) + trow(IND.rh.name, fmtK(d.rh[yidx])) +
+      trow('Crecimiento anual ' + m.short, pct1(d[m.g])) + trow('Cuadrante', QN[q].t, q) + trow('Ocupados', fmtN(d.oc[yidx]));
+  }
+
+  /* ---------- tema ---------- */
+  var themeBtn = $('theme-btn');
+  try{ var saved = localStorage.getItem('geo-theme'); if(saved) document.documentElement.setAttribute('data-theme', saved); }catch(e){}
+  themeBtn.addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try{ localStorage.setItem('geo-theme', next); }catch(e){}
+    renderAll();
+  });
+  if(window.matchMedia) window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', function(){ renderAll(); });
+
+  /* ---------- portada ---------- */
+  (function hero(){
+    var groups = {aa:[], ab:[], ba:[], bb:[]};
+    D.forEach(function(d){ groups[quad(d,'rh')].push(d); });
+    var bar = $('hero-bar'), cols = $('hero-cols'), html = '', ch = '';
+    QORD.forEach(function(q){
+      var g = groups[q].slice().sort(function(a,b){ return b.rh[LAST] - a.rh[LAST]; });
+      g.forEach(function(d){ html += '<i class="bg-' + q + '" title="' + esc(d.n) + '"></i>'; });
+      if(!g.length) return;
+      var names = g.map(function(d){ return d.n; });
+      var list = names.length > 7 ? names.slice(0,6).join(', ') + ' y ' + (names.length - 6) + ' más' : names.slice(0,-1).join(', ') + (names.length > 1 ? ' y ' : '') + names[names.length-1];
+      ch += '<div class="col"><div class="k"><span class="dot bg-' + q + '"></span>' + QN[q].t + '</div><div class="big num">' + g.length + '<small>de ' + N + '</small></div><p class="def">' + list + '.</p></div>';
+    });
+    bar.innerHTML = html; cols.innerHTML = ch;
+    cols.style.gridTemplateColumns = 'repeat(' + QORD.filter(function(q){ return groups[q].length; }).length + ',minmax(0,1fr))';
+    bar.setAttribute('aria-label', QORD.map(function(q){ return QN[q].t + ': ' + groups[q].length; }).join('; '));
+  })();
+
+  /* ---------- buscador ---------- */
+  var input = $('dep-input'), combo = $('combo'), list = $('dep-list'), toggle = $('dep-toggle');
+  var alpha = D.slice().sort(function(a,b){ return a.n.localeCompare(b.n, 'es'); });
+  var fold = function(t){ return t.split('').map(function(c){ return c.normalize('NFD').charAt(0); }).join('').toLowerCase(); };
+  alpha.forEach(function(d){ d.f = fold(d.n); });
+  var results = [], activeIdx = -1;
+  function highlight(d, tokens){
+    var rng = [];
+    tokens.forEach(function(t){ var i = d.f.indexOf(t); if(i >= 0) rng.push([i, i + t.length]); });
+    rng.sort(function(x,y){ return x[0] - y[0]; });
+    var merged = [];
+    rng.forEach(function(r){ var last = merged[merged.length-1]; if(last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]); else merged.push(r.slice()); });
+    var out = '', pos = 0;
+    merged.forEach(function(r){ out += esc(d.n.slice(pos, r[0])) + '<mark>' + esc(d.n.slice(r[0], r[1])) + '</mark>'; pos = r[1]; });
+    return out + esc(d.n.slice(pos));
+  }
+  function openList(showAll){
+    var tokens = showAll ? [] : fold(input.value).split(/\s+/).filter(Boolean);
+    results = alpha.filter(function(d){ return tokens.every(function(t){ return d.f.indexOf(t) >= 0; }); });
+    if(tokens.length) results.sort(function(a,b){ return (a.f.indexOf(tokens[0]) === 0 ? 0 : 1) - (b.f.indexOf(tokens[0]) === 0 ? 0 : 1); });
+    var html = results.map(function(d, i){
+      return '<li role="option" id="opt-' + i + '" data-i="' + i + '"' + (d.id === sel ? ' aria-selected="true"' : '') + '><i class="dot bg-' + quad(d, ind) + '"></i><span class="nm">' + highlight(d, tokens) + '</span><span class="tag">' + d.s + '</span></li>';
+    }).join('');
+    if(!results.length) html = '<li class="none" role="presentation">No encontramos ese departamento. Solo están los 24 con información comparable.</li>';
+    list.innerHTML = html; list.hidden = false; combo.classList.add('open'); input.setAttribute('aria-expanded', 'true');
+    var cur = results.indexOf(byId[sel]);
+    setActive(showAll && cur >= 0 ? cur : (results.length && tokens.length ? 0 : -1), showAll && cur >= 0);
+  }
+  function closeList(){ list.hidden = true; combo.classList.remove('open'); input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); activeIdx = -1; }
+  function setActive(i, scroll){
+    var prev = list.querySelector('li.active'); if(prev) prev.classList.remove('active');
+    activeIdx = i; var el = i >= 0 ? $('opt-' + i) : null;
+    if(el){ el.classList.add('active'); input.setAttribute('aria-activedescendant', el.id); if(scroll !== false) el.scrollIntoView({block:'nearest'}); }
+    else input.removeAttribute('aria-activedescendant');
+  }
+  function pick(d){ closeList(); select(d.id); input.blur(); }
+  input.addEventListener('focus', function(){ input.select(); });
+  input.addEventListener('input', function(){ openList(false); });
+  input.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+      e.preventDefault();
+      if(list.hidden){ openList(!input.value || input.value === byId[sel].n); return; }
+      if(!results.length) return;
+      setActive(e.key === 'ArrowDown' ? (activeIdx + 1) % results.length : (activeIdx - 1 + results.length) % results.length);
+    } else if(e.key === 'Enter'){
+      if(!list.hidden && results.length){ e.preventDefault(); pick(results[activeIdx >= 0 ? activeIdx : 0]); }
+    } else if(e.key === 'Escape'){ closeList(); input.value = byId[sel].n; }
+    else if(e.key === 'Tab'){ closeList(); }
+  });
+  input.addEventListener('blur', function(){ setTimeout(function(){ closeList(); input.value = byId[sel].n; }, 120); });
+  list.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  list.addEventListener('click', function(e){ var li = e.target.closest('li[data-i]'); if(li) pick(results[+li.dataset.i]); });
+  list.addEventListener('mousemove', function(e){ var li = e.target.closest('li[data-i]'); if(li && +li.dataset.i !== activeIdx) setActive(+li.dataset.i, false); });
+  toggle.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  toggle.addEventListener('click', function(){ if(!list.hidden){ closeList(); return; } input.focus(); openList(true); });
+
+  /* ---------- controles ---------- */
+  function setPressed(container, attr, val){
+    Array.prototype.forEach.call(container.querySelectorAll('[' + attr + ']'), function(b){ b.setAttribute('aria-pressed', b.getAttribute(attr) === val ? 'true' : 'false'); });
+  }
+  document.querySelectorAll('.ind-chips').forEach(function(c){
+    c.addEventListener('click', function(e){
+      var b = e.target.closest('button[data-ind]'); if(!b) return;
+      ind = b.dataset.ind; document.querySelectorAll('.ind-chips').forEach(function(x){ setPressed(x, 'data-ind', ind); });
+      renderAll();
+    });
+  });
+  $('view-chips').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-view]'); if(!b) return;
+    view = b.dataset.view; setPressed($('view-chips'), 'data-view', view); stopPlay(); renderMap();
+  });
+  $('bub-chip').addEventListener('click', function(){
+    bubbles = !bubbles; $('bub-chip').setAttribute('aria-pressed', bubbles ? 'true' : 'false'); renderMap();
+  });
+  var yearEl = $('year'), timer = null;
+  yearEl.max = LAST; yearEl.value = LAST;
+  yearEl.addEventListener('input', function(){ yi = +yearEl.value; stopPlay(); renderMap(); });
+  function stopPlay(){ if(timer){ clearInterval(timer); timer = null; $('play').innerHTML = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z"></path></svg>'; } }
+  $('play').addEventListener('click', function(){
+    if(timer){ stopPlay(); return; }
+    if(view !== 'nivel'){ view = 'nivel'; setPressed($('view-chips'), 'data-view', view); }
+    if(yi >= LAST) yi = 0;
+    $('play').innerHTML = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 1.5h3v11h-3zM8.5 1.5h3v11h-3z"></path></svg>';
+    timer = setInterval(function(){
+      yi++; yearEl.value = yi; renderMap();
+      if(yi >= LAST) stopPlay();
+    }, 650);
+    yearEl.value = yi; renderMap();
+  });
+
+  /* ---------- mapa ---------- */
+  var mapEl = $('map');
+  function lvRange(k){
+    var lo = Infinity, hi = -Infinity;
+    D.forEach(function(d){ d[IND[k].lv].forEach(function(v){ if(v < lo) lo = v; if(v > hi) hi = v; }); });
+    return [lo, hi];
+  }
+  function fillFor(d){
+    var m = IND[ind];
+    if(view === 'nivel'){ var r = lvRange(ind); return seqColor((d[m.lv][yi] - r[0])/(r[1] - r[0])); }
+    if(view === 'crec'){ var lim = Math.max.apply(null, D.map(function(x){ return Math.abs(x[m.g] - m.gref); })); return divColor((d[m.g] - m.gref)/lim); }
+    return css('--q-' + quad(d, ind));
+  }
+  function renderMap(){
+    var m = IND[ind], bg = {}, s = '', maxOc = Math.max.apply(null, D.map(function(d){ return d.oc[view === 'nivel' ? yi : LAST]; }));
+    var yidx = view === 'nivel' ? yi : LAST;
+    var items = GEO.items.slice().sort(function(a,b){ return (a.id === sel) - (b.id === sel); });
+    items.forEach(function(g){
+      var d = g.id != null ? byId[g.id] : null;
+      if(!d){ s += '<path class="dp nodata" data-n="' + esc(g.n) + '" d="' + g.d + '"></path>'; return; }
+      s += '<path class="dp has' + (d.id === sel ? ' sel' : '') + '" data-id="' + d.id + '" fill="' + fillFor(d) + '"' + (bubbles ? ' fill-opacity=".42"' : '') + ' d="' + g.d + '"></path>';
+    });
+    if(!bubbles){ var bg0 = GEO.items.filter(function(g){ return g.id === 11; })[0], b0 = byId[11];
+      s += '<circle class="dp has' + (sel === 11 ? ' sel' : '') + '" data-id="11" cx="' + bg0.c[0] + '" cy="' + bg0.c[1] + '" r="7.5" fill="' + fillFor(b0) + '"></circle>'; }
+    if(bubbles){
+      GEO.items.forEach(function(g){
+        var d = g.id != null ? byId[g.id] : null; if(!d) return;
+        var r = 5 + Math.sqrt(d.oc[yidx]/maxOc)*27;
+        s += '<circle class="bub" cx="' + g.c[0] + '" cy="' + g.c[1] + '" r="' + r.toFixed(1) + '" fill="' + fillFor(d) + '"></circle>';
+      });
+    }
+    var gs = GEO.items.filter(function(g){ return g.id === sel; })[0];
+    if(gs){
+      var tx = Math.min(Math.max(gs.c[0], 70), GEO.w - 70);
+      s += '<text class="pinlabel" x="' + tx + '" y="' + (gs.c[1] - (bubbles ? 34 : 12)) + '" text-anchor="middle">' + esc(byId[sel].n) + '</text>';
+    }
+    mapEl.innerHTML = '<svg viewBox="0 0 ' + GEO.w + ' ' + GEO.h + '" role="img" aria-label="Mapa de departamentos de Colombia coloreado según la ' + m.name.toLowerCase() + '">' + s + '</svg>';
+    mapEl.querySelectorAll('.dp').forEach(function(p){
+      if(p.classList.contains('nodata')){
+        p.addEventListener('mousemove', function(e){ showTip(e, esc(p.dataset.n), '<div class="tr"><span>Sin información comparable en el panel</span></div>'); });
+        p.addEventListener('mouseleave', hideTip); return;
+      }
+      var d = byId[+p.dataset.id];
+      p.addEventListener('mousemove', function(e){ showTip(e, esc(d.n), depTip(d, yidx)); });
+      p.addEventListener('mouseleave', hideTip);
+      p.addEventListener('click', function(){ select(d.id); });
+    });
+    // leyenda
+    var lg = '';
+    if(view === 'nivel'){
+      var r = lvRange(ind), f = function(v){ return m.fmt(v); };
+      lg = '<span class="gradbar">' + f(r[0]) + '<i class="gb" style="background:linear-gradient(90deg,' + [0,.25,.5,.75,1].map(seqColor).join(',') + ')"></i>' + f(r[1]) + '</span><span><i style="background:var(--none)"></i>Sin información comparable</span>';
+    } else if(view === 'crec'){
+      var lim = Math.max.apply(null, D.map(function(x){ return Math.abs(x[m.g] - m.gref); }));
+      lg = '<span class="gradbar">' + pct1(m.gref - lim) + '<i class="gb" style="background:linear-gradient(90deg,' + [-1,-.5,0,.5,1].map(divColor).join(',') + ')"></i>' + pct1(m.gref + lim) + '</span><span>Centro: promedio nacional ' + pct1(m.gref) + ' al año</span><span><i style="background:var(--none)"></i>Sin información comparable</span>';
+    } else {
+      lg = QORD.map(function(q){ var c = D.filter(function(d){ return quad(d, ind) === q; }).length; return '<span><i class="bg-' + q + '"></i>' + QN[q].t + ' (' + c + ')</span>'; }).join('') + '<span><i style="background:var(--none)"></i>Sin información</span>';
+    }
+    $('map-legend').innerHTML = lg;
+    $('yearbar').hidden = view !== 'nivel'; $('year-hint').hidden = view !== 'nivel';
+    $('yr').textContent = YEARS[yi];
+    // frase
+    var ins = '';
+    if(view === 'nivel'){
+      var arr = D.slice().sort(function(a,b){ return b[m.lv][yi] - a[m.lv][yi]; }), t = arr[0], b = arr[arr.length-1];
+      ins = 'En ' + YEARS[yi] + ', <b>' + esc(t.n) + '</b> tiene la ' + m.name.toLowerCase() + ' más alta (' + m.fmt(t[m.lv][yi]) + ') y <b>' + esc(b.n) + '</b> la más baja (' + m.fmt(b[m.lv][yi]) + ').';
+    } else if(view === 'crec'){
+      var arr2 = D.slice().sort(function(a,b){ return b[m.g] - a[m.g]; });
+      ins = '<b>' + esc(arr2[0].n) + '</b> es donde más creció la ' + m.name.toLowerCase() + ' (' + pct1(arr2[0][m.g]) + ' al año) y <b>' + esc(arr2[N-1].n) + '</b> donde menos (' + pct1(arr2[N-1][m.g]) + '). Promedio nacional: ' + pct1(m.gref) + '.';
+    } else {
+      var ba = D.filter(function(d){ return quad(d, ind) === 'ba'; }).map(function(d){ return d.n; });
+      ins = '<b>' + ba.length + ' de ' + N + '</b> departamentos tienen nivel bajo pero crecimiento alto: están alcanzando a los líderes' + (ba.length ? ' (' + ba.join(', ') + ')' : '') + '.';
+    }
+    $('map-insight').innerHTML = ins;
+  }
+
+  /* ---------- ficha del departamento ---------- */
+  function tile(label, big, of, p, tick, cap){
+    return '<div class="tile"><div class="tl">' + label + '</div><div class="tv num">' + big + (of ? '<span class="of">' + of + '</span>' : '') + '</div>' +
+      '<div class="track" role="img" aria-label="Posición entre los departamentos">' + (tick == null ? '' : '<u style="left:' + tick + '%"></u>') + '<i style="left:' + p + '%"></i></div>' +
+      '<div class="tc">' + cap + '</div></div>';
+  }
+  function pos(v, arr){ var lo = Math.min.apply(null, arr), hi = Math.max.apply(null, arr); return Math.round((v - lo)/(hi - lo)*100); }
+  function gapText(d, k){ var b = d[IND[k].bg]; return b < 0.0005 ? 'Es el líder' : pct0(b) + ' menos que el líder'; }
+  function renderCard(d){
+    var q = quad(d, ind), m = IND[ind], det = $('dep-detail');
+    var lvAll = function(k){ return D.map(function(x){ return x[IND[k].lv][LAST]; }); };
+    var gAll = function(k){ return D.map(function(x){ return x[IND[k].g]; }); };
+    var tiles =
+      tile('Remuneración por trabajador, 2025', fmtM(d.rt[LAST]), 'al mes', pos(d.rt[LAST], lvAll('rt')), pos(IND.rt.ref, lvAll('rt')), '<b>Puesto ' + d.prt + ' de ' + N + '</b> · ' + gapText(d, 'rt')) +
+      tile('Remuneración por hora, 2025', fmtK(d.rh[LAST]), '', pos(d.rh[LAST], lvAll('rh')), pos(IND.rh.ref, lvAll('rh')), '<b>Puesto ' + d.prh + ' de ' + N + '</b> · ' + gapText(d, 'rh')) +
+      tile('Crecimiento anual por trabajador', pct1(d.crt), 'al año', pos(d.crt, gAll('rt')), pos(IND.rt.gref, gAll('rt')), '<b>Puesto ' + d.pcrt + ' de ' + N + '</b> · nacional ' + pct1(IND.rt.gref)) +
+      tile('Crecimiento anual por hora', pct1(d.crh), 'al año', pos(d.crh, gAll('rh')), pos(IND.rh.gref, gAll('rh')), '<b>Puesto ' + d.pcrh + ' de ' + N + '</b> · nacional ' + pct1(IND.rh.gref));
+    var lead = byId[11];
+    var verdict = 'En 2025 un trabajador en <b>' + esc(d.n) + '</b> recibe en promedio <b>' + fmtM(d.rt[LAST]) + '</b> al mes (' + (d.bgt < 0.0005 ? 'es el líder' : pct0(d.bgt) + ' menos que en Bogotá D.C.') + '). Desde 2010 su remuneración ' + m.short + ' creció <b>' + pct1(d[m.g]) + '</b> al año' +
+      (d[m.g] >= m.gref ? ', más' : ', menos') + ' que el promedio nacional (' + pct1(m.gref) + ').';
+    det.setAttribute('data-q', q);
+    det.innerHTML = '<span class="pill ' + q + '"><i class="dot bg-' + q + '"></i>' + QN[q].t + '</span>' +
+      '<h3>' + esc(d.n) + '</h3><p class="verdict">' + verdict + '</p>' +
+      '<div class="tiles">' + tiles + '</div>' +
+      '<p class="tiles-note">La barra va del departamento con el valor más bajo al más alto; la raya es el promedio nacional. Cuadrante: ' + QN[q].s.toLowerCase() + ' (' + m.name.toLowerCase() + ').</p>' +
+      '<div class="cardchart"><h4>' + m.name + ', en ' + m.unit + ' de 2025</h4><div id="line"></div><div class="lgd" id="line-lgd"></div></div>' +
+      '<p class="extra"><b>' + fmtN(d.oc[LAST]) + '</b> ocupados · <b>' + loc(d.hs[LAST], 1) + '</b> horas a la semana (nacional: ' + loc(NAT.oc.length ? weightedHours() : 0, 1) + ')</p>';
+    renderLine(d);
+  }
+  function weightedHours(){
+    var num = 0, den = 0; D.forEach(function(x){ num += x.hs[LAST]*x.oc[LAST]; den += x.oc[LAST]; }); return num/den;
+  }
+  function renderLine(d){
+    var el = $('line'); if(!el) return;
+    var m = IND[ind], W = Math.max(260, el.clientWidth || 380), H = 190, mL = 40, mR = 10, mT = 8, mB = 22, pw = W - mL - mR, ph = H - mT - mB;
+    var div = ind === 'rh' ? 1e3 : 1e6, nat = NAT[m.lv], bog = byId[11][m.lv], me = d[m.lv];
+    var all = me.concat(nat, bog), lo = Math.min.apply(null, all)/div, hi = Math.max.apply(null, all)/div;
+    var ticks = niceTicks(Math.max(0, lo - (hi-lo)*.05), hi + (hi-lo)*.05, 4), ylo = ticks[0], yhi = ticks[ticks.length-1];
+    if(ylo > lo) ylo = lo*0.97; if(yhi < hi) yhi = hi*1.03;
+    var x = function(i){ return mL + (YEARS[i] - YEARS[0])/(YEARS[NY-1] - YEARS[0])*pw; };
+    var y = function(v){ return mT + (1 - (v/div - ylo)/(yhi - ylo))*ph; };
+    var g = '';
+    ticks.forEach(function(t){ g += '<line x1="' + mL + '" x2="' + (mL+pw) + '" y1="' + y(t*div) + '" y2="' + y(t*div) + '" stroke="var(--grid)"></line><text class="ax" x="' + (mL-6) + '" y="' + (y(t*div)+4) + '" text-anchor="end">' + loc(t, ind === 'rh' ? 0 : 1) + '</text>'; });
+    [0, 4, 9, 10, 14].forEach(function(i){ if(YEARS[i] === undefined) return; if(i === 9 || i === 10) return; g += '<text class="ax" x="' + x(i) + '" y="' + (H-6) + '" text-anchor="middle">' + YEARS[i] + '</text>'; });
+    var path = function(arr){
+      var s = '', gap = YEARS.indexOf(2019);
+      arr.forEach(function(v, i){ s += (i === 0 ? 'M' : (i === gap + 1 ? 'M' : 'L')) + x(i).toFixed(1) + ' ' + y(v).toFixed(1); });
+      return s;
+    };
+    var dash = function(arr, col){ var a = YEARS.indexOf(2019); return '<path d="M' + x(a).toFixed(1) + ' ' + y(arr[a]).toFixed(1) + 'L' + x(a+1).toFixed(1) + ' ' + y(arr[a+1]).toFixed(1) + '" stroke="' + col + '" stroke-width="1.5" stroke-dasharray="3 3" fill="none"></path>'; };
+    var q = 'var(--q-' + quad(d, ind) + ')', lines = '';
+    lines += '<path d="' + path(nat) + '" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="5 4"></path>' + dash(nat, 'var(--muted)');
+    if(d.id !== 11) lines += '<path d="' + path(bog) + '" fill="none" stroke="var(--ink-2)" stroke-width="1.5" opacity=".7"></path>' + dash(bog, 'var(--ink-2)');
+    lines += '<path d="' + path(me) + '" fill="none" stroke="' + q + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>' + dash(me, q);
+    lines += '<circle cx="' + x(NY-1) + '" cy="' + y(me[NY-1]) + '" r="4.5" fill="' + q + '" stroke="var(--surface)" stroke-width="2"></circle>';
+    var hits = '', step = pw/(YEARS[NY-1]-YEARS[0]);
+    YEARS.forEach(function(yr, i){ hits += '<rect class="hit" data-i="' + i + '" x="' + (x(i)-step/2) + '" y="' + mT + '" width="' + step + '" height="' + ph + '" fill="transparent"></rect>'; });
+    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Evolución 2010-2025 de la ' + m.name.toLowerCase() + ' en ' + esc(d.n) + '">' + g + '<line id="line-x" y1="' + mT + '" y2="' + (mT+ph) + '" stroke="var(--axis)" opacity="0"></line>' + lines + hits + '</svg>';
+    var xl = el.querySelector('#line-x');
+    el.querySelectorAll('.hit').forEach(function(h){
+      h.addEventListener('mousemove', function(e){
+        var i = +h.dataset.i; xl.setAttribute('x1', x(i)); xl.setAttribute('x2', x(i)); xl.setAttribute('opacity', 1);
+        showTip(e, YEARS[i], trow(esc(d.n), m.fmt(me[i])) + (d.id !== 11 ? trow('Bogotá D.C.', m.fmt(bog[i])) : '') + trow('Nacional', m.fmt(nat[i])));
+      });
+      h.addEventListener('mouseleave', function(){ xl.setAttribute('opacity', 0); hideTip(); });
+    });
+    $('line-lgd').innerHTML = '<span><i style="background:' + q + ';height:4px"></i>' + esc(d.n) + '</span>' + (d.id !== 11 ? '<span><i style="background:var(--ink-2)"></i>Bogotá D.C.</span>' : '') + '<span><i style="background:var(--muted)"></i>Nacional</span>';
+  }
+  function select(id){
+    sel = id; input.value = byId[id].n;
+    renderCard(byId[id]); renderMap(); if(tab === 'cuad') renderScatter(); if(tab === 'conv') renderConv(); if(tab === 'tabla') renderTable();
+  }
+
+  /* ---------- etiquetas sin choques ---------- */
+  function placeLabels(items, W, H, pad){
+    var placed = [];
+    items.slice().sort(function(a,b){ return b.r - a.r; }).forEach(function(it){
+      var tw = it.text.length*6.6 + 2, th = 12, best = null;
+      var cands = [];
+      [3, 14].forEach(function(gap){
+        var r = it.r + gap;
+        cands.push([it.x + r, it.y + 4, 'start'], [it.x - r, it.y + 4, 'end'], [it.x, it.y - r + 1, 'middle'], [it.x, it.y + r + 9, 'middle'],
+          [it.x + r*.75, it.y - r*.7, 'start'], [it.x - r*.75, it.y - r*.7, 'end'], [it.x + r*.75, it.y + r*.7 + 8, 'start'], [it.x - r*.75, it.y + r*.7 + 8, 'end']);
+      });
+      cands.some(function(c){
+        var x0 = c[2] === 'start' ? c[0] : c[2] === 'end' ? c[0] - tw : c[0] - tw/2, box = [x0, c[1] - th + 2, x0 + tw, c[1] + 2];
+        if(box[0] < pad.l || box[2] > W - pad.r || box[1] < pad.t || box[3] > H - pad.b) return false;
+        for(var k = 0; k < placed.length; k++){ var p = placed[k]; if(!(box[2] < p[0] || box[0] > p[2] || box[3] < p[1] || box[1] > p[3])) return false; }
+        for(var j = 0; j < items.length; j++){ var o = items[j]; if(o === it) continue;
+          var nx = Math.min(Math.max(o.x, box[0]), box[2]), ny = Math.min(Math.max(o.y, box[1]), box[3]);
+          if((nx-o.x)*(nx-o.x) + (ny-o.y)*(ny-o.y) < o.r*o.r) return false; }
+        best = {x:c[0], y:c[1], a:c[2], box:box}; return true;
+      });
+      if(best){ it.pos = best; placed.push(best.box); }
+    });
+  }
+
+  /* ---------- cuadrantes (dispersión) ---------- */
+  function renderScatter(){
+    var wrap = $('scatter'), m = IND[ind], W = Math.max(300, wrap.clientWidth || 640), narrow = W < 560, H = narrow ? 400 : 480;
+    var mL = narrow ? 46 : 58, mR = 14, mT = 46, mB = 48, pw = W - mL - mR, ph = H - mT - mB;
+    var div = ind === 'rh' ? 1e3 : 1e6, gx = D.map(function(d){ return d[m.g]*100; }), ly = D.map(function(d){ return d[m.lv][LAST]/div; });
+    var xlo = Math.floor((Math.min.apply(null, gx) - .25)*2)/2, xhi = Math.ceil((Math.max.apply(null, gx) + .25)*2)/2;
+    var yt = niceTicks(Math.min.apply(null, ly)*.9, Math.max.apply(null, ly)*1.04, 5), lyMin = Math.min.apply(null, ly), lyMax = Math.max.apply(null, ly);
+    var yhi = Math.max(yt[yt.length-1], lyMax*1.04) + (yt[1]-yt[0])*.3, ylo = Math.max(0, lyMin - (yhi - lyMin)*.17);
+    var x = function(v){ return mL + (v - xlo)/(xhi - xlo)*pw; }, y = function(v){ return mT + (1 - (v - ylo)/(yhi - ylo))*ph; };
+    var s = '', cx = x(m.gref*100), cy = y(m.ref/div), maxOc = Math.max.apply(null, D.map(function(d){ return d.oc[LAST]; }));
+    s += '<rect x="' + cx + '" y="' + mT + '" width="' + (mL+pw-cx) + '" height="' + (cy-mT) + '" fill="var(--q-aa)" fill-opacity=".07"></rect>';
+    s += '<rect x="' + cx + '" y="' + cy + '" width="' + (mL+pw-cx) + '" height="' + (mT+ph-cy) + '" fill="var(--q-ba)" fill-opacity=".07"></rect>';
+    s += '<rect x="' + mL + '" y="' + cy + '" width="' + (cx-mL) + '" height="' + (mT+ph-cy) + '" fill="var(--q-bb)" fill-opacity=".07"></rect>';
+    s += '<rect x="' + mL + '" y="' + mT + '" width="' + (cx-mL) + '" height="' + (cy-mT) + '" fill="var(--q-ab)" fill-opacity=".07"></rect>';
+    yt.forEach(function(t){ if(t < ylo || t > yhi) return; s += '<line x1="' + mL + '" x2="' + (mL+pw) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="var(--grid)"></line><text class="ax" x="' + (mL-8) + '" y="' + (y(t)+4) + '" text-anchor="end">' + loc(t, ind === 'rh' ? 0 : 1) + '</text>'; });
+    niceTicks(xlo, xhi, narrow ? 4 : 6).forEach(function(t){ s += '<text class="ax" x="' + x(t) + '" y="' + (mT+ph+16) + '" text-anchor="middle">' + loc(t, 1) + '%</text>'; });
+    s += '<line x1="' + cx + '" x2="' + cx + '" y1="' + mT + '" y2="' + (mT+ph) + '" stroke="var(--axis)" stroke-width="1.4"></line><line x1="' + mL + '" x2="' + (mL+pw) + '" y1="' + cy + '" y2="' + cy + '" stroke="var(--axis)" stroke-width="1.4"></line>';
+    var rp = function(d){ return 5 + Math.sqrt(d.oc[LAST]/maxOc)*(narrow ? 17 : 22); };
+    var items = D.map(function(d){ return {d:d, x:x(d[m.g]*100), y:y(d[m.lv][LAST]/div), r:rp(d), text:d.s}; });
+    placeLabels(items, W, H, {l:mL, r:mR, t:mT, b:mB});
+    items.slice().sort(function(a,b){ return b.r - a.r; }).forEach(function(it){
+      s += '<circle class="sp' + (it.d.id === sel ? ' sel' : '') + '" data-id="' + it.d.id + '" cx="' + it.x.toFixed(1) + '" cy="' + it.y.toFixed(1) + '" r="' + it.r.toFixed(1) + '" fill="var(--q-' + quad(it.d, ind) + ')"></circle>';
+    });
+    items.forEach(function(it){ if(it.pos) s += '<text class="lab' + (it.d.id === sel ? ' sel' : '') + '" x="' + it.pos.x.toFixed(1) + '" y="' + it.pos.y.toFixed(1) + '" text-anchor="' + it.pos.a + '">' + it.text + '</text>'; });
+    var zl2 = function(x0, y0, anchor, l1, l2){ return '<text class="zl" text-anchor="' + anchor + '"><tspan x="' + x0 + '" y="' + y0 + '">' + l1 + '</tspan><tspan x="' + x0 + '" y="' + (y0+13) + '">' + l2 + '</tspan></text>'; };
+    s += zl2(mL+pw-2, mT-30, 'end', 'Nivel alto', 'crecimiento alto') + zl2(mL+2, mT-30, 'start', 'Nivel alto', 'crecimiento bajo') +
+      zl2(mL+pw-6, mT+ph-26, 'end', 'Nivel bajo', 'crecimiento alto') + zl2(mL+6, mT+ph-26, 'start', 'Nivel bajo', 'crecimiento bajo');
+    s += '<text class="axt" x="' + (mL+pw/2) + '" y="' + (H-6) + '" text-anchor="middle">Crecimiento anual de la ' + m.name.toLowerCase() + ', 2010–2025 →</text>';
+    s += '<text class="axt" transform="translate(13 ' + (mT+ph/2) + ') rotate(-90)" text-anchor="middle">' + m.name + ' en 2025 (' + m.unit + ') →</text>';
+    wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Nivel y crecimiento de la ' + m.name.toLowerCase() + ' por departamento">' + s + '</svg>';
+    wrap.querySelectorAll('.sp').forEach(function(c){
+      var d = byId[+c.dataset.id];
+      c.addEventListener('mousemove', function(e){ showTip(e, esc(d.n), depTip(d, LAST)); });
+      c.addEventListener('mouseleave', hideTip);
+      c.addEventListener('click', function(){ select(d.id); });
+    });
+    var cnt = {}; D.forEach(function(d){ var q = quad(d, ind); cnt[q] = (cnt[q]||0) + 1; });
+    var ba = D.filter(function(d){ return quad(d, ind) === 'ba'; }).map(function(d){ return d.n; }), aa = D.filter(function(d){ return quad(d, ind) === 'aa'; }).map(function(d){ return d.n; });
+    $('cuad-insight').innerHTML = '<b>' + (cnt.aa||0) + '</b> departamentos combinan nivel y crecimiento altos (' + aa.join(', ') + '); <b>' + (cnt.ba||0) + '</b> parten de un nivel bajo pero crecen más que el país (' + ba.join(', ') + '); y <b>' + (cnt.bb||0) + '</b> siguen rezagados en ambas dimensiones.';
+  }
+
+  /* ---------- convergencia ---------- */
+  function renderConv(){
+    var wrap = $('convchart'), m = IND[ind], c = CV[ind], W = Math.max(300, wrap.clientWidth || 640), narrow = W < 560, H = narrow ? 380 : 440;
+    var mL = narrow ? 46 : 56, mR = 14, mT = 14, mB = 48, pw = W - mL - mR, ph = H - mT - mB;
+    var pts = c.pts.map(function(p){ return {d:byId[p.id], x:p.x, y:p.y*100}; });
+    var xs = pts.map(function(p){ return p.x; }), ys = pts.map(function(p){ return p.y; });
+    var xlo = Math.min.apply(null, xs) - .05, xhi = Math.max.apply(null, xs) + .13, ylo = Math.min(Math.floor(Math.min.apply(null, ys) - .3), -.5), yhi = Math.ceil(Math.max.apply(null, ys) + .3);
+    var x = function(v){ return mL + (v - xlo)/(xhi - xlo)*pw; }, y = function(v){ return mT + (1 - (v - ylo)/(yhi - ylo))*ph; };
+    var div = ind === 'rh' ? 1e3 : 1e6, maxOc = Math.max.apply(null, D.map(function(d){ return d.oc[LAST]; })), s = '';
+    niceTicks(ylo, yhi, 5).forEach(function(t){ s += '<line x1="' + mL + '" x2="' + (mL+pw) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="' + (t === 0 ? 'var(--axis)' : 'var(--grid)') + '"></line><text class="ax" x="' + (mL-8) + '" y="' + (y(t)+4) + '" text-anchor="end">' + loc(t, 0) + '%</text>'; });
+    niceTicks(Math.exp(xlo)/div, Math.exp(xhi)/div, narrow ? 3 : 6).forEach(function(t){ var xv = Math.log(t*div); if(xv < xlo || xv > xhi) return; s += '<line x1="' + x(xv) + '" x2="' + x(xv) + '" y1="' + mT + '" y2="' + (mT+ph) + '" stroke="var(--grid)"></line><text class="ax" x="' + x(xv) + '" y="' + (mT+ph+16) + '" text-anchor="middle">' + loc(t, ind === 'rh' ? 0 : 1) + '</text>'; });
+    var ya = function(v){ return (c.alpha + c.beta*v)*100; };
+    s += '<line x1="' + x(xlo) + '" x2="' + x(xhi) + '" y1="' + y(ya(xlo)) + '" y2="' + y(ya(xhi)) + '" stroke="var(--ink)" stroke-width="2" stroke-dasharray="6 4"></line>';
+    var items = pts.map(function(p){ return {d:p.d, x:x(p.x), y:y(p.y), r:4 + Math.sqrt(p.d.oc[LAST]/maxOc)*14, text:p.d.s}; });
+    placeLabels(items, W, H, {l:mL, r:mR, t:mT, b:mB});
+    items.slice().sort(function(a,b){ return b.r - a.r; }).forEach(function(it){
+      s += '<circle class="sp' + (it.d.id === sel ? ' sel' : '') + '" data-id="' + it.d.id + '" cx="' + it.x.toFixed(1) + '" cy="' + it.y.toFixed(1) + '" r="' + it.r.toFixed(1) + '" fill="var(--q-' + quad(it.d, ind) + ')"></circle>';
+    });
+    items.forEach(function(it){ if(it.pos) s += '<text class="lab' + (it.d.id === sel ? ' sel' : '') + '" x="' + it.pos.x.toFixed(1) + '" y="' + it.pos.y.toFixed(1) + '" text-anchor="' + it.pos.a + '">' + it.text + '</text>'; });
+    s += '<text class="axt" x="' + (mL+pw/2) + '" y="' + (H-6) + '" text-anchor="middle">' + (narrow ? 'Nivel inicial en 2010 (escala logarítmica) →' : m.name + ' en 2010 (' + m.unit + ', escala logarítmica) →') + '</text>';
+    s += '<text class="axt" transform="translate(13 ' + (mT+ph/2) + ') rotate(-90)" text-anchor="middle">Crecimiento anual 2010–2025 →</text>';
+    wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Relación entre el nivel inicial y el crecimiento de la ' + m.name.toLowerCase() + '">' + s + '</svg>';
+    wrap.querySelectorAll('.sp').forEach(function(el){
+      var d = byId[+el.dataset.id];
+      el.addEventListener('mousemove', function(e){ showTip(e, esc(d.n), trow('Nivel en 2010', m.fmt(d[m.l0])) + trow('Crecimiento anual', pct1(d[m.g]))); });
+      el.addEventListener('mouseleave', hideTip);
+      el.addEventListener('click', function(){ select(d.id); });
+    });
+    $('conv-insight').innerHTML = 'No hay evidencia de convergencia: el coeficiente <b>β = ' + loc(c.beta, 4) + '</b> es positivo y no se distingue de cero. Los departamentos que partían de menos <b>no crecieron más rápido</b> que los líderes.';
+    var row = function(k){ var q = CV[k]; return '<tr><td>' + IND[k].name + '</td><td>' + loc(q.beta, 4) + '</td><td>' + loc(q.se, 4) + '</td><td>' + loc(q.t, 2) + '</td><td>' + loc(q.r2, 3) + '</td><td>No concluyente</td></tr>'; };
+    $('conv-table').innerHTML = '<thead><tr><th>Medida</th><th>β</th><th>Error est.</th><th>Estad. t</th><th>R²</th><th>Lectura</th></tr></thead><tbody>' + row('rt') + row('rh') + '</tbody>';
+  }
+
+  /* ---------- tabla ---------- */
+  var sortKey = 'rh', sortDir = -1;
+  var COLS = [
+    ['n','Departamento', function(d){ return d.n; }, function(d){ return '<i class="dot bg-' + quad(d,'rh') + '"></i>' + esc(d.n); }],
+    ['rt','Rem./trab. (M)', function(d){ return d.rt[LAST]; }, function(d){ return loc(d.rt[LAST]/1e6, 2); }],
+    ['bgt','Brecha', function(d){ return d.bgt; }, function(d){ return pct1(d.bgt); }],
+    ['rh','Rem./hora (miles)', function(d){ return d.rh[LAST]; }, function(d){ return loc(d.rh[LAST]/1e3, 1); }],
+    ['bgh','Brecha', function(d){ return d.bgh; }, function(d){ return pct1(d.bgh); }],
+    ['crt','Crec. trab.', function(d){ return d.crt; }, function(d){ return pct1(d.crt); }],
+    ['crh','Crec. hora', function(d){ return d.crh; }, function(d){ return pct1(d.crh); }],
+    ['oc','Ocupados (miles)', function(d){ return d.oc[LAST]; }, function(d){ return fmtN(d.oc[LAST]/1e3); }]
+  ];
+  function renderTable(){
+    var col = COLS.filter(function(c){ return c[0] === sortKey; })[0];
+    var rows = D.slice().sort(function(a,b){ var x = col[2](a), y = col[2](b); return (typeof x === 'string' ? x.localeCompare(y, 'es') : x - y)*sortDir; });
+    var h = '<thead><tr>' + COLS.map(function(c){ return '<th data-k="' + c[0] + '"' + (c[0] === sortKey ? ' aria-sort="' + (sortDir > 0 ? 'ascending' : 'descending') + '"' : '') + '>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>';
+    rows.forEach(function(d){ h += '<tr data-id="' + d.id + '"' + (d.id === sel ? ' class="sel"' : '') + '>' + COLS.map(function(c){ return '<td>' + c[3](d) + '</td>'; }).join('') + '</tr>'; });
+    var nat = '<tr><td><b>Nacional (24)</b></td><td>' + loc(B.rt1/1e6, 2) + '</td><td>—</td><td>' + loc(B.rh1/1e3, 1) + '</td><td>—</td><td>' + pct1(B.crt) + '</td><td>' + pct1(B.crh) + '</td><td>' + fmtN(B.oc1/1e3) + '</td></tr>';
+    $('tabla').innerHTML = h + nat + '</tbody>';
+    $('tabla').querySelectorAll('th').forEach(function(t){
+      t.addEventListener('click', function(){
+        if(sortKey === t.dataset.k) sortDir = -sortDir; else { sortKey = t.dataset.k; sortDir = t.dataset.k === 'n' ? 1 : -1; }
+        renderTable();
+      });
+    });
+    $('tabla').querySelectorAll('tbody tr[data-id]').forEach(function(r){
+      r.addEventListener('click', function(){ select(+r.dataset.id); $('mapa').scrollIntoView(); });
+    });
+  }
+
+  /* ---------- pestañas ---------- */
+  var tabChips = $('tab-chips');
+  tabChips.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-tab]'); if(!b) return;
+    tab = b.dataset.tab;
+    Array.prototype.forEach.call(tabChips.children, function(c){ var on = c === b; c.setAttribute('aria-pressed', on ? 'true' : 'false'); $('tab-' + c.dataset.tab).hidden = !on; });
+    renderTab();
+  });
+  function renderTab(){ if(tab === 'cuad') renderScatter(); else if(tab === 'conv') renderConv(); else renderTable(); }
+
+  /* ---------- arranque ---------- */
+  function renderAll(){ renderMap(); renderCard(byId[sel]); renderTab(); }
+  input.value = byId[sel].n;
+  renderAll();
+  var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(renderAll, 180); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+﻿rama,RMSE_promedio_historico,RMSE_con_crecimiento_VA_sectorial,gana_modelo_con_VA
+Agricultura y pesca,1.62,0.998,True
+Minería,2.292,1.873,True
+Industria,0.508,0.667,False
+Electricidad y agua,1.021,0.874,True
+Construcción,1.416,1.36,True
+"Comercio, hoteles y restaurantes",1.686,1.6,True
+Transporte y comunicaciones,1.669,1.456,True
+Financiero e inmobiliario,1.375,1.723,False
+Servicios sociales y comunales,1.632,1.735,False
+AGREGADO (suma ponderada),0.837,1.085,False

@@ -1,0 +1,8 @@
+﻿fuente,media_PTF_2026,desv_est,error_retrospectivo_RMSE
+A) Desde sectores (a priori),0.285,0.84,0.837
+B) Identidad agregada con insumos de 2026 (mezcla de escenarios),0.581,0.849,0.533
+"B1) ... si el DANE incluye el salto de la educación (composición +1,15)",0.355,0.748,0.533
+"B2) ... si la composición es típica (0,25 ± 0,30)",1.252,0.774,0.533
+C) Combinación (PTF usada),0.449,0.6,
+C1) PTF si el DANE incluye el salto,0.328,0.56,
+C2) PTF si la composición es típica,0.807,0.573,
