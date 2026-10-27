@@ -5,14 +5,37 @@
 .Rlib/
 .Rconfig/
 
+# Secretos y configuraciones locales
+.env
+.env.*
+!.env.example
+!.env.template
+.claude/settings.local.json
+
+# Archivos temporales del sistema y de ejecucion
+*.log
+*.py[cod]
+.DS_Store
+Thumbs.db
+
 # Large data files - not tracked
-Datos/Processed/Paper2-GEIH_base_modelo_personas_2008_2025.dta
-Datos/Processed/Paper-GEIH_base_modelo_personas_2008_2025.dta
-Datos/Processed/GEIHfinal.dta
-Datos/Processed/EDIT_Panel.dta
-Datos/Processed/EDITS_Panel.dta
+Datos/Processed/GEIH/Paper2-GEIH_base_modelo_personas_2008_2025.dta
+Datos/Processed/GEIH/Paper-GEIH_base_modelo_personas_2008_2025.dta
+Datos/Processed/GEIH/GEIHfinal.dta
+Datos/Processed/EDIT/EDIT_Panel.dta
+Datos/Processed/EDIT/EDITS_Panel.dta
 Datos/Raw/EDIT/Estructura_EDIT_IND_II_2003_2004.dta
 
 # Excede el limite de 2GB por archivo de GitHub LFS
-Datos/Processed/BaseconCINE11.dta
+Datos/Processed/GEIH/BaseconCINE11.dta
 
+
+# PTF: publicaciones del DANE consultadas (terceros, se pueden volver a descargar)
+PTF/Datos/Raw/DANE_publicaciones/
+__pycache__/
+
+# Robustez segundo empleo: datos pesados (se regeneran con los scripts)
+Robustez_SegundoEmpleo/Datos/
+
+# Melitz-Polanec: panel de empresas derivado (se regenera con los scripts)
+Melitz-Polanec/Datos/panel_empresas_EAM.rds

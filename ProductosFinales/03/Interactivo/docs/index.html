@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Potencialidad de automatización en el mercado laboral colombiano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* Diseño: una sola columna de lectura (máx. 1040px). Las secciones se separan con espacio, no con cajas;
+     la única tarjeta es la ficha de la ocupación. El color se reserva para las tres categorías de datos
+     (naranja = alto, azul = bajo, verde azulado = incierto); la interfaz usa solo tinta y grises. */
+  :root{
+    color-scheme:light;
+    --bg:#f3f6f6; --surface:#ffffff; --surface-2:#e9eff0;
+    --ink:#10202a; --ink-2:#44545e; --muted:#65737c;
+    --line:#d3dbdf; --line-soft:#e4eaec; --grid:#e1e8ea; --axis:#bcc8ce;
+    --alto:#eb6834; --bajo:#2a78d6; --incierto:#1baf7a;
+    --edu-1:#e6d5a8; --edu-2:#d98fae; --edu-3:#9a68c2; --edu-4:#5c4aa8; --edu-5:#2d2a63;
+    --shadow:0 1px 2px rgba(16,32,42,.06),0 14px 32px -18px rgba(16,32,42,.28);
+    --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+    --font-body:"Public Sans","Segoe UI",system-ui,sans-serif;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --bg:#0e1317; --surface:#171a1f; --surface-2:#20262c;
+      --ink:#eaf0f2; --ink-2:#b4c0c7; --muted:#8895a0;
+      --line:#2c353c; --line-soft:#232b31; --grid:#232b31; --axis:#3a454d;
+      --alto:#d95926; --bajo:#3987e5; --incierto:#199e70;
+      --edu-1:#efe3c0; --edu-2:#e5a3bd; --edu-3:#b98ad6; --edu-4:#7f6dd6; --edu-5:#4f46a3;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 32px -18px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0e1317; --surface:#171a1f; --surface-2:#20262c;
+    --ink:#eaf0f2; --ink-2:#b4c0c7; --muted:#8895a0;
+    --line:#2c353c; --line-soft:#232b31; --grid:#232b31; --axis:#3a454d;
+    --alto:#d95926; --bajo:#3987e5; --incierto:#199e70;
+    --edu-1:#efe3c0; --edu-2:#e5a3bd; --edu-3:#b98ad6; --edu-4:#7f6dd6; --edu-5:#4f46a3;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 32px -18px rgba(0,0,0,.7);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;scroll-padding-top:72px;}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;} *{animation:none!important;transition:none!important;}}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:var(--font-display);margin:0;color:var(--ink);text-wrap:balance;}
+  p{margin:0;}
+  button,select,input{font:inherit;color:inherit;}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px;}
+  .wrap{max-width:1040px;margin-inline:auto;padding-inline:max(16px,4vw);}
+  section{padding-block:clamp(26px,4vw,48px);}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+  h2{font-size:clamp(1.45rem,2.8vw,1.95rem);line-height:1.12;font-weight:700;letter-spacing:-.015em;margin-top:6px;}
+  .lead{margin-top:8px;max-width:64ch;color:var(--ink-2);font-size:15.5px;}
+  .sec-head{margin-bottom:16px;}
+  .sec-head .lead{margin-top:6px;}
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ---------- barra superior ---------- */
+  .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);}
+  .topbar .wrap{display:flex;align-items:center;gap:20px;min-height:54px;}
+  .brand{font-weight:700;font-size:14px;letter-spacing:.01em;white-space:nowrap;}
+  .brand span{font-weight:500;color:var(--muted);}
+  .links{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none;}
+  .links::-webkit-scrollbar{display:none;}
+  .links a{color:var(--ink-2);text-decoration:none;font-size:14px;font-weight:500;padding:8px 10px;border-radius:6px;white-space:nowrap;}
+  .links a:hover{background:var(--surface-2);color:var(--ink);}
+  .theme-btn{flex:none;width:36px;height:36px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer;display:grid;place-items:center;}
+  .theme-btn:hover{background:var(--surface-2);}
+  .theme-btn svg{width:18px;height:18px;stroke:var(--ink);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  @media (max-width:760px){.brand span{display:none;}}
+
+  /* ---------- portada ---------- */
+  .hero{padding-block:clamp(22px,4vw,44px) clamp(18px,3vw,32px);}
+  .hero h1{font-size:clamp(1.9rem,4.6vw,3.1rem);line-height:1.05;font-weight:800;letter-spacing:-.025em;max-width:24ch;margin-top:10px;}
+  .hero .sub{margin-top:12px;max-width:68ch;font-size:clamp(1rem,1.6vw,1.1rem);color:var(--ink-2);}
+  .hero .sub b{color:var(--ink);font-weight:600;}
+  .hero .sub a{color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;}
+  .split{margin-top:clamp(16px,2.6vw,26px);}
+  .split .bar{display:flex;gap:2px;height:30px;border-radius:8px;overflow:hidden;}
+  .split .bar i{display:block;min-width:2px;}
+  .split .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,2.4vw,28px);margin-top:14px;}
+  .split .col .k{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.3;}
+  .split .col .k .dot{margin-top:5px;}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none;}
+  .split .col .big{font-family:var(--font-display);font-size:clamp(1.8rem,3.8vw,2.6rem);font-weight:800;letter-spacing:-.02em;line-height:1.05;margin-top:4px;}
+  .split .col .ppl{font-size:14px;color:var(--muted);}
+  .split .col .def{margin-top:4px;font-size:13.5px;color:var(--ink-2);max-width:32ch;}
+  .hero .note{margin-top:28px;font-size:14px;color:var(--muted);}
+  @media (max-width:720px){.split .cols{grid-template-columns:1fr;gap:22px;}.split .col .def{max-width:none;}}
+  .bg-alto{background:var(--alto);} .bg-bajo{background:var(--bajo);} .bg-incierto{background:var(--incierto);}
+
+  /* ---------- buscador y ficha ---------- */
+  .picker{display:block;position:relative;max-width:640px;}
+  .picker input{width:100%;background:var(--surface);border:1px solid var(--axis);border-radius:var(--radius);padding:11px 52px 11px 16px;font-size:16.5px;font-weight:500;text-overflow:ellipsis;}
+  .picker input::placeholder{color:var(--muted);font-weight:400;}
+  .picker input:hover{border-color:var(--ink-2);}
+  .combo-btn{position:absolute;right:4px;top:4px;bottom:4px;width:42px;border:0;border-radius:8px;background:transparent;cursor:pointer;}
+  .combo-btn:hover{background:var(--surface-2);}
+  .combo-btn::after{content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;border-right:2px solid var(--ink-2);border-bottom:2px solid var(--ink-2);transform:translate(-50%,-70%) rotate(45deg);transition:transform .15s;}
+  .picker.open .combo-btn::after{transform:translate(-50%,-30%) rotate(225deg);}
+  .combo-list{position:absolute;z-index:15;left:0;right:0;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;max-height:340px;overflow-y:auto;background:var(--surface);border:1px solid var(--axis);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .combo-list[hidden]{display:none;}
+  .combo-list li{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:7px;font-size:15.5px;line-height:1.3;cursor:pointer;}
+  .combo-list li.active{background:var(--surface-2);}
+  .combo-list li[aria-selected="true"]{font-weight:700;}
+  .combo-list li .dot{width:9px;height:9px;}
+  .combo-list li .nm{flex:1;min-width:0;}
+  .combo-list li.none,.combo-list li.more{cursor:default;color:var(--muted);font-size:14px;}
+  .combo-list mark{background:transparent;color:inherit;font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--axis);}
+  .picker-lab{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;}
+  .card{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--axis);border-radius:14px;box-shadow:var(--shadow);padding:clamp(14px,2.4vw,22px);}
+  .card[data-k="alto"]{border-top-color:var(--alto);} .card[data-k="bajo"]{border-top-color:var(--bajo);} .card[data-k="incierto"]{border-top-color:var(--incierto);}
+  .pill{display:inline-flex;align-items:center;gap:10px;font-size:clamp(15px,2.4vw,18px);font-weight:800;letter-spacing:.005em;line-height:1.2;border:2px solid var(--line);border-radius:999px;padding:7px 18px 7px 14px;background:var(--surface);}
+  .pill .dot{width:14px;height:14px;}
+  .pill.alto{border-color:var(--alto);background:color-mix(in srgb,var(--alto) 16%,var(--surface));}
+  .pill.bajo{border-color:var(--bajo);background:color-mix(in srgb,var(--bajo) 16%,var(--surface));}
+  .pill.incierto{border-color:var(--incierto);background:color-mix(in srgb,var(--incierto) 16%,var(--surface));}
+  .card h3{font-size:clamp(1.2rem,2.4vw,1.5rem);font-weight:700;line-height:1.2;margin-top:10px;letter-spacing:-.01em;}
+  .verdict{margin-top:3px;max-width:70ch;color:var(--ink-2);font-size:15px;}
+  .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px;}
+  .tiles.t2{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .tile{background:var(--bg);border-radius:10px;padding:10px 12px;min-width:0;}
+  .tile .tl{font-size:12px;font-weight:600;color:var(--muted);line-height:1.3;min-height:2.6em;}
+  .tile .tl b{color:var(--ink-2);}
+  .tile .tv{font-family:var(--font-display);font-size:clamp(1.3rem,2.4vw,1.65rem);font-weight:700;letter-spacing:-.015em;line-height:1.1;margin-top:4px;white-space:nowrap;}
+  .tile .tv .of{font-family:var(--font-body);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:5px;}
+  .track{position:relative;height:5px;border-radius:3px;background:var(--line);margin:11px 6px 9px;}
+  .track i{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:var(--ink);border:2.5px solid var(--surface);box-shadow:0 0 0 1px var(--ink);}
+  .track u{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--muted);opacity:.7;}
+  .tile .tc{font-size:12.5px;color:var(--ink-2);line-height:1.35;}
+  .tile .tc b{color:var(--ink);}
+  .tiles-note{margin-top:8px;font-size:12.5px;color:var(--muted);}
+  .vnote{margin-top:6px;max-width:70ch;font-size:13px;color:var(--muted);}
+  @media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr));}.tile .tl{min-height:0;}}
+  .edu{margin-top:14px;}
+  .edu h4{margin:0;font-size:12.5px;font-weight:600;color:var(--muted);}
+  .edu h4 b{color:var(--ink);}
+  .edubar{display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;margin-top:8px;}
+  .edubar i{display:block;}
+  .edulegend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px;font-size:12.5px;color:var(--ink-2);}
+  .edulegend span{display:inline-flex;align-items:center;gap:6px;}
+  .edulegend i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  details.af{margin-top:12px;padding-top:10px;border-top:1px solid var(--line-soft);}
+  details.af summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2);}
+  details.af summary:hover{color:var(--ink);}
+  details.af p{margin-top:6px;font-size:13px;color:var(--muted);max-width:60ch;}
+  .af-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 20px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line-soft);cursor:pointer;}
+  .af-row:last-child{border-bottom:0;}
+  .af-row:hover .af-name{text-decoration:underline;}
+  .af-name{font-weight:600;font-size:14.5px;}
+  .af-inc{font-size:13.5px;white-space:nowrap;}
+  .af-inc small{color:var(--muted);}
+  .af-n{font-size:12.5px;color:var(--muted);white-space:nowrap;}
+  @media (max-width:600px){.af-row{grid-template-columns:minmax(0,1fr) auto;}.af-n{display:none;}}
+  details.more{margin-top:12px;font-size:14px;color:var(--ink-2);}
+  details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);}
+  details.more summary:hover{color:var(--ink);}
+  details.more p{margin-top:8px;}
+  [hidden]{display:none!important;}
+
+  /* ---------- gráficos ---------- */
+  .legend{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:6px;font-size:14px;color:var(--ink-2);}
+  .legend span{display:inline-flex;align-items:center;gap:8px;}
+  .chart{margin-top:10px;}
+  #qmap svg,#evo svg{display:block;width:100%;height:auto;overflow:visible;}
+  .ax{font-family:var(--font-body);font-size:11.5px;fill:var(--muted);}
+  .zone{font-family:var(--font-body);font-size:12px;font-weight:700;fill:var(--ink-2);paint-order:stroke;stroke:var(--bg);stroke-width:3.5px;stroke-linejoin:round;}
+  .axt{font-family:var(--font-body);font-size:12px;font-weight:600;fill:var(--ink-2);}
+  .pt{stroke:var(--surface);stroke-width:1.5;fill-opacity:.78;cursor:pointer;transition:fill-opacity .12s;}
+  .pt:hover{fill-opacity:1;}
+  .pt.pinned{stroke:var(--ink);stroke-width:2.5;fill-opacity:1;}
+  .pt.alto,.zone-bg.alto{fill:var(--alto);} .pt.bajo,.zone-bg.bajo{fill:var(--bajo);} .pt.incierto,.zone-bg.incierto{fill:var(--incierto);}
+  .zone-bg{fill-opacity:.07;}
+  .cut{stroke:var(--axis);stroke-width:1;}
+  .pinlabel{font-family:var(--font-body);font-size:12.5px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round;}
+  .pin-info{margin-top:14px;font-size:15px;color:var(--ink-2);}
+  .pin-info .dot{display:inline-block;margin-right:8px;vertical-align:baseline;}
+  .pin-info b{color:var(--ink);}
+  .link{background:none;border:0;padding:0;color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+
+  /* comparación por categoría */
+  .insight{margin:0 0 14px;max-width:70ch;font-size:clamp(1rem,1.7vw,1.15rem);line-height:1.45;color:var(--ink);font-weight:500;}
+  .insight b{font-weight:700;}
+  .scroll-x{overflow-x:auto;}
+  .cmp{display:grid;grid-template-columns:minmax(150px,1.1fr) repeat(3,minmax(150px,1fr));min-width:640px;}
+  .cmp > div{padding:9px 18px 9px 0;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;justify-content:center;gap:6px;}
+  .cmp .h{border-top:0;padding-bottom:16px;}
+  .cmp .h .k{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;}
+  .cmp .h .p{font-family:var(--font-display);font-size:1.6rem;font-weight:700;letter-spacing:-.015em;line-height:1.1;}
+  .cmp .h .s{font-size:12.5px;color:var(--muted);}
+  .cmp .m{font-size:14.5px;color:var(--ink-2);font-weight:500;}
+  .cmp .v{font-weight:700;font-size:15.5px;}
+  .cmp-stack{display:grid;gap:30px;}
+  .pcard .k{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;}
+  .pcard .p{font-family:var(--font-display);font-size:1.7rem;font-weight:700;letter-spacing:-.015em;line-height:1.1;margin-top:4px;}
+  .pcard .p span{font-family:var(--font-body);font-size:13px;font-weight:400;color:var(--muted);letter-spacing:0;}
+  .prow{padding:12px 0 0;}
+  .prow .lab{display:flex;justify-content:space-between;gap:12px;font-size:14.5px;color:var(--ink-2);}
+  .prow .lab b{color:var(--ink);}
+  .prow .mini{margin-top:6px;max-width:none;}
+  .mini{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;max-width:180px;}
+  .mini i{display:block;height:100%;border-radius:3px;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+  .chip{border:1px solid var(--axis);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;cursor:pointer;}
+  .chip:hover{border-color:var(--ink-2);}
+  .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg);}
+
+  /* barras por grupo */
+  .gbars{margin-top:12px;display:grid;gap:6px;}
+  .grow{display:grid;grid-template-columns:minmax(110px,230px) minmax(0,1fr) 54px;align-items:center;gap:14px;padding:3px 0;cursor:default;}
+  .grow .gl{font-size:14px;color:var(--ink-2);line-height:1.25;}
+  .grow .gb{display:flex;gap:2px;height:16px;border-radius:5px;overflow:hidden;}
+  .grow .gb i{display:block;}
+  .grow .gv{font-size:14px;font-weight:700;text-align:right;}
+  .grow:hover .gl{color:var(--ink);}
+  .gcol{display:grid;grid-template-columns:minmax(110px,230px) minmax(0,1fr) 54px;gap:14px;font-size:12px;color:var(--muted);font-weight:600;}
+  .gcol span:last-child{text-align:right;}
+  @media (max-width:600px){.grow,.gcol{grid-template-columns:minmax(80px,120px) minmax(0,1fr) 46px;gap:10px;}}
+  .cap{margin-top:10px;font-size:13.5px;color:var(--muted);max-width:68ch;}
+  .cap b{color:var(--ink-2);}
+  table.t{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px;min-width:420px;}
+  table.t th,table.t td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line-soft);text-align:left;font-variant-numeric:tabular-nums;}
+  table.t th{color:var(--muted);font-weight:600;}
+  table.t td:not(:first-child),table.t th:not(:first-child){text-align:right;}
+
+  /* ranking */
+  .toolbar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-bottom:16px;}
+  .toolbar .chips{margin:0;}
+  .search{position:relative;flex:1 1 220px;max-width:340px;}
+  .search input{width:100%;background:var(--surface);border:1px solid var(--axis);border-radius:999px;padding:9px 16px;font-size:14.5px;}
+  .search input:hover{border-color:var(--ink-2);}
+  .results{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);z-index:5;overflow:hidden;}
+  .results:empty{display:none;}
+  .results button{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;background:none;border:0;padding:10px 14px;font-size:14px;cursor:pointer;}
+  .results button:hover{background:var(--surface-2);}
+  .results button span{color:var(--muted);font-size:12.5px;}
+  .rhead,.rrow{display:grid;grid-template-columns:30px minmax(150px,1fr) minmax(90px,220px) 64px 84px;gap:14px;align-items:center;}
+  .rhead{padding:0 6px 8px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);}
+  .rhead span:nth-child(n+4),.rrow .rv,.rrow .rn{text-align:right;}
+  .rrow{padding:6px 6px;border-bottom:1px solid var(--line-soft);cursor:pointer;}
+  .rrow:hover{background:var(--surface-2);}
+  .ri{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .rl{font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rdot{display:none;margin-right:8px;}
+  .rt{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;}
+  .rt i{display:block;height:100%;border-radius:3px;}
+  .rv,.rn{font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .rn{color:var(--muted);}
+  @media (max-width:640px){.rhead,.rrow{grid-template-columns:22px minmax(0,1fr) 56px;gap:10px;}.rhead span:nth-child(3),.rhead span:nth-child(5),.rt,.rn{display:none;}.rl{white-space:normal;line-height:1.3;}.rdot{display:inline-block;}}
+  .more-wrap{text-align:center;margin-top:14px;}
+
+  /* tooltip */
+  .tip{position:fixed;z-index:50;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:10px 12px;font-size:13px;max-width:280px;opacity:0;transition:opacity .1s;}
+  .tip.show{opacity:1;}
+  .tip .tt{font-weight:700;margin-bottom:6px;line-height:1.25;}
+  .tip .tr{display:flex;justify-content:space-between;gap:18px;color:var(--ink-2);}
+  .tip .tr b{color:var(--ink);font-variant-numeric:tabular-nums;}
+  .tip .tr i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;}
+
+  footer{border-top:1px solid var(--line);padding-block:26px 32px;font-size:14px;color:var(--ink-2);}
+  footer .grid{display:grid;grid-template-columns:1.4fr 1fr;gap:36px;}
+  @media (max-width:760px){footer .grid{grid-template-columns:1fr;}}
+  footer h4{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--ink);}
+  footer p{margin-top:8px;max-width:64ch;}
+  footer details summary{cursor:pointer;font-weight:600;color:var(--ink);}
+  footer .cite{font-size:12.5px;color:var(--muted);}
+  footer .end{margin-top:18px;padding-top:12px;border-top:1px solid var(--line-soft);display:flex;flex-wrap:wrap;gap:6px 24px;font-size:13px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">Centro Javeriano de Competitividad <span>· Informe 03</span></div>
+    <nav class="links" aria-label="Secciones">
+      <a href="#buscador">Tu ocupación</a>
+      <a href="#mapa">Mapa</a>
+      <a href="#explora">Explora</a>
+      <a href="#ranking">Ranking</a>
+    </nav>
+    <button class="theme-btn" id="theme-btn" type="button" aria-label="Cambiar entre tema claro y oscuro">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"></path></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Inteligencia artificial y empleo en Colombia · GEIH 2025</div>
+    <h1>Potencialidad de automatización en el mercado laboral colombiano</h1>
+    <p class="sub">Medimos el potencial relativo de automatización de las ocupaciones colombianas. Este potencial relativo lo clasificamos en <b>alto</b>, <b>bajo</b> o <b>incierto</b> potencial de automatización. Para más información consulte el informe: <a href="#" class="lnk">Placeholder link del informe</a>.</p>
+
+    <div class="split" aria-label="Distribución del empleo colombiano según el potencial de automatización">
+      <div class="bar" id="hero-bar" role="img"></div>
+      <div class="cols">
+        <div class="col"><div class="k"><span class="dot bg-alto"></span>Potencial alto de automatización relativa</div><div class="big num" data-share="alto"></div><div class="ppl" data-people="alto"></div><p class="def">Los dos índices la ubican en la mitad superior de las ocupaciones.</p></div>
+        <div class="col"><div class="k"><span class="dot bg-bajo"></span>Potencial bajo de automatización relativa</div><div class="big num" data-share="bajo"></div><div class="ppl" data-people="bajo"></div><p class="def">Los dos índices la ubican en la mitad inferior de las ocupaciones.</p></div>
+        <div class="col"><div class="k"><span class="dot bg-incierto"></span>Potencial incierto de automatización relativa</div><div class="big num" data-share="incierto"></div><div class="ppl" data-people="incierto"></div><p class="def">Los índices no coinciden: uno la ubica arriba y el otro abajo.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="buscador">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Tu ocupación</div>
+      <h2>¿Qué potencial de automatización tiene tu ocupación?</h2>
+    </div>
+    <label class="picker-lab" for="occ-input">Escribe para buscar tu ocupación o elígela de la lista</label>
+    <div class="picker" id="combo">
+      <input id="occ-input" type="text" role="combobox" aria-expanded="false" aria-controls="occ-list" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Por ejemplo: enfermeros, conductores, contadores…">
+      <button type="button" class="combo-btn" id="occ-toggle" aria-label="Mostrar todas las ocupaciones" tabindex="-1"></button>
+      <ul class="combo-list" id="occ-list" role="listbox" aria-label="Ocupaciones" hidden></ul>
+    </div>
+    <article class="card" id="occ-detail" aria-live="polite"></article>
+  </div>
+</section>
+
+<section id="mapa">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">El mapa</div>
+      <h2>Todas las ocupaciones en un mapa</h2>
+      <p class="lead">Cada punto es una ocupación (más grande = más personas). Los ejes van de 0 a 100 y el corte está en 50. Los porcentajes son la parte del empleo del país que cae en cada zona.</p>
+    </div>
+    <div class="legend" aria-label="Leyenda">
+      <span><i class="dot bg-alto"></i>Potencial alto de automatización relativa</span><span><i class="dot bg-bajo"></i>Potencial bajo de automatización relativa</span><span><i class="dot bg-incierto"></i>Potencial incierto de automatización relativa</span>
+    </div>
+    <div class="chart" id="qmap"></div>
+    <div class="pin-info" id="pin-info"></div>
+  </div>
+</section>
+
+<section id="explora">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Explora los datos</div>
+      <h2>Dónde están y cómo cambian</h2>
+    </div>
+    <div class="chips" id="tab-chips" role="group" aria-label="Elige qué ver">
+      <button class="chip" type="button" data-tab="grupo" aria-pressed="true">Por grupo de población</button>
+      <button class="chip" type="button" data-tab="evo" aria-pressed="false">Empleo e ingresos entre 2021 y 2025</button>
+    </div>
+
+    <div id="tab-evo" hidden>
+      <div class="chips" id="evo-chips" role="group" aria-label="Medida">
+        <button class="chip" type="button" data-metric="empleo" aria-pressed="true">Empleo</button>
+        <button class="chip" type="button" data-metric="ingreso" aria-pressed="false">Ingreso real</button>
+      </div>
+      <p class="insight" id="evo-insight"></p>
+      <div class="legend" id="evo-legend"></div>
+      <div class="chart" id="evo"></div>
+      <p class="cap">Todo parte de 100 en 2021; ingreso en pesos de 2025. El potencial no cambia con los años: esto compara qué pasó en cada grupo de ocupaciones y no prueba que sea efecto de la IA.</p>
+      <details class="more"><summary>Ver datos en tabla</summary><div class="scroll-x" id="evo-table"></div></details>
+    </div>
+
+    <div id="tab-grupo">
+      <div class="chips" id="dim-chips" role="group" aria-label="Dividir por"></div>
+      <p class="insight" id="g-insight"></p>
+      <div class="legend">
+        <span><i class="dot bg-alto"></i>Potencial alto de automatización relativa</span><span><i class="dot bg-bajo"></i>Potencial bajo de automatización relativa</span><span><i class="dot bg-incierto"></i>Potencial incierto de automatización relativa</span>
+      </div>
+      <div class="gbars" id="gbars"></div>
+      <p class="cap" id="g-cap"></p>
+      <details class="more"><summary>Ver datos en tabla</summary><div class="scroll-x" id="g-table"></div></details>
+    </div>
+  </div>
+</section>
+
+<section id="ranking">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Ranking</div>
+      <h2>Todas las ocupaciones</h2>
+      <p class="lead">De la que más gente emplea a la que menos. El color indica el potencial de automatización relativa.</p>
+    </div>
+    <div class="toolbar">
+      <div class="chips" id="rank-chips" role="group" aria-label="Filtrar por potencial"></div>
+      <div class="search"><input id="rank-search" type="search" autocomplete="off" placeholder="Buscar ocupación" aria-label="Buscar ocupación"><div class="results" id="rank-results"></div></div>
+    </div>
+    <div class="rhead"><span></span><span>Ocupación</span><span>Tamaño</span><span>% del empleo</span><span>Ocupados</span></div>
+    <div id="rank-list"></div>
+    <div class="more-wrap" id="rank-more-wrap"><button class="chip" id="rank-more" type="button"></button></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="grid">
+      <div>
+        <h4>Cómo se calcula</h4>
+        <details>
+          <summary>Ver la metodología</summary>
+          <p>Combinamos dos índices internacionales con los ocupados de la Gran Encuesta Integrada de Hogares (GEIH) 2025 del DANE, usando la clasificación CIUO-08 a 4 dígitos. El índice <b>OIT-NASK</b> (Gmyrek et&nbsp;al., 2025) evalúa en qué medida la IA puede realizar las <b>tareas</b> de la ocupación; el índice <b>AIOE</b> (Felten, Raj y Seamans, 2021) evalúa en qué medida la IA tiene las <b>habilidades</b> que la ocupación requiere.</p>
+          <p>Cada índice se expresa en una escala de 0 a 100: la posición (percentil) de la ocupación entre las 418 ocupaciones con puntaje en ambos, donde cada ocupación pesa lo mismo. El corte es el 50, que equivale a la mediana (<span data-med="oit"></span> en el índice de tareas y <span data-med="aioe"></span> en el de habilidades). El potencial de automatización relativa de tareas es alto si los dos índices ubican la ocupación en 50 o por encima, bajo si los dos la ubican por debajo, e incierto si los índices no coinciden (uno la ubica arriba y el otro abajo). Las ocupaciones que empatan con la mediana cuentan como altas. "Alto" es una posición relativa: significa un mayor potencial de automatización de tareas que la ocupación típica, no una predicción de pérdida de empleo. Automatizar tareas no equivale a eliminar empleos: también puede abrir oportunidades de mayor productividad y mejores salarios. Las participaciones del empleo usan los factores de expansión de la GEIH. Los cruces por año usan la GEIH 2021–2025 con ingresos en pesos de 2025.</p>
+          <p class="cite">Felten, E., Raj, M., y Seamans, R. (2021). Occupational, industry, and geographic exposure to artificial intelligence: A novel dataset and its potential uses. <i>Strategic Management Journal</i>.<br>Gmyrek, P. et&nbsp;al. (2025). Generative AI and jobs: A global analysis of potential effects on job quantity and quality. OIT y NASK.</p>
+        </details>
+      </div>
+      <div>
+        <h4>Sobre esta herramienta</h4>
+        <p>Acompaña el informe <i>Inteligencia Artificial y Empleo en Colombia</i> del Centro Javeriano de Competitividad (CJC), Pontificia Universidad Javeriana. Las cifras son las mismas del informe.</p>
+        <p>Uso interno y académico. Cualquier uso público debe citar a Gmyrek et&nbsp;al. (2025) y a Felten et&nbsp;al. (2021).</p>
+      </div>
+    </div>
+    <div class="end"><span>Centro Javeriano de Competitividad · Pontificia Universidad Javeriana</span><span>Datos: GEIH 2025</span></div>
+  </div>
+</footer>
+
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script type="application/json" id="ia-data">{"occupations":[{"l":"Grabadores de datos","o":0.7,"og":"Muy alta","a":6.175,"c":5.288,"t":0.453,"q":"riesgo","n":41359,"im":1933349,"imed":1600000,"edu":[0.0061,0.0022,0.0122,0.3087,0.6708],"ho":1,"ha":1},{"l":"Operadores de máquinas de procesamiento de texto y mecanógrafos","o":0.65,"og":"Muy alta","a":6.315,"c":5.654,"t":0.414,"q":"riesgo","n":118,"im":1292093,"imed":1271928,"edu":[0.0,0.0,0.0,0.1154,0.8846],"ho":1,"ha":1},{"l":"Auxiliares de contabilidad y cálculo de costos","o":0.64,"og":"Muy alta","a":6.569,"c":5.652,"t":0.449,"q":"riesgo","n":161071,"im":1924324,"imed":1673500,"edu":[0.0001,0.003,0.0035,0.1349,0.8585],"ho":1,"ha":1},{"l":"Auxiliares de servicios estadísticos, financieros y de seguros","o":0.64,"og":"Muy alta","a":6.591,"c":5.516,"t":0.472,"q":"riesgo","n":1840,"im":2848804,"imed":2713342,"edu":[0.0,0.0,0.0,0.1907,0.8093],"ho":1,"ha":1,"af":[269]},{"l":"Agentes de bolsa, cambio y otros servicios financieros","o":0.63,"og":"Muy alta","a":6.615,"c":4.605,"t":0.613,"q":"complementa","n":4204,"im":4568756,"imed":3000000,"edu":[0.0,0.0531,0.0,0.2521,0.6949],"ho":1,"ha":1},{"l":"Otro personal de apoyo administrativo no clasificados en otros grupos primarios","o":0.63,"og":"Muy alta","a":6.523,"c":5.343,"t":0.49,"q":"riesgo","n":2010,"im":1369848,"imed":1423406,"edu":[0.0,0.0543,0.0078,0.3455,0.5924],"ho":1,"ha":1},{"l":"Analistas financieros","o":0.62,"og":"Muy alta","a":6.671,"c":5.348,"t":0.507,"q":"riesgo","n":9958,"im":4832255,"imed":3907110,"edu":[0.0,0.0,0.0,0.0025,0.9975],"ho":1,"ha":1},{"l":"Vendedores a través de medios tecnológicos","o":0.61,"og":"Muy alta","a":6.539,"c":5.836,"t":0.417,"q":"riesgo","n":76827,"im":1661178,"imed":1200000,"edu":[0.0002,0.0229,0.0528,0.4284,0.4956],"ho":1,"ha":1},{"l":"Auxiliares encargados de las nóminas","o":0.61,"og":"Muy alta","a":6.601,"c":5.76,"t":0.437,"q":"riesgo","n":2150,"im":3113015,"imed":2400000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Oficinistas generales","o":0.6,"og":"Muy alta","a":6.593,"c":5.667,"t":0.449,"q":"riesgo","n":309583,"im":2208846,"imed":1780000,"edu":[0.0002,0.0064,0.0034,0.2147,0.7753],"ho":1,"ha":1},{"l":"Analistas de préstamos y créditos","o":0.6,"og":"Muy alta","a":6.659,"c":4.918,"t":0.571,"q":"complementa","n":32961,"im":3419770,"imed":2500000,"edu":[0.0,0.0,0.0,0.0956,0.9044],"ho":1,"ha":1},{"l":"Empleados del servicio de personal","o":0.6,"og":"Muy alta","a":6.644,"c":5.424,"t":0.493,"q":"riesgo","n":14574,"im":2121493,"imed":1765973,"edu":[0.0,0.0018,0.0,0.1492,0.849],"ho":1,"ha":1},{"l":"Desarrolladores web y multimedia","o":0.6,"og":"Muy alta","a":6.526,"c":5.4,"t":0.482,"q":"riesgo","n":13176,"im":5761438,"imed":3686364,"edu":[0.0,0.0,0.0,0.0169,0.9831],"ho":1,"ha":1,"af":[234]},{"l":"Traductores, intérpretes y otros lingüistas","o":0.59,"og":"Alta","a":6.584,"c":4.751,"t":0.588,"q":"complementa","n":4864,"im":2448224,"imed":2000000,"edu":[0.0,0.0,0.0,0.3304,0.6696],"ho":1,"ha":1,"af":[334]},{"l":"Empleados de centros de llamadas","o":0.58,"og":"Alta","a":6.483,"c":5.543,"t":0.454,"q":"riesgo","n":191575,"im":1928090,"imed":1600000,"edu":[0.0,0.0003,0.0029,0.3383,0.6585],"ho":1,"ha":1},{"l":"Secretarios generales","o":0.58,"og":"Alta","a":6.53,"c":5.585,"t":0.454,"q":"riesgo","n":106598,"im":2037790,"imed":1623500,"edu":[0.0,0.0058,0.0208,0.272,0.7013],"ho":1,"ha":1},{"l":"Cajeros de bancos y afines","o":0.58,"og":"Alta","a":6.024,"c":4.936,"t":0.488,"q":"riesgo","n":22068,"im":2094631,"imed":1800000,"edu":[0.0,0.0014,0.0007,0.1859,0.812],"ho":1,"ha":0,"af":[224]},{"l":"Escribientes públicos y afines","o":0.58,"og":"Alta","a":6.001,"c":4.376,"t":0.579,"q":"complementa","n":17261,"im":1930829,"imed":1800000,"edu":[0.0072,0.0234,0.0625,0.3478,0.559],"ho":1,"ha":0},{"l":"Asesores financieros y de inversiones","o":0.57,"og":"Alta","a":6.658,"c":5.29,"t":0.515,"q":"riesgo","n":72113,"im":5249379,"imed":3364277,"edu":[0.0,0.0013,0.0,0.0413,0.9574],"ho":1,"ha":1},{"l":"Recepcionistas generales","o":0.57,"og":"Alta","a":6.491,"c":5.552,"t":0.454,"q":"riesgo","n":34172,"im":1819781,"imed":1500000,"edu":[0.0,0.0184,0.0203,0.3164,0.6449],"ho":1,"ha":1},{"l":"Empleados de ventanillas de información","o":0.57,"og":"Alta","a":6.522,"c":5.544,"t":0.459,"q":"riesgo","n":21086,"im":1962549,"imed":1600000,"edu":[0.0024,0.0279,0.0102,0.2986,0.6609],"ho":1,"ha":1},{"l":"Diseñadores y administradores de bases de datos","o":0.57,"og":"Alta","a":6.614,"c":5.386,"t":0.495,"q":"riesgo","n":10736,"im":4572211,"imed":3800000,"edu":[0.0,0.0,0.0,0.0247,0.9753],"ho":1,"ha":1},{"l":"Declarantes o gestores de aduana","o":0.57,"og":"Alta","a":6.183,"c":4.831,"t":0.528,"q":"riesgo","n":6364,"im":2876827,"imed":2542558,"edu":[0.0,0.0,0.0,0.1407,0.8593],"ho":1,"ha":1},{"l":"Programadores de aplicaciones","o":0.57,"og":"Alta","a":6.608,"c":5.624,"t":0.458,"q":"riesgo","n":2501,"im":6128836,"imed":5000000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1,"af":[234]},{"l":"Administradores de sistemas","o":0.57,"og":"Alta","a":6.39,"c":5.162,"t":0.501,"q":"riesgo","n":1708,"im":10576372,"imed":8000000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1,"af":[234]},{"l":"Técnicos y profesionales del nivel medio de servicios estadísticos, matemáticos y afines","o":0.57,"og":"Alta","a":6.653,"c":5.179,"t":0.531,"q":"riesgo","n":49,"im":1452934,"imed":1452934,"edu":[0.0,0.0,0.0,1.0,0.0],"ho":1,"ha":1},{"l":"Empleados y consultores de viajes","o":0.56,"og":"Alta","a":6.437,"c":4.803,"t":0.562,"q":"complementa","n":16240,"im":2423402,"imed":1823569,"edu":[0.0,0.0131,0.0316,0.2612,0.6941],"ho":1,"ha":1},{"l":"Matemáticos, actuarios y estadísticos","o":0.56,"og":"Alta","a":6.684,"c":5.182,"t":0.534,"q":"riesgo","n":4204,"im":4791440,"imed":3577822,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Profesionales de la publicidad y la comercialización","o":0.55,"og":"Alta","a":6.582,"c":5.196,"t":0.52,"q":"riesgo","n":71487,"im":4375215,"imed":3000000,"edu":[0.0,0.0025,0.006,0.1225,0.869],"ho":1,"ha":1},{"l":"Secretarios jurídicos","o":0.55,"og":"Alta","a":6.492,"c":5.45,"t":0.47,"q":"riesgo","n":10005,"im":2970967,"imed":2206534,"edu":[0.0,0.0,0.0,0.171,0.829],"ho":1,"ha":1},{"l":"Economistas","o":0.55,"og":"Alta","a":6.667,"c":5.093,"t":0.545,"q":"riesgo","n":9148,"im":4441979,"imed":3802394,"edu":[0.0,0.0,0.0,0.0035,0.9965],"ho":1,"ha":1},{"l":"Entrevistadores de encuestas y de investigaciones de mercados","o":0.55,"og":"Alta","a":6.619,"c":5.021,"t":0.551,"q":"complementa","n":9123,"im":1807036,"imed":1800000,"edu":[0.0,0.0,0.0,0.3491,0.6509],"ho":1,"ha":1},{"l":"Bibliotecarios, documentalistas y afines","o":0.55,"og":"Alta","a":6.37,"c":4.516,"t":0.6,"q":"complementa","n":3053,"im":3183144,"imed":2800000,"edu":[0.0,0.0,0.0,0.0234,0.9766],"ho":1,"ha":1},{"l":"Autores y otros escritores","o":0.55,"og":"Alta","a":6.533,"c":5.096,"t":0.529,"q":"riesgo","n":2483,"im":4162924,"imed":3098120,"edu":[0.0,0.0,0.0,0.0152,0.9848],"ho":1,"ha":1},{"l":"Desarrolladores y analistas de software y multimedia no clasificados en otros grupos primarios","o":0.55,"og":"Alta","a":6.591,"c":5.22,"t":0.517,"q":"riesgo","n":1836,"im":7923890,"imed":6513451,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Secretarios administrativos y ejecutivos","o":0.54,"og":"Alta","a":6.466,"c":5.4,"t":0.474,"q":"riesgo","n":69085,"im":2757590,"imed":2000000,"edu":[0.0,0.0092,0.0068,0.1286,0.8553],"ho":1,"ha":1},{"l":"Periodistas","o":0.54,"og":"Alta","a":6.556,"c":4.73,"t":0.588,"q":"complementa","n":21321,"im":4333654,"imed":4000000,"edu":[0.0,0.0,0.0004,0.0209,0.9787],"ho":1,"ha":1},{"l":"Telefonistas","o":0.54,"og":"Alta","a":6.486,"c":5.862,"t":0.405,"q":"riesgo","n":3899,"im":1430252,"imed":1423500,"edu":[0.0,0.0,0.0067,0.3064,0.6869],"ho":1,"ha":1},{"l":"Meteorólogos","o":0.54,"og":"Alta","a":6.601,"c":4.947,"t":0.56,"q":"complementa","n":250,"im":3450205,"imed":3450205,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Desarrolladores de software","o":0.53,"og":"Alta","a":6.594,"c":5.235,"t":0.515,"q":"riesgo","n":88504,"im":6167646,"imed":4506137,"edu":[0.0,0.0,0.0,0.0079,0.9921],"ho":1,"ha":1,"af":[234]},{"l":"Agentes de seguros","o":0.53,"og":"Alta","a":6.633,"c":4.863,"t":0.576,"q":"complementa","n":25137,"im":3232475,"imed":2288931,"edu":[0.0,0.0,0.0012,0.1449,0.8539],"ho":1,"ha":1},{"l":"Secretarios médicos","o":0.53,"og":"Alta","a":6.549,"c":5.284,"t":0.502,"q":"riesgo","n":24357,"im":1791008,"imed":1600000,"edu":[0.0,0.0034,0.0,0.2355,0.7611],"ho":1,"ha":1},{"l":"Técnicos de la Web","o":0.53,"og":"Alta","a":6.458,"c":5.281,"t":0.492,"q":"riesgo","n":3194,"im":3441911,"imed":2041197,"edu":[0.0,0.0,0.0,0.2863,0.7137],"ho":1,"ha":1},{"l":"Profesionales en redes de computadores","o":0.52,"og":"Alta","a":6.309,"c":4.892,"t":0.534,"q":"riesgo","n":696,"im":3204588,"imed":1964764,"edu":[0.0,0.0,0.0,0.0617,0.9383],"ho":1,"ha":1},{"l":"Técnicos en documentación sanitaria","o":0.52,"og":"Alta","a":5.979,"c":4.373,"t":0.578,"q":"complementa","n":209,"im":2449371,"imed":2100000,"edu":[0.0,0.0,0.0,0.2671,0.7329],"ho":1,"ha":0},{"l":"Contadores","o":0.51,"og":"Alta","a":6.678,"c":5.356,"t":0.507,"q":"riesgo","n":252538,"im":4004517,"imed":3021347,"edu":[0.0,0.0,0.0001,0.0054,0.9945],"ho":1,"ha":1},{"l":"Recepcionistas de hoteles","o":0.51,"og":"Alta","a":6.364,"c":4.781,"t":0.558,"q":"complementa","n":24133,"im":1443434,"imed":1423500,"edu":[0.0,0.0618,0.0837,0.4271,0.4274],"ho":1,"ha":1},{"l":"Profesionales de ventas de tecnología de la información y las comunicaciones","o":0.51,"og":"Alta","a":6.54,"c":4.506,"t":0.62,"q":"complementa","n":845,"im":4185050,"imed":4382700,"edu":[0.0,0.0,0.0,0.2097,0.7903],"ho":1,"ha":1},{"l":"Codificadores de datos, correctores de pruebas de imprenta y afines","o":0.51,"og":"Alta","a":6.615,"c":5.704,"t":0.447,"q":"riesgo","n":540,"im":2326590,"imed":2500000,"edu":[0.0,0.0,0.0,0.401,0.599],"ho":1,"ha":1},{"l":"Empleados de servicios de transporte","o":0.5,"og":"Alta","a":6.591,"c":4.758,"t":0.587,"q":"complementa","n":23973,"im":1988862,"imed":1500000,"edu":[0.0021,0.0442,0.0292,0.4302,0.4943],"ho":1,"ha":1,"af":[354,313,282]},{"l":"Profesionales de ventas técnicas y médicas (excluyendo las TIC)","o":0.5,"og":"Alta","a":6.534,"c":4.38,"t":0.638,"q":"complementa","n":11981,"im":4968069,"imed":3800000,"edu":[0.0,0.0,0.0,0.0378,0.9622],"ho":1,"ha":1},{"l":"Representantes comerciales","o":0.49,"og":"Media","a":6.524,"c":4.591,"t":0.605,"q":"complementa","n":311582,"im":1490708,"imed":1423000,"edu":[0.0058,0.0782,0.0618,0.3768,0.4774],"ho":1,"ha":1,"af":[277,307]},{"l":"Analistas de sistemas","o":0.49,"og":"Media","a":6.565,"c":4.885,"t":0.565,"q":"complementa","n":104168,"im":4818796,"imed":3900000,"edu":[0.0,0.0,0.0,0.0066,0.9934],"ho":1,"ha":1,"af":[234]},{"l":"Diseñadores gráficos y multimedia","o":0.49,"og":"Media","a":6.355,"c":4.864,"t":0.544,"q":"riesgo","n":76570,"im":2841556,"imed":2000000,"edu":[0.0,0.002,0.0031,0.1072,0.8876],"ho":1,"ha":1,"af":[269]},{"l":"Técnicos de contabilidad y afines","o":0.49,"og":"Media","a":6.503,"c":5.437,"t":0.473,"q":"riesgo","n":24192,"im":2666710,"imed":2100000,"edu":[0.0,0.0,0.0051,0.0422,0.9527],"ho":1,"ha":1},{"l":"Profesionales en bases de datos y en redes de computadores no clasificados en otros grupos primarios","o":0.49,"og":"Media","a":6.594,"c":5.138,"t":0.53,"q":"riesgo","n":2754,"im":8356877,"imed":7748920,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Agentes de administración tributaria","o":0.49,"og":"Media","a":6.651,"c":5.618,"t":0.464,"q":"riesgo","n":1231,"im":4701763,"imed":4123361,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Organizadores de conferencias y eventos","o":0.48,"og":"Media","a":6.203,"c":4.115,"t":0.646,"q":"complementa","n":17732,"im":2196537,"imed":1645695,"edu":[0.0,0.017,0.0336,0.2278,0.7216],"ho":1,"ha":1,"af":[231]},{"l":"Ingenieros de telecomunicaciones","o":0.48,"og":"Media","a":6.334,"c":4.777,"t":0.555,"q":"complementa","n":8745,"im":5623097,"imed":3500000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1,"af":[378]},{"l":"Prestamistas","o":0.48,"og":"Media","a":6.518,"c":5.559,"t":0.457,"q":"riesgo","n":8364,"im":1709740,"imed":1423500,"edu":[0.0021,0.0885,0.1468,0.4817,0.2809],"ho":1,"ha":1},{"l":"Sociólogos, antropólogos y afines","o":0.48,"og":"Media","a":6.567,"c":4.567,"t":0.614,"q":"complementa","n":4249,"im":5347998,"imed":3933781,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Técnicos en asistencia y soporte al usuario de tecnología de la información y las comunicaciones","o":0.47,"og":"Media","a":6.17,"c":4.545,"t":0.573,"q":"complementa","n":28183,"im":2531863,"imed":1800000,"edu":[0.0,0.0,0.0023,0.1411,0.8566],"ho":1,"ha":1},{"l":"Gerentes de sucursales de bancos, de servicios financieros y de seguros","o":0.47,"og":"Media","a":6.49,"c":4.327,"t":0.644,"q":"complementa","n":14679,"im":7538301,"imed":5000000,"edu":[0.0,0.0,0.0164,0.0156,0.968],"ho":1,"ha":1},{"l":"Locutores de radio, televisión y otros medios de comunicación","o":0.47,"og":"Media","a":6.465,"c":4.629,"t":0.593,"q":"complementa","n":4507,"im":3170852,"imed":1500000,"edu":[0.0151,0.0336,0.0083,0.3685,0.5746],"ho":1,"ha":1},{"l":"Archivistas y curadores de arte","o":0.47,"og":"Media","a":6.353,"c":4.476,"t":0.604,"q":"complementa","n":3996,"im":3162046,"imed":2570789,"edu":[0.0,0.0094,0.0622,0.0771,0.8513],"ho":1,"ha":1,"af":[269]},{"l":"Filósofos, historiadores y especialistas en ciencias políticas","o":0.47,"og":"Media","a":6.612,"c":4.753,"t":0.59,"q":"complementa","n":1072,"im":5786880,"imed":3269048,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Instructores de tecnología de la información","o":0.47,"og":"Media","a":6.575,"c":4.705,"t":0.594,"q":"complementa","n":842,"im":3495127,"imed":3514987,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Vendedores puerta a puerta","o":0.46,"og":"Media","a":6.534,"c":5.584,"t":0.454,"q":"riesgo","n":85843,"im":1617907,"imed":1423500,"edu":[0.0107,0.1196,0.0787,0.4913,0.2997],"ho":1,"ha":1},{"l":"Analistas de gestión y organización","o":0.46,"og":"Media","a":6.647,"c":4.938,"t":0.566,"q":"complementa","n":22877,"im":4709073,"imed":4000000,"edu":[0.0,0.0,0.0,0.0185,0.9815],"ho":1,"ha":1},{"l":"Empleados de bibliotecas","o":0.46,"og":"Media","a":6.089,"c":4.939,"t":0.498,"q":"riesgo","n":2124,"im":1816112,"imed":1600000,"edu":[0.0,0.0,0.0,0.1109,0.8891],"ho":1,"ha":1},{"l":"Receptores de apuestas y afines","o":0.45,"og":"Media","a":6.199,"c":5.074,"t":0.49,"q":"riesgo","n":16928,"im":1246092,"imed":1400000,"edu":[0.001,0.1284,0.06,0.5318,0.2788],"ho":1,"ha":1},{"l":"Profesionales de gestión de talento humano","o":0.45,"og":"Media","a":6.61,"c":4.704,"t":0.598,"q":"complementa","n":13620,"im":4354519,"imed":3000000,"edu":[0.0,0.0,0.0,0.0328,0.9672],"ho":1,"ha":1},{"l":"Técnicos de ingeniería de las telecomunicaciones","o":0.45,"og":"Muy baja o ninguna","a":6.198,"c":4.538,"t":0.577,"q":"complementa","n":11727,"im":1864530,"imed":1800000,"edu":[0.0,0.014,0.0237,0.303,0.6593],"ho":1,"ha":1,"af":[290,323,234,230]},{"l":"Tasadores y evaluadores","o":0.45,"og":"Media","a":6.451,"c":5.053,"t":0.526,"q":"riesgo","n":10051,"im":3135092,"imed":2500000,"edu":[0.0,0.0,0.0,0.0174,0.9826],"ho":1,"ha":1},{"l":"Agentes de servicios de seguridad social","o":0.45,"og":"Media","a":6.464,"c":5.037,"t":0.531,"q":"riesgo","n":1387,"im":1857785,"imed":1423500,"edu":[0.0,0.0,0.0,0.2835,0.7165],"ho":1,"ha":1},{"l":"Gerentes de comercios al por mayor y al por menor","o":0.44,"og":"Media","a":6.294,"c":3.878,"t":0.693,"q":"complementa","n":387613,"im":2717706,"imed":1800000,"edu":[0.008,0.1531,0.0781,0.363,0.3978],"ho":1,"ha":1},{"l":"Agentes de operaciones comerciales y consignatarios","o":0.44,"og":"Media","a":6.632,"c":4.812,"t":0.584,"q":"complementa","n":16421,"im":3403292,"imed":1700000,"edu":[0.0427,0.2,0.1325,0.3944,0.2305],"ho":1,"ha":1},{"l":"Agentes de servicios comerciales no clasificados en otros grupos primarios","o":0.44,"og":"Media","a":6.574,"c":4.971,"t":0.553,"q":"complementa","n":13905,"im":2756962,"imed":2000000,"edu":[0.0027,0.006,0.0118,0.4112,0.5683],"ho":1,"ha":1},{"l":"Cartógrafos y topógrafos","o":0.44,"og":"Media","a":6.252,"c":4.596,"t":0.575,"q":"complementa","n":8806,"im":3336379,"imed":3000000,"edu":[0.0,0.0011,0.0,0.0208,0.978],"ho":1,"ha":1},{"l":"Directores de servicios de tecnología de la información y las comunicaciones","o":0.44,"og":"Media","a":6.512,"c":4.606,"t":0.602,"q":"complementa","n":7467,"im":8315424,"imed":6000000,"edu":[0.0,0.0,0.0,0.0615,0.9385],"ho":1,"ha":1},{"l":"Empleados de servicios de apoyo a la producción","o":0.44,"og":"Media","a":6.35,"c":4.865,"t":0.543,"q":"riesgo","n":728,"im":1574929,"imed":1423500,"edu":[0.0,0.0344,0.0,0.4167,0.5489],"ho":1,"ha":1},{"l":"Comerciantes de tiendas","o":0.43,"og":"Media","a":6.294,"c":3.878,"t":0.693,"q":"complementa","n":327845,"im":1288542,"imed":1000000,"edu":[0.0292,0.2353,0.1169,0.4017,0.217],"ho":1,"ha":1},{"l":"Supervisores de oficina","o":0.43,"og":"Media","a":6.503,"c":4.953,"t":0.547,"q":"complementa","n":205849,"im":3537607,"imed":2600000,"edu":[0.0,0.0048,0.0083,0.1542,0.8327],"ho":1,"ha":1},{"l":"Cobradores y afines","o":0.43,"og":"Media","a":6.601,"c":5.34,"t":0.5,"q":"riesgo","n":32804,"im":1721237,"imed":1423500,"edu":[0.0018,0.0372,0.122,0.3759,0.4631],"ho":1,"ha":1},{"l":"Técnicos en operaciones de tecnología de la información y las comunicaciones","o":0.43,"og":"Media","a":6.23,"c":5.404,"t":0.443,"q":"riesgo","n":20446,"im":2090201,"imed":1650000,"edu":[0.0,0.0087,0.0,0.1061,0.8852],"ho":1,"ha":1,"af":[234]},{"l":"Técnicos en redes y sistemas de computación","o":0.43,"og":"Media","a":6.389,"c":4.756,"t":0.565,"q":"complementa","n":13402,"im":2321899,"imed":2000000,"edu":[0.0,0.0,0.0234,0.0961,0.8805],"ho":1,"ha":1,"af":[234]},{"l":"Profesionales de relaciones públicas","o":0.43,"og":"Media","a":6.614,"c":4.85,"t":0.576,"q":"complementa","n":3110,"im":5546559,"imed":5164378,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Agentes gubernamentales de expedición de licencias","o":0.43,"og":"Media","a":6.452,"c":5.105,"t":0.519,"q":"riesgo","n":405,"im":2737971,"imed":2787396,"edu":[0.0,0.0,0.0,0.0774,0.9226],"ho":1,"ha":1},{"l":"Profesionales en políticas de administración","o":0.42,"og":"Muy baja o ninguna","a":6.508,"c":4.965,"t":0.546,"q":"riesgo","n":25342,"im":5783301,"imed":4500000,"edu":[0.0,0.0,0.0,0.0038,0.9962],"ho":1,"ha":1},{"l":"Directores de administración y servicios no clasificados en otros grupos primarios","o":0.42,"og":"Media","a":6.457,"c":4.54,"t":0.607,"q":"complementa","n":24885,"im":6145468,"imed":5000000,"edu":[0.0,0.0226,0.0,0.0098,0.9675],"ho":1,"ha":1,"af":[250]},{"l":"Otros empleados de servicios de información al cliente no clasificados en otros grupos primarios","o":0.42,"og":"Media","a":6.512,"c":5.498,"t":0.465,"q":"riesgo","n":21576,"im":1890027,"imed":1600000,"edu":[0.0,0.0136,0.0148,0.2196,0.752],"ho":1,"ha":1,"af":[355,347]},{"l":"Demostradores de tiendas, almacenes y afines","o":0.42,"og":"Media","a":6.09,"c":4.945,"t":0.497,"q":"riesgo","n":9467,"im":2060966,"imed":1500000,"edu":[0.0,0.0004,0.0208,0.4022,0.5766],"ho":1,"ha":1},{"l":"Ingenieros electrónicos","o":0.42,"og":"Media","a":6.441,"c":4.967,"t":0.538,"q":"riesgo","n":8001,"im":3653296,"imed":3000000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1,"af":[300,325]},{"l":"Directores de ventas y comercialización","o":0.41,"og":"Media","a":6.616,"c":4.795,"t":0.584,"q":"complementa","n":79104,"im":6829002,"imed":4500000,"edu":[0.0016,0.0014,0.0003,0.0525,0.9442],"ho":1,"ha":1},{"l":"Empleados de servicios de correos","o":0.41,"og":"Media","a":5.625,"c":4.657,"t":0.481,"q":"baja","n":9548,"im":1679603,"imed":1423500,"edu":[0.0,0.0275,0.0621,0.4724,0.438],"ho":1,"ha":0},{"l":"Dietistas y nutricionistas","o":0.41,"og":"Muy baja o ninguna","a":6.64,"c":4.55,"t":0.624,"q":"complementa","n":7918,"im":3654557,"imed":3400000,"edu":[0.0,0.0,0.0,0.0007,0.9993],"ho":1,"ha":1},{"l":"Profesionales en formación y desarrollo de personal","o":0.41,"og":"Media","a":6.575,"c":4.705,"t":0.594,"q":"complementa","n":1175,"im":3730125,"imed":2973803,"edu":[0.0,0.0,0.0,0.0228,0.9772],"ho":1,"ha":1},{"l":"Planificadores urbanos, regionales y de tránsito","o":0.41,"og":"Muy baja o ninguna","a":6.588,"c":4.597,"t":0.611,"q":"complementa","n":759,"im":12964875,"imed":8836570,"edu":[0.0,0.0,0.0,0.0644,0.9356],"ho":1,"ha":1},{"l":"Biólogos, botánicos, zoólogos y afines","o":0.4,"og":"Media","a":6.433,"c":4.364,"t":0.631,"q":"complementa","n":17460,"im":4290773,"imed":3500000,"edu":[0.0,0.0208,0.0,0.012,0.9671],"ho":1,"ha":1},{"l":"Directores de investigación y desarrollo","o":0.4,"og":"Muy baja o ninguna","a":6.526,"c":4.413,"t":0.633,"q":"complementa","n":6145,"im":6903704,"imed":5071742,"edu":[0.0,0.0,0.0,0.001,0.999],"ho":1,"ha":1},{"l":"Cajeros de comercio, taquilleros y expendedores de boletas","o":0.39,"og":"Baja","a":5.967,"c":5.153,"t":0.446,"q":"riesgo","n":191917,"im":1465713,"imed":1423500,"edu":[0.0021,0.0237,0.0609,0.5342,0.3791],"ho":1,"ha":0},{"l":"Psicólogos","o":0.39,"og":"Baja","a":6.679,"c":4.617,"t":0.618,"q":"complementa","n":74945,"im":3348802,"imed":2919978,"edu":[0.0,0.0,0.0,0.0014,0.9986],"ho":1,"ha":1},{"l":"Especialistas en métodos pedagógicos","o":0.39,"og":"Baja","a":6.62,"c":4.32,"t":0.657,"q":"complementa","n":16759,"im":4134009,"imed":3000000,"edu":[0.0,0.0,0.0071,0.0423,0.9506],"ho":1,"ha":1},{"l":"Fotógrafos","o":0.39,"og":"Baja","a":5.959,"c":4.375,"t":0.575,"q":"complementa","n":13790,"im":1561607,"imed":1300000,"edu":[0.0027,0.0777,0.0125,0.4041,0.503],"ho":1,"ha":0},{"l":"Técnicos y profesionales del nivel medio del derecho, de servicios legales y afines","o":0.39,"og":"Baja","a":6.425,"c":5.111,"t":0.515,"q":"riesgo","n":11915,"im":4866115,"imed":4000000,"edu":[0.0,0.0,0.0009,0.0638,0.9353],"ho":1,"ha":1,"af":[356]},{"l":"Agentes de compras","o":0.39,"og":"Muy baja o ninguna","a":6.5,"c":4.668,"t":0.591,"q":"complementa","n":9817,"im":3291586,"imed":3000000,"edu":[0.0,0.0122,0.0018,0.1286,0.8573],"ho":1,"ha":1},{"l":"Químicos","o":0.39,"og":"Muy baja o ninguna","a":6.436,"c":4.676,"t":0.583,"q":"complementa","n":5079,"im":6117968,"imed":3500000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Directores de publicidad y relaciones públicas","o":0.39,"og":"Muy baja o ninguna","a":6.617,"c":4.72,"t":0.596,"q":"complementa","n":3612,"im":6309966,"imed":5673842,"edu":[0.0,0.0,0.0217,0.0335,0.9448],"ho":1,"ha":1},{"l":"Agentes de empleo y contratistas de mano de obra","o":0.39,"og":"Muy baja o ninguna","a":6.243,"c":4.246,"t":0.63,"q":"complementa","n":590,"im":5094068,"imed":5431871,"edu":[0.0,0.0,0.0,0.0225,0.9775],"ho":1,"ha":1},{"l":"Vendedores y auxiliares de venta en tiendas, almacenes y afines","o":0.38,"og":"Baja","a":6.028,"c":4.71,"t":0.528,"q":"riesgo","n":1337629,"im":1447992,"imed":1421344,"edu":[0.0147,0.1172,0.0969,0.484,0.2872],"ho":1,"ha":0},{"l":"Directores y gerentes generales","o":0.38,"og":"Muy baja o ninguna","a":6.465,"c":4.003,"t":0.69,"q":"complementa","n":103456,"im":9007779,"imed":6000000,"edu":[0.0,0.0004,0.0009,0.0535,0.9452],"ho":1,"ha":1},{"l":"Directores de industrias manufactureras","o":0.38,"og":"Muy baja o ninguna","a":6.264,"c":3.827,"t":0.698,"q":"complementa","n":43720,"im":4808026,"imed":2900000,"edu":[0.0014,0.0964,0.098,0.2236,0.5806],"ho":1,"ha":1},{"l":"Directores de empresas de abastecimiento, distribución y afines","o":0.38,"og":"Muy baja o ninguna","a":6.447,"c":4.286,"t":0.644,"q":"complementa","n":42685,"im":4676404,"imed":2996742,"edu":[0.0,0.0082,0.0135,0.1405,0.8378],"ho":1,"ha":1},{"l":"Ingenieros medioambientales","o":0.38,"og":"Muy baja o ninguna","a":6.64,"c":4.664,"t":0.607,"q":"complementa","n":20278,"im":4513213,"imed":3800000,"edu":[0.0,0.0,0.0004,0.0003,0.9994],"ho":1,"ha":1},{"l":"Directores del gobierno","o":0.38,"og":"Muy baja o ninguna","a":6.476,"c":4.055,"t":0.683,"q":"complementa","n":14116,"im":6122250,"imed":5600000,"edu":[0.0,0.0,0.005,0.0022,0.9929],"ho":1,"ha":1},{"l":"Profesionales de la protección medioambiental","o":0.38,"og":"Muy baja o ninguna","a":6.277,"c":4.304,"t":0.624,"q":"complementa","n":10863,"im":4291617,"imed":3700000,"edu":[0.0,0.0577,0.0036,0.0298,0.909],"ho":1,"ha":1,"af":[314,273]},{"l":"Técnicos en electrónica","o":0.38,"og":"Muy baja o ninguna","a":6.198,"c":4.538,"t":0.577,"q":"complementa","n":7031,"im":2429571,"imed":1431024,"edu":[0.0037,0.007,0.0206,0.2455,0.7232],"ho":1,"ha":1,"af":[325,234,230]},{"l":"Directores y gerentes de servicios profesionales no clasificados en otros grupos primarios","o":0.38,"og":"Muy baja o ninguna","a":6.471,"c":4.418,"t":0.626,"q":"complementa","n":5781,"im":6658900,"imed":5000000,"edu":[0.0,0.0095,0.0,0.0461,0.9444],"ho":1,"ha":1,"af":[356,363,314]},{"l":"Preimpresores y afines","o":0.38,"og":"Baja","a":6.205,"c":5.296,"t":0.456,"q":"riesgo","n":5319,"im":1495426,"imed":1423500,"edu":[0.0,0.0176,0.1598,0.5759,0.2467],"ho":1,"ha":1,"af":[229,268,253]},{"l":"Técnicos en ciencias biológicas (excluyendo la medicina)","o":0.38,"og":"Baja","a":6.106,"c":4.38,"t":0.592,"q":"complementa","n":1465,"im":2900430,"imed":2341139,"edu":[0.0,0.0,0.0,0.4298,0.5702],"ho":1,"ha":1,"af":[273]},{"l":"Físicos y astrónomos","o":0.38,"og":"Baja","a":6.614,"c":4.885,"t":0.57,"q":"complementa","n":452,"im":15732092,"imed":15782712,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1,"af":[255]},{"l":"Empleados de control de abastecimientos e inventario","o":0.37,"og":"Muy baja o ninguna","a":5.776,"c":4.66,"t":0.503,"q":"baja","n":270306,"im":1694524,"imed":1423500,"edu":[0.0011,0.0411,0.0573,0.5626,0.3378],"ho":1,"ha":0,"af":[354,313]},{"l":"Mensajeros, mandaderos, maleteros y repartidores","o":0.37,"og":"Baja","a":5.532,"c":4.1,"t":0.568,"q":"baja","n":199970,"im":1279564,"imed":1400000,"edu":[0.0072,0.0947,0.1337,0.5521,0.2123],"ho":1,"ha":0,"af":[307]},{"l":"Profesores de instituciones de educación superior","o":0.37,"og":"Muy baja o ninguna","a":6.591,"c":4.393,"t":0.643,"q":"complementa","n":83108,"im":5529094,"imed":4500000,"edu":[0.0,0.0,0.0,0.0025,0.9975],"ho":1,"ha":1},{"l":"Entrenadores, instructores y árbitros de actividades deportivas","o":0.37,"og":"Muy baja o ninguna","a":6.126,"c":4.429,"t":0.586,"q":"complementa","n":64328,"im":2050583,"imed":1600000,"edu":[0.0005,0.0132,0.0409,0.1904,0.7551],"ho":1,"ha":1,"af":[227,282,245]},{"l":"Empleados de archivos","o":0.37,"og":"Baja","a":5.982,"c":5.356,"t":0.413,"q":"riesgo","n":42128,"im":2067364,"imed":1800000,"edu":[0.0,0.0151,0.0033,0.3574,0.6242],"ho":1,"ha":0},{"l":"Ingenieros industriales y de producción","o":0.37,"og":"Muy baja o ninguna","a":6.541,"c":4.333,"t":0.647,"q":"complementa","n":38704,"im":5035250,"imed":3800000,"edu":[0.0,0.0,0.0,0.0012,0.9988],"ho":1,"ha":1},{"l":"Arquitectos constructores","o":0.37,"og":"Muy baja o ninguna","a":6.507,"c":4.383,"t":0.636,"q":"complementa","n":36967,"im":4563386,"imed":3500000,"edu":[0.0,0.0,0.0,0.0018,0.9982],"ho":1,"ha":1},{"l":"Directores financieros","o":0.37,"og":"Muy baja o ninguna","a":6.686,"c":4.776,"t":0.595,"q":"complementa","n":28825,"im":8179380,"imed":5000000,"edu":[0.0,0.0,0.0,0.0331,0.9669],"ho":1,"ha":1},{"l":"Diseñadores y decoradores de interiores","o":0.37,"og":"Muy baja o ninguna","a":6.045,"c":4.37,"t":0.584,"q":"complementa","n":15890,"im":2447843,"imed":1500000,"edu":[0.0,0.0084,0.0565,0.4153,0.5197],"ho":1,"ha":1,"af":[372,374,396,269]},{"l":"Gerentes de hoteles","o":0.37,"og":"Baja","a":6.216,"c":3.995,"t":0.666,"q":"complementa","n":13965,"im":2181003,"imed":1667122,"edu":[0.0022,0.1082,0.1228,0.3359,0.431],"ho":1,"ha":1,"af":[280]},{"l":"Directores y productores de cine, de teatro y afines","o":0.37,"og":"Muy baja o ninguna","a":6.478,"c":4.707,"t":0.583,"q":"complementa","n":8724,"im":4047502,"imed":3017030,"edu":[0.0,0.002,0.0324,0.075,0.8906],"ho":1,"ha":1,"af":[269]},{"l":"Directores  de servicios de bienestar social","o":0.37,"og":"Muy baja o ninguna","a":6.556,"c":4.416,"t":0.636,"q":"complementa","n":3848,"im":6693454,"imed":5000000,"edu":[0.0,0.0,0.0019,0.0072,0.9909],"ho":1,"ha":1},{"l":"Dirigentes de organizaciones con un interés específico\n(partidos políticos, sindicatos y organizaciones sociales)","o":0.37,"og":"Muy baja o ninguna","a":6.461,"c":4.351,"t":0.637,"q":"complementa","n":2862,"im":5587903,"imed":5000000,"edu":[0.0,0.0016,0.0,0.0,0.9984],"ho":1,"ha":1},{"l":"Profesionales en derecho no clasificados en otros grupos primarios","o":0.37,"og":"Muy baja o ninguna","a":6.68,"c":5.066,"t":0.551,"q":"complementa","n":1355,"im":6725345,"imed":5000000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Técnicos en galerías de arte, museos y bibliotecas","o":0.37,"og":"Baja","a":5.887,"c":4.607,"t":0.526,"q":"riesgo","n":690,"im":3120030,"imed":2809032,"edu":[0.0,0.0,0.0,0.1841,0.8159],"ho":1,"ha":0,"af":[269]},{"l":"Arquitectos paisajistas","o":0.37,"og":"Muy baja o ninguna","a":6.501,"c":4.607,"t":0.601,"q":"complementa","n":464,"im":3165026,"imed":3139203,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Abogados","o":0.36,"og":"Muy baja o ninguna","a":6.634,"c":4.266,"t":0.666,"q":"complementa","n":215339,"im":5618088,"imed":4500000,"edu":[0.0,0.0,0.0003,0.0046,0.9952],"ho":1,"ha":1},{"l":"Gerentes de restaurantes","o":0.36,"og":"Muy baja o ninguna","a":5.98,"c":4.252,"t":0.598,"q":"complementa","n":123641,"im":2507700,"imed":1800000,"edu":[0.007,0.1194,0.1013,0.3977,0.3745],"ho":1,"ha":0,"af":[218]},{"l":"Directores de recursos humanos","o":0.36,"og":"Muy baja o ninguna","a":6.621,"c":4.731,"t":0.595,"q":"complementa","n":110659,"im":5253931,"imed":3700000,"edu":[0.0,0.0024,0.0032,0.0387,0.9556],"ho":1,"ha":1},{"l":"Directores de servicios de educación","o":0.36,"og":"Muy baja o ninguna","a":6.467,"c":4.086,"t":0.677,"q":"complementa","n":39559,"im":5088224,"imed":4269000,"edu":[0.0,0.0,0.0,0.0156,0.9844],"ho":1,"ha":1},{"l":"Directores de servicios de salud","o":0.36,"og":"Muy baja o ninguna","a":6.603,"c":4.807,"t":0.581,"q":"complementa","n":38912,"im":4147865,"imed":3200000,"edu":[0.0,0.0,0.0,0.0052,0.9948],"ho":1,"ha":1},{"l":"Agentes de gobierno y profesionales del nivel medio para la aplicación de regulaciones no clasificados en otros grupos primarios","o":0.36,"og":"Muy baja o ninguna","a":6.111,"c":4.575,"t":0.561,"q":"complementa","n":22847,"im":4497169,"imed":3800000,"edu":[0.0,0.0035,0.0013,0.047,0.9482],"ho":1,"ha":1,"af":[320]},{"l":"Supervisores de tiendas y almacenes","o":0.36,"og":"Muy baja o ninguna","a":6.043,"c":4.579,"t":0.551,"q":"complementa","n":12729,"im":2692722,"imed":2000000,"edu":[0.0,0.0121,0.0114,0.3842,0.5923],"ho":1,"ha":1},{"l":"Geólogos y geofísicos","o":0.36,"og":"Muy baja o ninguna","a":6.409,"c":4.587,"t":0.594,"q":"complementa","n":3183,"im":4888537,"imed":3944010,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Directores de políticas y planeación","o":0.36,"og":"Muy baja o ninguna","a":6.471,"c":4.418,"t":0.626,"q":"complementa","n":1528,"im":5059022,"imed":4963392,"edu":[0.0,0.0,0.0,0.0044,0.9956],"ho":1,"ha":1},{"l":"Vendedores en quioscos y puestos de mercado","o":0.35,"og":"Baja","a":6.534,"c":5.584,"t":0.454,"q":"riesgo","n":112505,"im":868259,"imed":700000,"edu":[0.1101,0.3808,0.1577,0.2975,0.0539],"ho":1,"ha":1},{"l":"Supervisores de industrias manufactureras","o":0.35,"og":"Muy baja o ninguna","a":5.996,"c":3.859,"t":0.666,"q":"complementa","n":48450,"im":2835419,"imed":2200000,"edu":[0.0,0.0249,0.0214,0.3145,0.6392],"ho":1,"ha":0,"af":[300,323,387,327]},{"l":"Agentes inmobiliarios","o":0.35,"og":"Muy baja o ninguna","a":6.547,"c":4.387,"t":0.639,"q":"complementa","n":44566,"im":2950861,"imed":2000000,"edu":[0.0024,0.0238,0.0337,0.2464,0.6936],"ho":1,"ha":1},{"l":"Profesores de formación profesional","o":0.35,"og":"Muy baja o ninguna","a":6.193,"c":4.033,"t":0.658,"q":"complementa","n":25547,"im":3738161,"imed":3500000,"edu":[0.0,0.0,0.0074,0.0679,0.9247],"ho":1,"ha":1},{"l":"Delineantes y dibujantes técnicos","o":0.35,"og":"Muy baja o ninguna","a":6.304,"c":5.179,"t":0.486,"q":"riesgo","n":24522,"im":2008848,"imed":1800000,"edu":[0.0,0.0028,0.0179,0.3385,0.6408],"ho":1,"ha":1,"af":[269]},{"l":"Técnicos de radiodifusión y grabación audio visual","o":0.35,"og":"Muy baja o ninguna","a":6.071,"c":4.571,"t":0.557,"q":"complementa","n":17450,"im":2384949,"imed":1734385,"edu":[0.0,0.0102,0.0456,0.2896,0.6546],"ho":1,"ha":1,"af":[230,269,382]},{"l":"Diseñadores de productos y de prendas","o":0.35,"og":"Muy baja o ninguna","a":6.294,"c":4.797,"t":0.547,"q":"riesgo","n":15130,"im":3373611,"imed":2500000,"edu":[0.0,0.0073,0.0013,0.0786,0.9128],"ho":1,"ha":1,"af":[331,269]},{"l":"Otros profesores de música","o":0.35,"og":"Muy baja o ninguna","a":6.272,"c":4.662,"t":0.566,"q":"complementa","n":11228,"im":1799815,"imed":1474758,"edu":[0.0,0.0,0.0034,0.0954,0.9012],"ho":1,"ha":1,"af":[378]},{"l":"Ingenieros químicos","o":0.35,"og":"Muy baja o ninguna","a":6.639,"c":4.579,"t":0.619,"q":"complementa","n":9438,"im":4728666,"imed":3629001,"edu":[0.0,0.0,0.0,0.0024,0.9976],"ho":1,"ha":1},{"l":"Otros profesores de artes","o":0.35,"og":"Muy baja o ninguna","a":6.452,"c":4.933,"t":0.545,"q":"riesgo","n":9069,"im":2166413,"imed":1757301,"edu":[0.0,0.0029,0.0057,0.2557,0.7357],"ho":1,"ha":1,"af":[227]},{"l":"Directores de explotaciones de minería","o":0.35,"og":"Muy baja o ninguna","a":6.471,"c":4.418,"t":0.626,"q":"complementa","n":1625,"im":8645476,"imed":6000000,"edu":[0.0,0.34,0.0,0.0899,0.5701],"ho":1,"ha":1},{"l":"Asistentes médicos","o":0.35,"og":"Baja","a":6.086,"c":4.634,"t":0.548,"q":"complementa","n":485,"im":1758550,"imed":1734877,"edu":[0.0,0.0,0.0,0.0167,0.9833],"ho":1,"ha":1,"af":[347,334]},{"l":"Otros profesores de idiomas","o":0.34,"og":"Muy baja o ninguna","a":6.515,"c":4.83,"t":0.568,"q":"complementa","n":17184,"im":2760005,"imed":2400000,"edu":[0.0,0.0,0.001,0.0964,0.9026],"ho":1,"ha":1},{"l":"Directores de empresas de construcción","o":0.34,"og":"Muy baja o ninguna","a":6.498,"c":3.784,"t":0.727,"q":"complementa","n":9138,"im":7256567,"imed":4000000,"edu":[0.0,0.0,0.0,0.0639,0.9361],"ho":1,"ha":1},{"l":"Técnicos en seguridad aeronáutica","o":0.34,"og":"Muy baja o ninguna","a":6.225,"c":4.141,"t":0.644,"q":"complementa","n":1861,"im":3203981,"imed":2721906,"edu":[0.0,0.0,0.0,0.4544,0.5456],"ho":1,"ha":1,"af":[230,282,294]},{"l":"Directores de servicios de atención a personas mayores","o":0.34,"og":"Muy baja o ninguna","a":6.448,"c":4.342,"t":0.637,"q":"complementa","n":416,"im":3510239,"imed":2909745,"edu":[0.0,0.0185,0.0,0.0536,0.9279],"ho":1,"ha":1},{"l":"Otros profesionales de la educación no clasificados en otros grupos primarios","o":0.33,"og":"Muy baja o ninguna","a":6.511,"c":4.553,"t":0.61,"q":"complementa","n":49377,"im":1483795,"imed":800000,"edu":[0.0,0.0001,0.0272,0.1987,0.774],"ho":1,"ha":1},{"l":"Trabajadores y asistentes sociales","o":0.33,"og":"Muy baja o ninguna","a":6.244,"c":4.241,"t":0.63,"q":"complementa","n":8509,"im":2006893,"imed":2000000,"edu":[0.0,0.0266,0.0152,0.416,0.5421],"ho":1,"ha":1},{"l":"Farmacéuticos","o":0.33,"og":"Muy baja o ninguna","a":6.308,"c":3.956,"t":0.682,"q":"complementa","n":3380,"im":2777567,"imed":2064527,"edu":[0.0,0.0337,0.0,0.0674,0.8988],"ho":1,"ha":1},{"l":"Gerentes de centros deportivos, de esparcimiento y culturales","o":0.32,"og":"Muy baja o ninguna","a":6.44,"c":4.342,"t":0.635,"q":"complementa","n":18426,"im":2445862,"imed":2000000,"edu":[0.0078,0.0823,0.0812,0.3866,0.4421],"ho":1,"ha":1},{"l":"Ingenieros mecánicos","o":0.32,"og":"Muy baja o ninguna","a":6.468,"c":4.575,"t":0.602,"q":"complementa","n":18258,"im":3750015,"imed":3000000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1,"af":[300,325,271]},{"l":"Guías","o":0.32,"og":"Muy baja o ninguna","a":6.243,"c":4.351,"t":0.612,"q":"complementa","n":8268,"im":1670804,"imed":1423384,"edu":[0.0055,0.0334,0.0655,0.4146,0.481],"ho":1,"ha":1},{"l":"Ensambladores no clasificados en otros grupos primarios","o":0.32,"og":"Muy baja o ninguna","a":5.674,"c":4.662,"t":0.488,"q":"baja","n":4559,"im":1367357,"imed":1423500,"edu":[0.0,0.0998,0.2206,0.5522,0.1275],"ho":1,"ha":0},{"l":"Agentes de aduanas e inspectores de fronteras","o":0.32,"og":"Muy baja o ninguna","a":6.007,"c":3.896,"t":0.663,"q":"complementa","n":2342,"im":3119209,"imed":3200000,"edu":[0.0,0.0,0.0116,0.0393,0.9491],"ho":1,"ha":0},{"l":"Técnicos en química industrial","o":0.32,"og":"Muy baja o ninguna","a":6.114,"c":4.509,"t":0.572,"q":"complementa","n":2304,"im":2430564,"imed":1883794,"edu":[0.0,0.0,0.0,0.3504,0.6496],"ho":1,"ha":1,"af":[325,387,238]},{"l":"Profesionales de medicina tradicional y alternativa","o":0.32,"og":"Muy baja o ninguna","a":6.352,"c":4.115,"t":0.661,"q":"complementa","n":1858,"im":4896095,"imed":3006032,"edu":[0.0,0.0181,0.0,0.0038,0.9781],"ho":1,"ha":1,"af":[334]},{"l":"Ingenieros electricistas","o":0.31,"og":"Muy baja o ninguna","a":6.542,"c":4.767,"t":0.581,"q":"complementa","n":21694,"im":5882837,"imed":4066270,"edu":[0.0,0.0,0.0,0.0023,0.9977],"ho":1,"ha":1},{"l":"Clasificadores y probadores de productos (excluyendo alimentos y bebidas)","o":0.31,"og":"Muy baja o ninguna","a":6.021,"c":4.573,"t":0.55,"q":"complementa","n":13410,"im":1914450,"imed":1500000,"edu":[0.0,0.035,0.0474,0.4763,0.4413],"ho":1,"ha":0},{"l":"Técnicos de laboratorios médicos","o":0.31,"og":"Muy baja o ninguna","a":6.069,"c":4.628,"t":0.546,"q":"riesgo","n":7574,"im":1780872,"imed":1600000,"edu":[0.0,0.0,0.0,0.0974,0.9026],"ho":1,"ha":1,"af":[320,347]},{"l":"Directores formuladores de políticas y normas","o":0.31,"og":"Muy baja o ninguna","a":6.396,"c":3.953,"t":0.691,"q":"complementa","n":7239,"im":3913465,"imed":2446516,"edu":[0.0,0.0618,0.003,0.1641,0.7711],"ho":1,"ha":1},{"l":"Jueces","o":0.31,"og":"Muy baja o ninguna","a":6.682,"c":4.516,"t":0.633,"q":"complementa","n":6596,"im":15384920,"imed":14000000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Catadores y clasificadores de alimentos y bebidas","o":0.31,"og":"Muy baja o ninguna","a":5.764,"c":4.753,"t":0.48,"q":"baja","n":4591,"im":1617611,"imed":1423500,"edu":[0.0334,0.1661,0.0607,0.3571,0.3828],"ho":1,"ha":0},{"l":"Controladores de procesos de producción de metales","o":0.31,"og":"Muy baja o ninguna","a":5.508,"c":4.488,"t":0.494,"q":"baja","n":2348,"im":1695611,"imed":1600000,"edu":[0.0,0.4824,0.1322,0.312,0.0734],"ho":1,"ha":0,"af":[325,306,222,296]},{"l":"Controladores de tráfico aéreo y marítimo","o":0.31,"og":"Muy baja o ninguna","a":6.303,"c":4.284,"t":0.631,"q":"complementa","n":2139,"im":3812502,"imed":3045586,"edu":[0.0,0.0,0.0014,0.3655,0.6331],"ho":1,"ha":1,"af":[354]},{"l":"Actores","o":0.31,"og":"Muy baja o ninguna","a":6.106,"c":4.617,"t":0.553,"q":"complementa","n":1113,"im":6768025,"imed":1843322,"edu":[0.0,0.0,0.0128,0.1926,0.7946],"ho":1,"ha":1,"af":[297]},{"l":"Profesores de educación secundaria","o":0.3,"og":"Muy baja o ninguna","a":6.572,"c":4.304,"t":0.654,"q":"complementa","n":211449,"im":4127489,"imed":3700000,"edu":[0.0001,0.0,0.0,0.0058,0.994],"ho":1,"ha":1},{"l":"Ingenieros civiles","o":0.3,"og":"Muy baja o ninguna","a":6.612,"c":4.599,"t":0.614,"q":"complementa","n":83393,"im":4676356,"imed":3700000,"edu":[0.0,0.0,0.0,0.0011,0.9989],"ho":1,"ha":1},{"l":"Técnicos y asistentes farmacéuticos","o":0.3,"og":"Muy baja o ninguna","a":6.038,"c":4.679,"t":0.534,"q":"riesgo","n":26819,"im":1727081,"imed":1500000,"edu":[0.0,0.001,0.0008,0.1752,0.8231],"ho":1,"ha":0,"af":[347]},{"l":"Ingenieros no clasificados en otros grupos primarios","o":0.3,"og":"Muy baja o ninguna","a":6.496,"c":4.596,"t":0.602,"q":"complementa","n":7415,"im":5898734,"imed":4855767,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Astrólogos, adivinos y trabajadores afines","o":0.3,"og":"Muy baja o ninguna","a":5.834,"c":4.191,"t":0.59,"q":"complementa","n":1950,"im":2061779,"imed":1500000,"edu":[0.0,0.0901,0.1914,0.2913,0.4273],"ho":1,"ha":0},{"l":"Directores de servicios de cuidados infantiles","o":0.3,"og":"Muy baja o ninguna","a":6.412,"c":3.874,"t":0.705,"q":"complementa","n":1026,"im":2248714,"imed":1815137,"edu":[0.0,0.0,0.0,0.6378,0.3622],"ho":1,"ha":1},{"l":"Otros técnicos y profesionales del nivel medio de la salud no clasificados en otros grupos primarios","o":0.3,"og":"Muy baja o ninguna","a":5.985,"c":4.254,"t":0.598,"q":"complementa","n":91,"im":2237126,"imed":2341382,"edu":[0.0,0.0,0.0,0.7691,0.2309],"ho":1,"ha":0,"af":[334]},{"l":"Médicos generales","o":0.29,"og":"Muy baja o ninguna","a":6.476,"c":3.858,"t":0.713,"q":"complementa","n":62878,"im":5404709,"imed":4800000,"edu":[0.0,0.0,0.0,0.0002,0.9998],"ho":1,"ha":1},{"l":"Otras ocupaciones elementales no clasificadas en otros grupos primarios","o":0.29,"og":"Muy baja o ninguna","a":5.825,"c":4.922,"t":0.465,"q":"riesgo","n":20032,"im":1308787,"imed":1400000,"edu":[0.019,0.1773,0.1262,0.4335,0.2439],"ho":1,"ha":0,"af":[307]},{"l":"Agrónomos, silvicultores, zootecnistas y afines","o":0.29,"og":"Muy baja o ninguna","a":6.231,"c":4.071,"t":0.655,"q":"complementa","n":18636,"im":5165312,"imed":3500000,"edu":[0.0,0.0063,0.0,0.0012,0.9925],"ho":1,"ha":1,"af":[303,360,273]},{"l":"Ingenieros de minas, metalúrgicos y afines","o":0.29,"og":"Muy baja o ninguna","a":6.56,"c":4.587,"t":0.61,"q":"complementa","n":6630,"im":8633377,"imed":7493922,"edu":[0.0,0.0,0.0,0.0016,0.9984],"ho":1,"ha":1,"af":[296]},{"l":"Supervisores de minas","o":0.29,"og":"Muy baja o ninguna","a":5.897,"c":3.505,"t":0.715,"q":"complementa","n":2749,"im":4246082,"imed":3093367,"edu":[0.0,0.0483,0.077,0.1647,0.71],"ho":1,"ha":0,"af":[394,322,272,398]},{"l":"Controladores de instalaciones de procesamiento de productos químicos","o":0.29,"og":"Muy baja o ninguna","a":5.862,"c":4.124,"t":0.606,"q":"complementa","n":2027,"im":1734284,"imed":1522824,"edu":[0.0,0.0327,0.1809,0.5771,0.2093],"ho":1,"ha":0,"af":[238]},{"l":"Operadores de instalaciones de refinación de petróleo y gas natural","o":0.29,"og":"Muy baja o ninguna","a":5.786,"c":3.978,"t":0.622,"q":"baja","n":1592,"im":3289231,"imed":1550403,"edu":[0.0,0.0538,0.0716,0.305,0.5696],"ho":1,"ha":0,"af":[370,387,238,313]},{"l":"Capitanes, oficiales de cubierta y prácticos","o":0.29,"og":"Muy baja o ninguna","a":6.064,"c":3.767,"t":0.688,"q":"complementa","n":617,"im":2319650,"imed":1720458,"edu":[0.0,0.3965,0.1089,0.2731,0.2215],"ho":1,"ha":1,"af":[324,325,310,362]},{"l":"Meseros","o":0.28,"og":"Muy baja o ninguna","a":5.657,"c":4.583,"t":0.499,"q":"baja","n":338998,"im":1163243,"imed":1200000,"edu":[0.0064,0.072,0.1234,0.5391,0.2592],"ho":1,"ha":0,"af":[298,218]},{"l":"Supervisores de la construcción","o":0.28,"og":"Muy baja o ninguna","a":5.897,"c":3.505,"t":0.715,"q":"complementa","n":148771,"im":1912247,"imed":1600000,"edu":[0.0234,0.3188,0.2104,0.2938,0.1536],"ho":1,"ha":0,"af":[290,305]},{"l":"Profesionales de la salud y la higiene laboral y ambiental","o":0.28,"og":"Muy baja o ninguna","a":6.379,"c":4.069,"t":0.671,"q":"complementa","n":49618,"im":3152077,"imed":2581318,"edu":[0.0,0.0,0.0,0.0028,0.9972],"ho":1,"ha":1},{"l":"Compositores, músicos y cantantes","o":0.28,"og":"Muy baja o ninguna","a":6.231,"c":4.68,"t":0.556,"q":"complementa","n":30498,"im":2066004,"imed":1500000,"edu":[0.0,0.0527,0.0814,0.3441,0.5217],"ho":1,"ha":1,"af":[378]},{"l":"Profesionales del trabajo social y consejeros","o":0.28,"og":"Muy baja o ninguna","a":6.445,"c":4.402,"t":0.626,"q":"complementa","n":29849,"im":3727258,"imed":3000000,"edu":[0.0,0.0,0.0023,0.0485,0.9492],"ho":1,"ha":1},{"l":"Fisioterapeutas","o":0.28,"og":"Muy baja o ninguna","a":5.946,"c":3.682,"t":0.691,"q":"complementa","n":27892,"im":2538417,"imed":2353803,"edu":[0.0,0.0,0.001,0.0,0.999],"ho":1,"ha":0},{"l":"Técnicos en ingeniería civil","o":0.28,"og":"Muy baja o ninguna","a":6.102,"c":4.125,"t":0.635,"q":"complementa","n":12772,"im":2296220,"imed":2000000,"edu":[0.0,0.0095,0.0094,0.3068,0.6743],"ho":1,"ha":1,"af":[408]},{"l":"Ensambladores de equipos eléctricos y electrónicos","o":0.28,"og":"Muy baja o ninguna","a":5.778,"c":4.849,"t":0.47,"q":"baja","n":7418,"im":1613516,"imed":1473987,"edu":[0.0,0.071,0.0062,0.527,0.3958],"ho":1,"ha":0,"af":[323,325,230]},{"l":"Profesores de educación especial e inclusiva","o":0.28,"og":"Muy baja o ninguna","a":6.256,"c":3.947,"t":0.68,"q":"complementa","n":2570,"im":3291055,"imed":3207597,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1},{"l":"Técnicos de minas y metalurgia","o":0.28,"og":"Muy baja o ninguna","a":6.096,"c":4.533,"t":0.566,"q":"complementa","n":1833,"im":5380311,"imed":1577079,"edu":[0.0,0.0,0.0,0.061,0.939],"ho":1,"ha":1,"af":[322,388,375,243]},{"l":"Operadores de instalaciones para la preparación de papel y de pasta para papel","o":0.28,"og":"Muy baja o ninguna","a":5.58,"c":4.561,"t":0.491,"q":"baja","n":1375,"im":2074937,"imed":2104527,"edu":[0.0,0.1181,0.0,0.8084,0.0735],"ho":1,"ha":0,"af":[312]},{"l":"Operadores de plantas de producción de energía","o":0.28,"og":"Muy baja o ninguna","a":6.129,"c":4.179,"t":0.627,"q":"complementa","n":814,"im":2036941,"imed":1795232,"edu":[0.0,0.0,0.1801,0.3016,0.5183],"ho":1,"ha":1,"af":[290,287]},{"l":"Directores de producción agropecuaria y silvicultura","o":0.27,"og":"Muy baja o ninguna","a":5.975,"c":3.695,"t":0.691,"q":"complementa","n":123804,"im":2259312,"imed":1600000,"edu":[0.0615,0.4533,0.1185,0.2115,0.1552],"ho":1,"ha":0,"af":[262]},{"l":"Médicos especialistas","o":0.27,"og":"Muy baja o ninguna","a":6.333,"c":3.79,"t":0.711,"q":"complementa","n":46771,"im":10226664,"imed":8000000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":1,"ha":1,"af":[349]},{"l":"Electrotécnicos","o":0.27,"og":"Muy baja o ninguna","a":6.048,"c":4.444,"t":0.574,"q":"complementa","n":40711,"im":2090280,"imed":1800000,"edu":[0.0,0.051,0.0085,0.1994,0.7412],"ho":1,"ha":1,"af":[323]},{"l":"Conserjes y afines","o":0.27,"og":"Muy baja o ninguna","a":5.387,"c":4.281,"t":0.514,"q":"baja","n":7855,"im":1510013,"imed":1423500,"edu":[0.0055,0.226,0.0528,0.4194,0.2962],"ho":1,"ha":0,"af":[280,250]},{"l":"Operadores de incineradores, instalaciones de tratamiento de agua y afines","o":0.27,"og":"Muy baja o ninguna","a":5.804,"c":3.987,"t":0.622,"q":"baja","n":6409,"im":1869598,"imed":1423500,"edu":[0.0,0.1007,0.0377,0.4254,0.4361],"ho":1,"ha":0,"af":[232,409,387,305]},{"l":"Ensambladores de maquinaria mecánica","o":0.27,"og":"Muy baja o ninguna","a":5.623,"c":4.451,"t":0.518,"q":"baja","n":3554,"im":1567794,"imed":1423500,"edu":[0.0251,0.143,0.049,0.6612,0.1217],"ho":1,"ha":0},{"l":"Pilotos de aviación y afines","o":0.27,"og":"Muy baja o ninguna","a":6.062,"c":3.782,"t":0.685,"q":"complementa","n":3386,"im":12726233,"imed":12958053,"edu":[0.0,0.0053,0.0,0.013,0.9817],"ho":1,"ha":1,"af":[256,294]},{"l":"Operadores de máquinas para fabricar productos fotográficos","o":0.27,"og":"Muy baja o ninguna","a":5.872,"c":4.847,"t":0.484,"q":"riesgo","n":95,"im":1237411,"imed":1414630,"edu":[0.0,0.5165,0.0,0.2175,0.2659],"ho":1,"ha":0,"af":[229,268]},{"l":"Profesores de educación primaria","o":0.26,"og":"Muy baja o ninguna","a":6.524,"c":4.266,"t":0.655,"q":"complementa","n":169832,"im":3811485,"imed":3500000,"edu":[0.0,0.003,0.001,0.0348,0.9612],"ho":0,"ha":1},{"l":"Técnicos en ingeniería mecánica","o":0.26,"og":"Muy baja o ninguna","a":6.051,"c":4.471,"t":0.57,"q":"complementa","n":31059,"im":2223103,"imed":1800000,"edu":[0.0,0.0066,0.0074,0.1612,0.8248],"ho":0,"ha":1,"af":[325,296]},{"l":"Bármanes","o":0.26,"og":"Muy baja o ninguna","a":5.757,"c":5.018,"t":0.438,"q":"baja","n":21925,"im":1311868,"imed":1423000,"edu":[0.0,0.0413,0.1038,0.5915,0.2634],"ho":0,"ha":0},{"l":"Técnicos agropecuarios","o":0.26,"og":"Muy baja o ninguna","a":6.079,"c":4.551,"t":0.561,"q":"complementa","n":12519,"im":2612868,"imed":2225734,"edu":[0.0,0.0321,0.0058,0.2655,0.6966],"ho":0,"ha":1,"af":[406,320,303,291]},{"l":"Técnicos en ciencias físicas y químicas","o":0.26,"og":"Muy baja o ninguna","a":6.124,"c":4.646,"t":0.551,"q":"complementa","n":5959,"im":2482511,"imed":2200000,"edu":[0.0,0.0,0.0045,0.1609,0.8346],"ho":0,"ha":1,"af":[325,238,271]},{"l":"Técnicos en ciencias físicas y en ingeniería no clasificados en otros grupos primarios","o":0.26,"og":"Muy baja o ninguna","a":6.096,"c":4.159,"t":0.628,"q":"complementa","n":4915,"im":4310957,"imed":2000000,"edu":[0.0,0.0086,0.0067,0.1315,0.8533],"ho":0,"ha":1,"af":[296]},{"l":"Operadores de instalaciones de procesamiento de metales","o":0.26,"og":"Muy baja o ninguna","a":5.53,"c":4.546,"t":0.487,"q":"baja","n":3938,"im":1668745,"imed":1423500,"edu":[0.0595,0.1626,0.1073,0.4619,0.2087],"ho":0,"ha":0},{"l":"Conductores de motocicletas","o":0.25,"og":"Muy baja o ninguna","a":5.779,"c":4.212,"t":0.579,"q":"baja","n":509598,"im":1043424,"imed":1000000,"edu":[0.0285,0.2019,0.166,0.4956,0.108],"ho":0,"ha":0},{"l":"Trabajadores de los cuidados personales a domicilio","o":0.25,"og":"Muy baja o ninguna","a":5.915,"c":4.438,"t":0.557,"q":"complementa","n":77883,"im":1291200,"imed":1308671,"edu":[0.0123,0.1356,0.0688,0.3358,0.4475],"ho":0,"ha":0},{"l":"Profesionales de enfermería","o":0.25,"og":"Muy baja o ninguna","a":6.133,"c":3.735,"t":0.7,"q":"complementa","n":30513,"im":3869451,"imed":3000000,"edu":[0.0,0.0078,0.0,0.0159,0.9763],"ho":0,"ha":1,"af":[334]},{"l":"Chefs","o":0.25,"og":"Muy baja o ninguna","a":5.916,"c":3.964,"t":0.639,"q":"complementa","n":23511,"im":2117254,"imed":1733532,"edu":[0.0034,0.0454,0.0393,0.3763,0.5357],"ho":0,"ha":0},{"l":"Instructores de educación física y actividades recreativas","o":0.25,"og":"Muy baja o ninguna","a":5.866,"c":3.945,"t":0.637,"q":"complementa","n":20728,"im":1748538,"imed":1500000,"edu":[0.0,0.0243,0.005,0.2449,0.7258],"ho":0,"ha":0},{"l":"Revisores y cobradores de los transportes públicos","o":0.25,"og":"Muy baja o ninguna","a":5.983,"c":4.532,"t":0.55,"q":"complementa","n":14319,"im":1197276,"imed":927400,"edu":[0.0167,0.0395,0.1709,0.5562,0.2168],"ho":0,"ha":0},{"l":"Impresores","o":0.25,"og":"Muy baja o ninguna","a":5.715,"c":4.637,"t":0.498,"q":"baja","n":13909,"im":1796920,"imed":1500000,"edu":[0.0,0.0508,0.0595,0.6041,0.2856],"ho":0,"ha":0},{"l":"Ajustadores e instaladores en electrónica","o":0.25,"og":"Muy baja o ninguna","a":5.83,"c":4.149,"t":0.597,"q":"complementa","n":10182,"im":1274906,"imed":1400000,"edu":[0.0,0.126,0.111,0.5347,0.2283],"ho":0,"ha":0},{"l":"Modelos de moda, arte y publicidad","o":0.25,"og":"Muy baja o ninguna","a":5.529,"c":5.042,"t":0.397,"q":"baja","n":3385,"im":3765204,"imed":2856710,"edu":[0.0,0.0,0.0092,0.4787,0.5121],"ho":0,"ha":0},{"l":"Conductores de camiones y vehículos pesados","o":0.24,"og":"Muy baja o ninguna","a":5.809,"c":4.08,"t":0.605,"q":"complementa","n":283525,"im":1894868,"imed":1600000,"edu":[0.0051,0.2,0.1615,0.5359,0.0976],"ho":0,"ha":0},{"l":"Vendedores de comidas en mostrador","o":0.24,"og":"Muy baja o ninguna","a":5.596,"c":4.841,"t":0.445,"q":"baja","n":68353,"im":1028847,"imed":1000000,"edu":[0.0217,0.1421,0.1526,0.465,0.2186],"ho":0,"ha":0},{"l":"Instaladores y reparadores en tecnología de la información y las comunicaciones","o":0.24,"og":"Muy baja o ninguna","a":5.756,"c":4.178,"t":0.583,"q":"baja","n":58929,"im":1680940,"imed":1423500,"edu":[0.0007,0.0358,0.0537,0.5244,0.3854],"ho":0,"ha":0},{"l":"Expendedores de combustibles para vehículos","o":0.24,"og":"Muy baja o ninguna","a":5.792,"c":3.945,"t":0.628,"q":"baja","n":39484,"im":1469953,"imed":1423500,"edu":[0.0076,0.1149,0.0855,0.614,0.1779],"ho":0,"ha":0},{"l":"Inspectores de seguridad, salud ocupacional, medioambiental y afines","o":0.24,"og":"Muy baja o ninguna","a":6.094,"c":4.162,"t":0.626,"q":"complementa","n":36636,"im":2497905,"imed":2009029,"edu":[0.0,0.0034,0.0,0.0644,0.9322],"ho":0,"ha":1,"af":[387,292]},{"l":"Auxiliares de maestros","o":0.24,"og":"Muy baja o ninguna","a":6.427,"c":4.285,"t":0.642,"q":"complementa","n":21610,"im":1742182,"imed":1423500,"edu":[0.0,0.0023,0.0107,0.2056,0.7813],"ho":0,"ha":1},{"l":"Operadores de plantas y máquinas de productos químicos","o":0.24,"og":"Muy baja o ninguna","a":5.639,"c":4.455,"t":0.518,"q":"baja","n":20567,"im":1677309,"imed":1514834,"edu":[0.0019,0.0449,0.0747,0.698,0.1806],"ho":0,"ha":0},{"l":"Fonoaudiólogos y terapeutas del lenguaje","o":0.24,"og":"Muy baja o ninguna","a":6.436,"c":4.154,"t":0.664,"q":"complementa","n":5511,"im":3020395,"imed":2600000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":0,"ha":1,"af":[255,334]},{"l":"Optómetras","o":0.24,"og":"Muy baja o ninguna","a":6.262,"c":3.945,"t":0.679,"q":"complementa","n":4847,"im":11027602,"imed":4000000,"edu":[0.0,0.0,0.0,0.0,1.0],"ho":0,"ha":1},{"l":"Técnicos en optometría y ópticas","o":0.24,"og":"Muy baja o ninguna","a":6.08,"c":4.532,"t":0.564,"q":"complementa","n":544,"im":1708860,"imed":1637557,"edu":[0.0,0.0,0.0,0.0193,0.9807],"ho":0,"ha":1},{"l":"Inspectores de policía y detectives","o":0.23,"og":"Muy baja o ninguna","a":6.041,"c":3.703,"t":0.697,"q":"complementa","n":9389,"im":4685959,"imed":3800000,"edu":[0.0,0.0,0.0,0.0962,0.9038],"ho":0,"ha":1,"af":[274,356,296]},{"l":"Operadores de máquinas para fabricar cemento y otros productos minerales","o":0.23,"og":"Muy baja o ninguna","a":5.627,"c":4.333,"t":0.539,"q":"baja","n":7626,"im":1546491,"imed":1482653,"edu":[0.0356,0.187,0.0683,0.5076,0.2015],"ho":0,"ha":0},{"l":"Paramédicos e instrumentadores quirúrgicos","o":0.23,"og":"Muy baja o ninguna","a":6.077,"c":3.619,"t":0.714,"q":"complementa","n":7079,"im":3253464,"imed":3000000,"edu":[0.0,0.0,0.0,0.01,0.99],"ho":0,"ha":1,"af":[349,360,255,259]},{"l":"Atletas y deportistas","o":0.23,"og":"Muy baja o ninguna","a":5.217,"c":3.731,"t":0.594,"q":"baja","n":2724,"im":3480986,"imed":1655734,"edu":[0.0,0.0,0.0134,0.748,0.2386],"ho":0,"ha":0},{"l":"Oficiales maquinistas en navegación","o":0.23,"og":"Muy baja o ninguna","a":6.05,"c":3.886,"t":0.666,"q":"complementa","n":2655,"im":1309946,"imed":1182084,"edu":[0.0761,0.3838,0.1804,0.219,0.1407],"ho":0,"ha":1,"af":[300,323,325,362]},{"l":"Jefes de comunidades étnicas","o":0.23,"og":"Muy baja o ninguna","a":6.516,"c":4.04,"t":0.689,"q":"complementa","n":522,"im":7420475,"imed":8000000,"edu":[0.0,0.0,0.0,0.0684,0.9316],"ho":0,"ha":1},{"l":"Vendedores ambulantes de alimentos preparados para consumo inmediato","o":0.22,"og":"Muy baja o ninguna","a":6.12,"c":4.945,"t":0.505,"q":"riesgo","n":237437,"im":733429,"imed":600000,"edu":[0.0578,0.3092,0.1776,0.3432,0.1122],"ho":0,"ha":1,"af":[233]},{"l":"Operarios de la elaboración de productos lácteos","o":0.22,"og":"Muy baja o ninguna","a":5.738,"c":4.678,"t":0.494,"q":"baja","n":22455,"im":922930,"imed":800000,"edu":[0.0674,0.2457,0.1382,0.3616,0.1871],"ho":0,"ha":0},{"l":"Supervisores  de mantenimiento y limpieza en oficinas, hoteles y otros establecimientos","o":0.22,"og":"Muy baja o ninguna","a":5.771,"c":4.197,"t":0.582,"q":"baja","n":12878,"im":2003643,"imed":1648123,"edu":[0.0035,0.036,0.0477,0.4557,0.4572],"ho":0,"ha":0},{"l":"Operadores de máquinas de embalaje, embotellamiento y etiquetado","o":0.22,"og":"Muy baja o ninguna","a":5.593,"c":4.405,"t":0.522,"q":"baja","n":11155,"im":1612463,"imed":1423500,"edu":[0.0,0.0133,0.058,0.6825,0.2462],"ho":0,"ha":0},{"l":"Técnicos y profesionales del nivel medio en enfermería","o":0.22,"og":"Muy baja o ninguna","a":5.803,"c":4.13,"t":0.598,"q":"baja","n":8121,"im":1835380,"imed":1800000,"edu":[0.0,0.0,0.0,0.0738,0.9262],"ho":0,"ha":0},{"l":"Encuadernadores y afines","o":0.22,"og":"Muy baja o ninguna","a":5.626,"c":4.774,"t":0.461,"q":"baja","n":7207,"im":1374606,"imed":1423500,"edu":[0.0,0.1351,0.1093,0.4598,0.2958],"ho":0,"ha":0},{"l":"Trabajadores comunitarios de la salud","o":0.22,"og":"Muy baja o ninguna","a":6.051,"c":4.118,"t":0.629,"q":"complementa","n":6780,"im":2620141,"imed":2153062,"edu":[0.0,0.0418,0.0,0.2646,0.6935],"ho":0,"ha":1,"af":[355,224,347]},{"l":"Técnicos en aparatos de diagnóstico y tratamiento médico","o":0.22,"og":"Muy baja o ninguna","a":5.942,"c":4.329,"t":0.581,"q":"complementa","n":5804,"im":4264093,"imed":2500000,"edu":[0.0,0.0171,0.0,0.0541,0.9288],"ho":0,"ha":0},{"l":"Personal de servicio a pasajeros","o":0.22,"og":"Muy baja o ninguna","a":5.886,"c":4.151,"t":0.605,"q":"complementa","n":4037,"im":3179409,"imed":2940986,"edu":[0.0,0.0047,0.0274,0.0826,0.8853],"ho":0,"ha":0},{"l":"Trabajadores de explotaciones de acuicultura","o":0.22,"og":"Muy baja o ninguna","a":5.689,"c":4.093,"t":0.588,"q":"baja","n":3727,"im":1553056,"imed":1400000,"edu":[0.0227,0.53,0.0973,0.2344,0.1157],"ho":0,"ha":0},{"l":"Ajustadores y operadores de máquinas para trabajar madera","o":0.22,"og":"Muy baja o ninguna","a":5.525,"c":4.515,"t":0.492,"q":"baja","n":2774,"im":1210849,"imed":1423500,"edu":[0.0,0.4812,0.0858,0.3695,0.0635],"ho":0,"ha":0},{"l":"Técnicos en atención prehospitalaria","o":0.22,"og":"Muy baja o ninguna","a":5.979,"c":4.373,"t":0.578,"q":"complementa","n":2077,"im":1434234,"imed":1423500,"edu":[0.0,0.0034,0.0,0.1345,0.862],"ho":0,"ha":0},{"l":"Operarios del tratamiento de la madera","o":0.22,"og":"Muy baja o ninguna","a":5.523,"c":4.309,"t":0.529,"q":"baja","n":1080,"im":1204681,"imed":1332157,"edu":[0.0098,0.2062,0.386,0.3027,0.0952],"ho":0,"ha":0},{"l":"Criadores y trabajadores calificados de la apicultura y la sericicultura","o":0.22,"og":"Muy baja o ninguna","a":5.689,"c":4.093,"t":0.588,"q":"baja","n":495,"im":1136943,"imed":806145,"edu":[0.3087,0.1257,0.0604,0.3364,0.1688],"ho":0,"ha":0},{"l":"Directores de producción de piscicultura y pesca","o":0.22,"og":"Muy baja o ninguna","a":5.975,"c":3.695,"t":0.691,"q":"complementa","n":131,"im":1449389,"imed":1605118,"edu":[0.0,0.5564,0.0,0.0,0.4436],"ho":0,"ha":0},{"l":"Acompañantes","o":0.22,"og":"Muy baja o ninguna","a":5.927,"c":4.32,"t":0.579,"q":"complementa","n":41,"im":1747706,"imed":1530827,"edu":[0.0,0.3241,0.0,0.6759,0.0],"ho":0,"ha":0},{"l":"Profesores de primera infancia","o":0.21,"og":"Muy baja o ninguna","a":6.124,"c":4.285,"t":0.609,"q":"complementa","n":62387,"im":2465292,"imed":1900000,"edu":[0.0,0.0004,0.0006,0.0875,0.9114],"ho":0,"ha":1},{"l":"Mecánicos montadores de aire acondicionado y refrigeración","o":0.21,"og":"Muy baja o ninguna","a":5.838,"c":3.832,"t":0.653,"q":"complementa","n":13928,"im":1579332,"imed":1423500,"edu":[0.0025,0.0658,0.088,0.5599,0.2838],"ho":0,"ha":0},{"l":"Conductores de vehículos accionados a pedal o a brazo","o":0.21,"og":"Muy baja o ninguna","a":5.615,"c":4.227,"t":0.557,"q":"baja","n":12954,"im":823876,"imed":790050,"edu":[0.1009,0.3457,0.1997,0.2821,0.0717],"ho":0,"ha":0},{"l":"Otros trabajadores de servicios personales no clasificados en otros grupos primarios","o":0.21,"og":"Muy baja o ninguna","a":6.037,"c":4.303,"t":0.596,"q":"complementa","n":10825,"im":2962416,"imed":2000000,"edu":[0.0028,0.1003,0.1768,0.466,0.2541],"ho":0,"ha":0},{"l":"Operadores de máquinas de blanqueamiento, teñido y limpieza de tejidos","o":0.21,"og":"Muy baja o ninguna","a":5.647,"c":5.054,"t":0.414,"q":"baja","n":8684,"im":1450302,"imed":1423500,"edu":[0.0469,0.0591,0.053,0.595,0.246],"ho":0,"ha":0},{"l":"Escultores, pintores artísticos y afines","o":0.21,"og":"Muy baja o ninguna","a":5.697,"c":4.922,"t":0.446,"q":"baja","n":7997,"im":1250213,"imed":1059305,"edu":[0.0,0.1158,0.0905,0.2985,0.4952],"ho":0,"ha":0},{"l":"Chapistas y caldereros","o":0.21,"og":"Muy baja o ninguna","a":5.585,"c":4.212,"t":0.556,"q":"baja","n":6863,"im":1388452,"imed":1400000,"edu":[0.018,0.4758,0.1796,0.3106,0.0159],"ho":0,"ha":0},{"l":"Mecánicos y reparadores de instrumentos de precisión","o":0.21,"og":"Muy baja o ninguna","a":5.972,"c":4.666,"t":0.528,"q":"riesgo","n":4762,"im":1247537,"imed":1000000,"edu":[0.0,0.4329,0.166,0.2466,0.1545],"ho":0,"ha":0},{"l":"Operadores de instalaciones de procesamiento de minerales y rocas","o":0.21,"og":"Muy baja o ninguna","a":5.542,"c":4.581,"t":0.482,"q":"baja","n":4488,"im":1876046,"imed":1724734,"edu":[0.0275,0.1969,0.1137,0.5971,0.0649],"ho":0,"ha":0},{"l":"Técnicos forestales","o":0.21,"og":"Muy baja o ninguna","a":5.734,"c":3.666,"t":0.67,"q":"baja","n":569,"im":2314923,"imed":2713551,"edu":[0.0,0.0,0.0,0.1092,0.8908],"ho":0,"ha":0},{"l":"Guardias de seguridad","o":0.2,"og":"Muy baja o ninguna","a":5.969,"c":4.29,"t":0.591,"q":"complementa","n":500725,"im":1761013,"imed":1600000,"edu":[0.012,0.0877,0.0585,0.6891,0.1526],"ho":0,"ha":0},{"l":"Vendedores ambulantes (excluyendo comidas de preparación inmediata)","o":0.2,"og":"Muy baja o ninguna","a":6.534,"c":5.584,"t":0.454,"q":"riesgo","n":200866,"im":847000,"imed":700000,"edu":[0.0504,0.3341,0.1791,0.349,0.0873],"ho":0,"ha":1,"af":[307]},{"l":"Empacadores manuales","o":0.2,"og":"Muy baja o ninguna","a":5.352,"c":4.362,"t":0.494,"q":"baja","n":113232,"im":1364695,"imed":1423500,"edu":[0.0211,0.1045,0.0909,0.6058,0.1776],"ho":0,"ha":0},{"l":"Surtidores de estanterías","o":0.2,"og":"Muy baja o ninguna","a":5.68,"c":4.677,"t":0.486,"q":"baja","n":37301,"im":1424176,"imed":1423500,"edu":[0.0126,0.0943,0.0755,0.6766,0.1409],"ho":0,"ha":0},{"l":"Operadores de montacargas","o":0.2,"og":"Muy baja o ninguna","a":5.752,"c":4.013,"t":0.61,"q":"baja","n":26799,"im":1787893,"imed":1600000,"edu":[0.0091,0.052,0.0466,0.6879,0.2044],"ho":0,"ha":0},{"l":"Otros profesionales de la salud no clasificados en otros grupos primarios","o":0.2,"og":"Muy baja o ninguna","a":6.232,"c":3.962,"t":0.674,"q":"complementa","n":15004,"im":4720520,"imed":4200000,"edu":[0.0,0.0119,0.0,0.0,0.9881],"ho":0,"ha":1,"af":[255,334]},{"l":"Mayordomos domésticos","o":0.2,"og":"Muy baja o ninguna","a":5.775,"c":4.203,"t":0.581,"q":"baja","n":14017,"im":1601239,"imed":1600000,"edu":[0.1482,0.4859,0.0736,0.2139,0.0784],"ho":0,"ha":0},{"l":"Herramentistas y afines","o":0.2,"og":"Muy baja o ninguna","a":5.772,"c":4.399,"t":0.547,"q":"baja","n":13370,"im":1339677,"imed":1337260,"edu":[0.0132,0.1434,0.1713,0.5641,0.1079],"ho":0,"ha":0},{"l":"Personal de los servicios de protección no clasificados en otros grupos primarios","o":0.2,"og":"Muy baja o ninguna","a":5.913,"c":4.177,"t":0.604,"q":"complementa","n":7129,"im":1998122,"imed":1498026,"edu":[0.0,0.0852,0.0905,0.3189,0.5054],"ho":0,"ha":0},{"l":"Criadores y trabajadores pecuarios calificados, avicultores y criadores de insectos no clasificados en otros grupos primarios","o":0.2,"og":"Muy baja o ninguna","a":5.689,"c":4.093,"t":0.588,"q":"baja","n":5927,"im":283194,"imed":200000,"edu":[0.0795,0.5827,0.1149,0.1787,0.0441],"ho":0,"ha":0},{"l":"Instructores de conducción","o":0.2,"og":"Muy baja o ninguna","a":6.272,"c":4.662,"t":0.566,"q":"complementa","n":5356,"im":2003360,"imed":1800000,"edu":[0.0,0.004,0.0148,0.3657,0.6154],"ho":0,"ha":1},{"l":"Operadores de máquinas pulidoras, galvanizadoras y recubridoras de metales","o":0.2,"og":"Muy baja o ninguna","a":5.559,"c":4.562,"t":0.489,"q":"baja","n":4681,"im":1604669,"imed":1600000,"edu":[0.0,0.0199,0.0464,0.7402,0.1935],"ho":0,"ha":0},{"l":"Maquinistas de locomotoras","o":0.2,"og":"Muy baja o ninguna","a":5.74,"c":4.092,"t":0.595,"q":"baja","n":2053,"im":3328010,"imed":2827938,"edu":[0.0,0.1814,0.0056,0.1911,0.6219],"ho":0,"ha":0},{"l":"Operadores de máquinas de vapor y calderas","o":0.2,"og":"Muy baja o ninguna","a":5.808,"c":4.117,"t":0.6,"q":"baja","n":517,"im":2160646,"imed":2426339,"edu":[0.0,0.0,0.2716,0.7087,0.0197],"ho":0,"ha":0},{"l":"Técnicos y profesionales del nivel medio en partería","o":0.2,"og":"Muy baja o ninguna","a":6.138,"c":4.026,"t":0.653,"q":"complementa","n":60,"im":600000,"imed":600000,"edu":[1.0,0.0,0.0,0.0,0.0],"ho":0,"ha":1,"af":[355]},{"l":"Cuidadores de niños","o":0.19,"og":"Muy baja o ninguna","a":6.046,"c":4.336,"t":0.591,"q":"complementa","n":153736,"im":969095,"imed":900000,"edu":[0.016,0.1093,0.095,0.4308,0.3489],"ho":0,"ha":1},{"l":"Electricistas de obras y afines","o":0.19,"og":"Muy baja o ninguna","a":5.646,"c":3.826,"t":0.631,"q":"baja","n":119594,"im":1730761,"imed":1500000,"edu":[0.0069,0.0998,0.1129,0.4129,0.3674],"ho":0,"ha":0},{"l":"Avicultores y trabajadores calificados de la avicultura","o":0.19,"og":"Muy baja o ninguna","a":5.689,"c":4.093,"t":0.588,"q":"baja","n":60108,"im":795824,"imed":500000,"edu":[0.0683,0.3264,0.1372,0.3622,0.106],"ho":0,"ha":0},{"l":"Productores y trabajadores calificados de explotaciones agropecuarias mixtas cuya producción se destina al mercado","o":0.19,"og":"Muy baja o ninguna","a":5.632,"c":4.296,"t":0.545,"q":"baja","n":9048,"im":1824209,"imed":1719052,"edu":[0.0567,0.3127,0.245,0.2699,0.1158],"ho":0,"ha":0},{"l":"Sopladores, modeladores, laminadores, cortadores y pulidores de vidrio","o":0.19,"og":"Muy baja o ninguna","a":5.542,"c":4.997,"t":0.408,"q":"baja","n":3662,"im":1618449,"imed":1423500,"edu":[0.0265,0.1982,0.0768,0.6211,0.0773],"ho":0,"ha":0},{"l":"Mecánicos y reparadores de sistemas y motores de aeronaves","o":0.19,"og":"Muy baja o ninguna","a":5.882,"c":4.04,"t":0.622,"q":"complementa","n":2914,"im":1951544,"imed":1500000,"edu":[0.0258,0.2379,0.1255,0.1768,0.434],"ho":0,"ha":0},{"l":"Técnicos y profesionales del nivel medio en medicina tradicional y alternativa","o":0.19,"og":"Muy baja o ninguna","a":6.138,"c":4.026,"t":0.653,"q":"complementa","n":2698,"im":1788558,"imed":1000000,"edu":[0.0,0.2729,0.1285,0.1836,0.4151],"ho":0,"ha":1},{"l":"Perforadores y sondistas de pozos y afines","o":0.19,"og":"Muy baja o ninguna","a":5.548,"c":3.692,"t":0.643,"q":"baja","n":1956,"im":4142940,"imed":3500000,"edu":[0.0,0.0794,0.0199,0.3629,0.5378],"ho":0,"ha":0},{"l":"Coreógrafos y bailarines","o":0.19,"og":"Muy baja o ninguna","a":5.078,"c":3.502,"t":0.616,"q":"baja","n":1368,"im":1445770,"imed":1423500,"edu":[0.0,0.0,0.1101,0.3202,0.5697],"ho":0,"ha":0},{"l":"Cocineros","o":0.18,"og":"Muy baja o ninguna","a":5.757,"c":4.513,"t":0.525,"q":"baja","n":370624,"im":1141272,"imed":1031367,"edu":[0.0294,0.2447,0.1583,0.424,0.1435],"ho":0,"ha":0},{"l":"Agricultores y trabajadores calificados de cultivos extensivos","o":0.18,"og":"Muy baja o ninguna","a":5.667,"c":4.261,"t":0.555,"q":"baja","n":340084,"im":872006,"imed":700000,"edu":[0.1358,0.5209,0.1342,0.1842,0.0249],"ho":0,"ha":0},{"l":"Mecánicos y reparadores de vehículos de motor","o":0.18,"og":"Muy baja o ninguna","a":5.611,"c":4.033,"t":0.59,"q":"baja","n":283604,"im":1385050,"imed":1400000,"edu":[0.0153,0.1958,0.1827,0.4151,0.1912],"ho":0,"ha":0},{"l":"Especialistas en tratamientos de belleza y afines","o":0.18,"og":"Muy baja o ninguna","a":5.895,"c":4.488,"t":0.547,"q":"riesgo","n":220475,"im":984371,"imed":800000,"edu":[0.0012,0.0368,0.0774,0.5819,0.3027],"ho":0,"ha":0},{"l":"Cocineros de comidas rápidas","o":0.18,"og":"Muy baja o ninguna","a":5.74,"c":4.69,"t":0.492,"q":"baja","n":177210,"im":851750,"imed":700000,"edu":[0.0485,0.2299,0.1728,0.4127,0.1362],"ho":0,"ha":0},{"l":"Agricultores y trabajadores calificados de huertas, invernaderos, viveros y jardines","o":0.18,"og":"Muy baja o ninguna","a":5.52,"c":3.914,"t":0.6,"q":"baja","n":133091,"im":1261240,"imed":1423500,"edu":[0.0599,0.3309,0.1945,0.3599,0.0547],"ho":0,"ha":0},{"l":"Conductores de buses, microbuses y tranvías","o":0.18,"og":"Muy baja o ninguna","a":5.845,"c":4.44,"t":0.548,"q":"complementa","n":111363,"im":1765304,"imed":1600000,"edu":[0.0007,0.1707,0.1356,0.5975,0.0955],"ho":0,"ha":0},{"l":"Fontaneros e instaladores de tuberías","o":0.18,"og":"Muy baja o ninguna","a":5.506,"c":3.57,"t":0.661,"q":"baja","n":57180,"im":1518930,"imed":1423500,"edu":[0.0184,0.2503,0.1269,0.4151,0.1893],"ho":0,"ha":0},{"l":"Clasificadores de desechos","o":0.18,"og":"Muy baja o ninguna","a":5.456,"c":4.185,"t":0.542,"q":"baja","n":43429,"im":677932,"imed":560000,"edu":[0.107,0.3576,0.1909,0.3209,0.0235],"ho":0,"ha":0},{"l":"Trabajadores ambulantes de servicios y afines","o":0.18,"og":"Muy baja o ninguna","a":5.778,"c":4.209,"t":0.58,"q":"baja","n":25439,"im":888237,"imed":700000,"edu":[0.0786,0.3297,0.2087,0.2844,0.0985],"ho":0,"ha":0},{"l":"Tapiceros, colchoneros y afines","o":0.18,"og":"Muy baja o ninguna","a":5.442,"c":4.625,"t":0.459,"q":"baja","n":24650,"im":1290104,"imed":1400000,"edu":[0.0044,0.1934,0.1475,0.5384,0.1163],"ho":0,"ha":0},{"l":"Ajustadores y operadores de máquinas herramientas","o":0.18,"og":"Muy baja o ninguna","a":5.62,"c":4.625,"t":0.486,"q":"baja","n":19932,"im":1659017,"imed":1500000,"edu":[0.0028,0.1262,0.0786,0.5417,0.2507],"ho":0,"ha":0},{"l":"Pescadores de alta mar","o":0.18,"og":"Muy baja o ninguna","a":5.584,"c":4.053,"t":0.58,"q":"baja","n":14466,"im":754261,"imed":600000,"edu":[0.253,0.2842,0.1947,0.2497,0.0184],"ho":0,"ha":0},{"l":"Alfareros y ceramistas (barro y arcilla)","o":0.18,"og":"Muy baja o ninguna","a":5.558,"c":4.636,"t":0.475,"q":"baja","n":13993,"im":1103134,"imed":1200000,"edu":[0.0628,0.2415,0.1629,0.4307,0.1021],"ho":0,"ha":0},{"l":"Operadores de máquinas para fabricar productos de papel","o":0.18,"og":"Muy baja o ninguna","a":5.542,"c":4.331,"t":0.528,"q":"baja","n":12424,"im":1586225,"imed":1423500,"edu":[0.0026,0.0661,0.0269,0.698,0.2063],"ho":0,"ha":0},{"l":"Operadores de grúas, aparatos elevadores y afines","o":0.18,"og":"Muy baja o ninguna","a":5.762,"c":4.231,"t":0.575,"q":"baja","n":9805,"im":2233587,"imed":1800000,"edu":[0.0,0.1531,0.0613,0.5168,0.2688],"ho":0,"ha":0},{"l":"Bomberos y rescatistas","o":0.18,"og":"Muy baja o ninguna","a":5.603,"c":3.194,"t":0.738,"q":"baja","n":7196,"im":2065087,"imed":1600000,"edu":[0.0,0.0651,0.0055,0.4571,0.4724],"ho":0,"ha":0},{"l":"Rotulistas, pintores decorativos y grabadores","o":0.18,"og":"Muy baja o ninguna","a":5.672,"c":5.021,"t":0.423,"q":"baja","n":6789,"im":952176,"imed":800000,"edu":[0.0054,0.1927,0.1411,0.4119,0.2489],"ho":0,"ha":0},{"l":"Técnicos de prótesis médicas y dentales","o":0.18,"og":"Muy baja o ninguna","a":6.05,"c":4.436,"t":0.576,"q":"complementa","n":6220,"im":1942355,"imed":1500000,"edu":[0.0,0.0137,0.0049,0.2543,0.7271],"ho":0,"ha":1,"af":[349,334]},{"l":"Operadores de máquinas para fabricar productos de caucho","o":0.18,"og":"Muy baja o ninguna","a":5.508,"c":4.537,"t":0.485,"q":"baja","n":2613,"im":1484690,"imed":1423500,"edu":[0.0589,0.1221,0.4208,0.3087,0.0896],"ho":0,"ha":0},{"l":"Agricultores y trabajadores calificados de plantaciones de árboles y arbustos","o":0.17,"og":"Muy baja o ninguna","a":5.667,"c":4.261,"t":0.555,"q":"baja","n":265577,"im":1028308,"imed":800000,"edu":[0.0987,0.5252,0.1423,0.1988,0.0351],"ho":0,"ha":0},{"l":"Peluqueros","o":0.17,"og":"Muy baja o ninguna","a":5.886,"c":4.276,"t":0.582,"q":"complementa","n":208234,"im":1046328,"imed":900000,"edu":[0.0028,0.081,0.1256,0.5528,0.2378],"ho":0,"ha":0},{"l":"Criadores de ganado y trabajadores de la cría de animales domésticos (excepto aves de corral)","o":0.17,"og":"Muy baja o ninguna","a":5.689,"c":4.093,"t":0.588,"q":"baja","n":182609,"im":1267067,"imed":916938,"edu":[0.1092,0.4587,0.1339,0.228,0.0702],"ho":0,"ha":0},{"l":"Panaderos, pasteleros y confiteros","o":0.17,"og":"Muy baja o ninguna","a":5.861,"c":4.822,"t":0.486,"q":"riesgo","n":131486,"im":1171849,"imed":1300000,"edu":[0.0366,0.2331,0.1397,0.4064,0.1841],"ho":0,"ha":0},{"l":"Mineros y operadores de instalaciones mineras","o":0.17,"og":"Muy baja o ninguna","a":5.472,"c":4.101,"t":0.559,"q":"baja","n":92903,"im":1353981,"imed":1200000,"edu":[0.0918,0.3793,0.1819,0.3111,0.0359],"ho":0,"ha":0},{"l":"Ajustadores electricistas","o":0.17,"og":"Muy baja o ninguna","a":5.692,"c":3.971,"t":0.611,"q":"baja","n":87023,"im":1333655,"imed":1400000,"edu":[0.012,0.1466,0.1242,0.4162,0.3009],"ho":0,"ha":0},{"l":"Pescadores de agua dulce y en aguas costeras","o":0.17,"og":"Muy baja o ninguna","a":5.584,"c":4.053,"t":0.58,"q":"baja","n":83330,"im":700829,"imed":600000,"edu":[0.1977,0.4166,0.2208,0.1351,0.0297],"ho":0,"ha":0},{"l":"Mecánicos y reparadores de máquinas agrícolas e industriales","o":0.17,"og":"Muy baja o ninguna","a":5.562,"c":3.895,"t":0.608,"q":"baja","n":66268,"im":2238680,"imed":1800000,"edu":[0.0008,0.063,0.0836,0.3828,0.4698],"ho":0,"ha":0},{"l":"Zapateros y afines","o":0.17,"og":"Muy baja o ninguna","a":5.588,"c":4.815,"t":0.448,"q":"baja","n":58808,"im":1025914,"imed":1000000,"edu":[0.0156,0.3056,0.2075,0.3843,0.0869],"ho":0,"ha":0},{"l":"Operadores de máquinas para fabricar productos de material plástico","o":0.17,"og":"Muy baja o ninguna","a":5.58,"c":4.57,"t":0.49,"q":"baja","n":47865,"im":1606740,"imed":1423500,"edu":[0.0004,0.1166,0.1179,0.5743,0.1908],"ho":0,"ha":0},{"l":"Herreros y forjadores","o":0.17,"og":"Muy baja o ninguna","a":5.65,"c":4.442,"t":0.523,"q":"baja","n":46960,"im":1418562,"imed":1423500,"edu":[0.0051,0.1975,0.2065,0.4727,0.1181],"ho":0,"ha":0},{"l":"Agricultores y trabajadores calificados de cultivos mixtos","o":0.17,"og":"Muy baja o ninguna","a":5.667,"c":4.261,"t":0.555,"q":"baja","n":28919,"im":1061844,"imed":800000,"edu":[0.229,0.4523,0.1209,0.1594,0.0384],"ho":0,"ha":0},{"l":"Profesionales religiosos","o":0.17,"og":"Muy baja o ninguna","a":6.597,"c":4.262,"t":0.663,"q":"complementa","n":20998,"im":2428385,"imed":1800000,"edu":[0.0094,0.0308,0.0562,0.3132,0.5903],"ho":0,"ha":1},{"l":"Patronistas y cortadores de tela, cuero y afines","o":0.17,"og":"Muy baja o ninguna","a":5.726,"c":5.166,"t":0.404,"q":"baja","n":19827,"im":1490706,"imed":1500000,"edu":[0.0,0.0933,0.086,0.6908,0.1299],"ho":0,"ha":0},{"l":"Operadores de máquinas y de instalaciones para elaborar productos de vidrio y cerámica","o":0.17,"og":"Muy baja o ninguna","a":5.591,"c":4.465,"t":0.51,"q":"baja","n":13106,"im":1664342,"imed":1457597,"edu":[0.0293,0.1619,0.126,0.5755,0.1074],"ho":0,"ha":0},{"l":"Personal de servicios funerarios y embalsamadores","o":0.17,"og":"Muy baja o ninguna","a":5.814,"c":3.768,"t":0.661,"q":"complementa","n":1914,"im":2322182,"imed":2000000,"edu":[0.0,0.1881,0.0637,0.1333,0.6149],"ho":0,"ha":0},{"l":"Técnicos y asistentes terapeutas","o":0.17,"og":"Muy baja o ninguna","a":5.849,"c":4.078,"t":0.609,"q":"complementa","n":1461,"im":1554669,"imed":1600000,"edu":[0.0,0.005,0.0,0.257,0.738],"ho":0,"ha":0},{"l":"Pulidores de metales y afiladores de herramientas","o":0.17,"og":"Muy baja o ninguna","a":5.578,"c":4.696,"t":0.467,"q":"baja","n":1208,"im":1111637,"imed":1373340,"edu":[0.0181,0.3121,0.2541,0.4157,0.0],"ho":0,"ha":0},{"l":"Guardafrenos, guardagujas y agentes de maniobras","o":0.17,"og":"Muy baja o ninguna","a":5.781,"c":4.031,"t":0.612,"q":"baja","n":360,"im":2295444,"imed":2024756,"edu":[0.0,0.2005,0.0,0.1221,0.6774],"ho":0,"ha":0},{"l":"Ebanistas y carpinteros (excluye carpinteros de armar y de obra blanca)","o":0.16,"og":"Muy baja o ninguna","a":5.549,"c":4.383,"t":0.519,"q":"baja","n":84925,"im":1440122,"imed":1300000,"edu":[0.0113,0.2577,0.195,0.4462,0.0898],"ho":0,"ha":0},{"l":"Operadores de máquinas para la fabricación de calzado y afines","o":0.16,"og":"Muy baja o ninguna","a":5.57,"c":5.126,"t":0.389,"q":"baja","n":11877,"im":1317185,"imed":1400000,"edu":[0.0036,0.2279,0.3285,0.4325,0.0075],"ho":0,"ha":0},{"l":"Operadores de máquinas de lavandería","o":0.16,"og":"Muy baja o ninguna","a":5.559,"c":5.017,"t":0.407,"q":"baja","n":6220,"im":1510893,"imed":1423500,"edu":[0.048,0.1315,0.2018,0.4942,0.1244],"ho":0,"ha":0},{"l":"Higienistas y asistentes odontologícos","o":0.16,"og":"Muy baja o ninguna","a":5.822,"c":4.314,"t":0.568,"q":"complementa","n":6088,"im":1843271,"imed":1623500,"edu":[0.0,0.0,0.0,0.3204,0.6796],"ho":0,"ha":0},{"l":"Operadores de telares y otras máquinas tejedoras","o":0.16,"og":"Muy baja o ninguna","a":5.475,"c":5.227,"t":0.354,"q":"baja","n":5215,"im":1548292,"imed":1600000,"edu":[0.0,0.0673,0.1328,0.6393,0.1606],"ho":0,"ha":0},{"l":"Operadores de máquinas para fabricar productos textiles y artículos de piel y cuero no clasificados en otros grupos primarios","o":0.16,"og":"Muy baja o ninguna","a":5.696,"c":4.581,"t":0.504,"q":"baja","n":1994,"im":1673666,"imed":1403415,"edu":[0.0,0.1523,0.201,0.6385,0.0081],"ho":0,"ha":0},{"l":"Buzos","o":0.16,"og":"Muy baja o ninguna","a":5.538,"c":3.415,"t":0.693,"q":"baja","n":60,"im":1990712,"imed":1990712,"edu":[0.0,0.2695,0.0,0.0,0.7305],"ho":0,"ha":0},{"l":"Operadores de máquinas de coser","o":0.15,"og":"Muy baja o ninguna","a":5.6,"c":5.334,"t":0.357,"q":"baja","n":214392,"im":1229601,"imed":1400000,"edu":[0.0028,0.1433,0.1529,0.5732,0.1277],"ho":0,"ha":0},{"l":"Sastres, modistos, peleteros y sombrereros","o":0.15,"og":"Muy baja o ninguna","a":5.841,"c":4.788,"t":0.489,"q":"riesgo","n":135465,"im":763696,"imed":500000,"edu":[0.0175,0.2667,0.1661,0.4073,0.1425],"ho":0,"ha":0},{"l":"Operadores de máquinas para elaborar alimentos y productos afines","o":0.15,"og":"Muy baja o ninguna","a":5.714,"c":4.615,"t":0.501,"q":"baja","n":72159,"im":1670263,"imed":1423500,"edu":[0.0072,0.1029,0.0901,0.5495,0.2502],"ho":0,"ha":0},{"l":"Trabajadores de los cuidados personales en servicios de salud no clasificados en otros grupos primarios","o":0.15,"og":"Muy baja o ninguna","a":5.762,"c":4.272,"t":0.568,"q":"baja","n":54469,"im":1625138,"imed":1425000,"edu":[0.0,0.0017,0.0157,0.2559,0.7266],"ho":0,"ha":0},{"l":"Operarios de la conservación de frutas, legumbres, verduras y afines","o":0.15,"og":"Muy baja o ninguna","a":5.782,"c":4.517,"t":0.528,"q":"baja","n":47321,"im":490463,"imed":200000,"edu":[0.0836,0.328,0.1382,0.3628,0.0873],"ho":0,"ha":0},{"l":"Odontólogos","o":0.15,"og":"Muy baja o ninguna","a":5.988,"c":3.285,"t":0.761,"q":"complementa","n":31533,"im":4126499,"imed":3200000,"edu":[0.0,0.0,0.0,0.0007,0.9993],"ho":0,"ha":0},{"l":"Operadores de máquinas de preparación de fibras, hilado y devanado","o":0.15,"og":"Muy baja o ninguna","a":5.407,"c":4.902,"t":0.403,"q":"baja","n":3786,"im":1513979,"imed":1456546,"edu":[0.0321,0.0768,0.0168,0.6773,0.197],"ho":0,"ha":0},{"l":"Instaladores y reparadores de líneas eléctricas","o":0.15,"og":"Muy baja o ninguna","a":5.786,"c":3.647,"t":0.68,"q":"baja","n":2195,"im":1704975,"imed":1581776,"edu":[0.0,0.0284,0.0475,0.5974,0.3267],"ho":0,"ha":0},{"l":"Operadores de máquinas de tratamiento de pieles y cueros","o":0.15,"og":"Muy baja o ninguna","a":5.696,"c":4.581,"t":0.504,"q":"baja","n":394,"im":705718,"imed":980386,"edu":[0.0,0.1836,0.579,0.1393,0.0981],"ho":0,"ha":0},{"l":"Personal doméstico","o":0.14,"og":"Muy baja o ninguna","a":5.367,"c":4.999,"t":0.378,"q":"baja","n":963168,"im":896156,"imed":770000,"edu":[0.0379,0.3379,0.1986,0.3662,0.0594],"ho":0,"ha":0},{"l":"Obreros y peones de carga","o":0.14,"og":"Muy baja o ninguna","a":5.617,"c":3.812,"t":0.629,"q":"baja","n":251209,"im":1179764,"imed":1300000,"edu":[0.0443,0.2327,0.1987,0.4428,0.0815],"ho":0,"ha":0},{"l":"Trabajadores de los cuidados personales en instituciones","o":0.14,"og":"Muy baja o ninguna","a":5.719,"c":4.188,"t":0.577,"q":"baja","n":189196,"im":1875526,"imed":1700000,"edu":[0.0001,0.0043,0.0013,0.2169,0.7773],"ho":0,"ha":0},{"l":"Policías","o":0.14,"og":"Muy baja o ninguna","a":5.782,"c":3.475,"t":0.708,"q":"baja","n":91632,"im":3292349,"imed":2900000,"edu":[0.0,0.0059,0.0017,0.3978,0.5946],"ho":0,"ha":0},{"l":"Constructores de casas","o":0.14,"og":"Muy baja o ninguna","a":6.498,"c":3.784,"t":0.727,"q":"complementa","n":70997,"im":1487595,"imed":1423000,"edu":[0.0233,0.3023,0.2107,0.41,0.0536],"ho":0,"ha":1,"af":[408]},{"l":"Cuidadores de animales","o":0.14,"og":"Muy baja o ninguna","a":5.792,"c":4.093,"t":0.602,"q":"baja","n":40808,"im":1342488,"imed":1400000,"edu":[0.0363,0.2123,0.1325,0.3538,0.265],"ho":0,"ha":0},{"l":"Lavanderos y planchadores manuales","o":0.14,"og":"Muy baja o ninguna","a":5.156,"c":4.842,"t":0.37,"q":"baja","n":38776,"im":577287,"imed":350000,"edu":[0.1466,0.3529,0.1483,0.3086,0.0436],"ho":0,"ha":0},{"l":"Veterinarios","o":0.14,"og":"Muy baja o ninguna","a":6.001,"c":3.444,"t":0.735,"q":"complementa","n":17644,"im":2943987,"imed":2500000,"edu":[0.0,0.0005,0.0,0.0269,0.9726],"ho":0,"ha":0},{"l":"Cristaleros","o":0.14,"og":"Muy baja o ninguna","a":5.409,"c":3.478,"t":0.666,"q":"baja","n":12587,"im":1372940,"imed":1423500,"edu":[0.0,0.1505,0.1661,0.5048,0.1786],"ho":0,"ha":0},{"l":"Marineros de cubierta y afines","o":0.14,"og":"Muy baja o ninguna","a":5.575,"c":3.76,"t":0.635,"q":"baja","n":11023,"im":1333175,"imed":1200000,"edu":[0.1301,0.1563,0.18,0.4138,0.1197],"ho":0,"ha":0},{"l":"Guardianes de prisión","o":0.14,"og":"Muy baja o ninguna","a":5.709,"c":3.669,"t":0.666,"q":"baja","n":8756,"im":3133612,"imed":3000000,"edu":[0.0,0.0,0.0,0.5098,0.4902],"ho":0,"ha":0},{"l":"Técnicos y asistentes veterinarios","o":0.14,"og":"Muy baja o ninguna","a":5.779,"c":4.26,"t":0.572,"q":"baja","n":5710,"im":1726524,"imed":1423500,"edu":[0.0086,0.0382,0.0613,0.2365,0.6553],"ho":0,"ha":0},{"l":"Operadores de instalaciones de procesamiento de la madera","o":0.14,"og":"Muy baja o ninguna","a":5.509,"c":4.476,"t":0.497,"q":"baja","n":3298,"im":1227000,"imed":1423500,"edu":[0.1546,0.2663,0.2537,0.3198,0.0056],"ho":0,"ha":0},{"l":"Preparadores y elaboradores de cigarros y productos del tabaco","o":0.14,"og":"Muy baja o ninguna","a":5.494,"c":4.731,"t":0.448,"q":"baja","n":2470,"im":728209,"imed":486427,"edu":[0.034,0.614,0.1621,0.1899,0.0],"ho":0,"ha":0},{"l":"Fabricantes y afinadores de instrumentos musicales","o":0.14,"og":"Muy baja o ninguna","a":5.91,"c":4.203,"t":0.597,"q":"complementa","n":1147,"im":1372792,"imed":1604846,"edu":[0.0,0.3881,0.3395,0.0544,0.218],"ho":0,"ha":0},{"l":"Otros oficiales, operarios y oficios relacionados no clasificados en otros grupos primarios","o":0.14,"og":"Muy baja o ninguna","a":5.839,"c":4.661,"t":0.51,"q":"riesgo","n":232,"im":1233540,"imed":1401684,"edu":[0.0,0.0,0.0,0.8808,0.1192],"ho":0,"ha":0},{"l":"Ayudantes de cocina","o":0.13,"og":"Muy baja o ninguna","a":5.324,"c":4.551,"t":0.453,"q":"baja","n":188926,"im":1190761,"imed":1300000,"edu":[0.0163,0.2043,0.1452,0.4853,0.1489],"ho":0,"ha":0},{"l":"Soldadores y oxicortadores","o":0.13,"og":"Muy baja o ninguna","a":5.539,"c":4.753,"t":0.451,"q":"baja","n":113727,"im":1598333,"imed":1500000,"edu":[0.0054,0.1466,0.1501,0.5009,0.1969],"ho":0,"ha":0},{"l":"Fumigadores y otros controladores de plagas y malas hierbas","o":0.13,"og":"Muy baja o ninguna","a":5.709,"c":4.015,"t":0.605,"q":"baja","n":89769,"im":1064504,"imed":1000000,"edu":[0.0939,0.4157,0.1658,0.2857,0.039],"ho":0,"ha":0},{"l":"Pintores y empapeladores","o":0.13,"og":"Muy baja o ninguna","a":5.287,"c":4.15,"t":0.524,"q":"baja","n":68718,"im":1195678,"imed":1200000,"edu":[0.0152,0.245,0.2289,0.4365,0.0744],"ho":0,"ha":0},{"l":"Carniceros, pescaderos y afines","o":0.13,"og":"Muy baja o ninguna","a":5.508,"c":4.564,"t":0.481,"q":"baja","n":61651,"im":1443978,"imed":1423500,"edu":[0.0273,0.2309,0.1492,0.4953,0.0973],"ho":0,"ha":0},{"l":"Carpinteros de armar y de obra blanca","o":0.13,"og":"Muy baja o ninguna","a":5.436,"c":3.657,"t":0.636,"q":"baja","n":57533,"im":1383593,"imed":1400000,"edu":[0.0214,0.2559,0.1681,0.4642,0.0903],"ho":0,"ha":0},{"l":"Operadores de máquinas de movimiento de tierras, construcción de vías y afines","o":0.13,"og":"Muy baja o ninguna","a":5.544,"c":3.868,"t":0.611,"q":"baja","n":32805,"im":2244860,"imed":1950000,"edu":[0.0205,0.1638,0.1816,0.4951,0.139],"ho":0,"ha":0},{"l":"Reparadores de bicicletas y afines","o":0.13,"og":"Muy baja o ninguna","a":5.822,"c":4.041,"t":0.613,"q":"complementa","n":12629,"im":1017610,"imed":1000000,"edu":[0.0142,0.2062,0.1782,0.5703,0.031],"ho":0,"ha":0},{"l":"Techadores","o":0.13,"og":"Muy baja o ninguna","a":5.244,"c":3.614,"t":0.62,"q":"baja","n":7795,"im":1199415,"imed":1200000,"edu":[0.0,0.1998,0.2889,0.4722,0.0391],"ho":0,"ha":0},{"l":"Artistas creativos e interpretativos no clasificados en otros grupos primarios","o":0.13,"og":"Muy baja o ninguna","a":5.834,"c":4.191,"t":0.59,"q":"complementa","n":7494,"im":1545047,"imed":1354509,"edu":[0.0,0.0004,0.0424,0.3896,0.5676],"ho":0,"ha":0},{"l":"Conductores de vehículos y maquinaria de tracción animal","o":0.13,"og":"Muy baja o ninguna","a":5.622,"c":4.201,"t":0.563,"q":"baja","n":2397,"im":775683,"imed":708583,"edu":[0.1895,0.3829,0.2709,0.1566,0.0],"ho":0,"ha":0},{"l":"Aparejadores y empalmadores de cables","o":0.13,"og":"Muy baja o ninguna","a":5.484,"c":3.525,"t":0.666,"q":"baja","n":1776,"im":2369977,"imed":2611851,"edu":[0.006,0.0448,0.0644,0.3012,0.5835],"ho":0,"ha":0},{"l":"Moldeadores y macheros","o":0.13,"og":"Muy baja o ninguna","a":5.384,"c":4.462,"t":0.48,"q":"baja","n":1358,"im":1412030,"imed":1436270,"edu":[0.0,0.2929,0.006,0.701,0.0],"ho":0,"ha":0},{"l":"Instaladores de material aislante y de insonorización","o":0.13,"og":"Muy baja o ninguna","a":5.384,"c":3.958,"t":0.573,"q":"baja","n":403,"im":1152887,"imed":1209949,"edu":[0.3969,0.0636,0.0,0.4046,0.1348],"ho":0,"ha":0},{"l":"Trabajadores pecuarios de subsistencia","o":0.13,"og":"Muy baja o ninguna","a":5.535,"c":4.227,"t":0.546,"q":"baja","n":57,"im":105000,"imed":105000,"edu":[0.0,0.0,0.0,1.0,0.0],"ho":0,"ha":0},{"l":"Aseadores de oficinas, hoteles y otros establecimientos","o":0.12,"og":"Muy baja o ninguna","a":5.351,"c":4.471,"t":0.474,"q":"baja","n":461882,"im":1348251,"imed":1423500,"edu":[0.0116,0.1811,0.1293,0.5795,0.0985],"ho":0,"ha":0},{"l":"Obreros y peones de explotaciones ganaderas","o":0.12,"og":"Muy baja o ninguna","a":5.497,"c":4.36,"t":0.516,"q":"baja","n":230170,"im":1171592,"imed":1045043,"edu":[0.1165,0.4395,0.1897,0.2297,0.0246],"ho":0,"ha":0},{"l":"Obreros y peones de jardinería y horticultura","o":0.12,"og":"Muy baja o ninguna","a":5.297,"c":4.287,"t":0.499,"q":"baja","n":117498,"im":1034770,"imed":1000000,"edu":[0.088,0.43,0.1824,0.2742,0.0255],"ho":0,"ha":0},{"l":"Obreros y peones de la industria manufacturera no clasificados en otros grupos primarios","o":0.12,"og":"Muy baja o ninguna","a":5.421,"c":4.455,"t":0.488,"q":"baja","n":60528,"im":1260419,"imed":1423231,"edu":[0.005,0.1387,0.1624,0.5664,0.1275],"ho":0,"ha":0},{"l":"Barnizadores y afines","o":0.12,"og":"Muy baja o ninguna","a":5.456,"c":4.364,"t":0.509,"q":"baja","n":41700,"im":1459892,"imed":1400000,"edu":[0.016,0.2052,0.2002,0.4798,0.0988],"ho":0,"ha":0},{"l":"Trabajadores forestales calificados y afines","o":0.12,"og":"Muy baja o ninguna","a":5.591,"c":4.051,"t":0.584,"q":"baja","n":33125,"im":1034684,"imed":850000,"edu":[0.1349,0.4791,0.1552,0.207,0.0238],"ho":0,"ha":0},{"l":"Costureros, bordadores y afines","o":0.12,"og":"Muy baja o ninguna","a":5.643,"c":4.657,"t":0.485,"q":"baja","n":21535,"im":569314,"imed":300000,"edu":[0.0152,0.2567,0.1704,0.4173,0.1403],"ho":0,"ha":0},{"l":"Operadores de maquinaria agrícola y forestal móvil","o":0.12,"og":"Muy baja o ninguna","a":5.55,"c":4.501,"t":0.498,"q":"baja","n":20680,"im":1440341,"imed":1423500,"edu":[0.0421,0.3389,0.2203,0.3366,0.062],"ho":0,"ha":0},{"l":"Auxiliares laicos de las religiones","o":0.12,"og":"Muy baja o ninguna","a":6.597,"c":4.262,"t":0.663,"q":"complementa","n":1222,"im":854494,"imed":600000,"edu":[0.0,0.0,0.0,0.9438,0.0562],"ho":0,"ha":1},{"l":"Dinamiteros y pegadores","o":0.12,"og":"Muy baja o ninguna","a":5.686,"c":3.747,"t":0.65,"q":"baja","n":601,"im":3501718,"imed":3518327,"edu":[0.0,0.0,0.1782,0.8143,0.0075],"ho":0,"ha":0},{"l":"Obreros y peones de minas y canteras","o":0.11,"og":"Muy baja o ninguna","a":5.422,"c":3.602,"t":0.645,"q":"baja","n":94386,"im":1222653,"imed":1000000,"edu":[0.0711,0.3765,0.2385,0.2718,0.0421],"ho":0,"ha":0},{"l":"Obreros y peones de explotaciones agropecuarias","o":0.11,"og":"Muy baja o ninguna","a":5.435,"c":4.41,"t":0.497,"q":"baja","n":87810,"im":1011164,"imed":960000,"edu":[0.1125,0.4504,0.1524,0.2455,0.0393],"ho":0,"ha":0},{"l":"Revocadores","o":0.11,"og":"Muy baja o ninguna","a":5.292,"c":4.211,"t":0.513,"q":"baja","n":26355,"im":1370556,"imed":1400000,"edu":[0.0054,0.2725,0.2602,0.3806,0.0813],"ho":0,"ha":0},{"l":"Personas que realizan trabajos varios","o":0.11,"og":"Muy baja o ninguna","a":5.535,"c":3.889,"t":0.606,"q":"baja","n":13397,"im":1375288,"imed":1423500,"edu":[0.0406,0.1179,0.1918,0.5646,0.0851],"ho":0,"ha":0},{"l":"Labrantes, tronzadores y grabadores de piedra","o":0.11,"og":"Muy baja o ninguna","a":5.427,"c":3.821,"t":0.605,"q":"baja","n":2930,"im":1412392,"imed":1423500,"edu":[0.0,0.5518,0.1468,0.2065,0.0949],"ho":0,"ha":0},{"l":"Obreros y peones de pesca y acuicultura","o":0.11,"og":"Muy baja o ninguna","a":5.444,"c":4.255,"t":0.527,"q":"baja","n":2843,"im":1481035,"imed":1270486,"edu":[0.2201,0.3753,0.1597,0.2064,0.0384],"ho":0,"ha":0},{"l":"Montadores de estructuras metálicas","o":0.11,"og":"Muy baja o ninguna","a":5.309,"c":3.576,"t":0.635,"q":"baja","n":1441,"im":1887071,"imed":1423500,"edu":[0.0,0.1977,0.0526,0.5118,0.2379],"ho":0,"ha":0},{"l":"Apelambradores, pellejeros y curtidores","o":0.11,"og":"Muy baja o ninguna","a":5.556,"c":4.756,"t":0.451,"q":"baja","n":515,"im":1489219,"imed":1443877,"edu":[0.0,0.2807,0.0,0.3167,0.4026],"ho":0,"ha":0},{"l":"Limpiadores de ventanas","o":0.11,"og":"Muy baja o ninguna","a":5.387,"c":4.281,"t":0.514,"q":"baja","n":124,"im":2253510,"imed":2253510,"edu":[0.0,0.0,0.229,0.771,0.0],"ho":0,"ha":0},{"l":"Otro personal de limpieza no clasificados en otros grupos primarios","o":0.1,"og":"Muy baja o ninguna","a":5.434,"c":4.245,"t":0.527,"q":"baja","n":10392,"im":1307550,"imed":1423500,"edu":[0.0458,0.189,0.0734,0.6054,0.0863],"ho":0,"ha":0},{"l":"Enchapadores, parqueteros y colocadores de suelos","o":0.1,"og":"Muy baja o ninguna","a":5.377,"c":4.167,"t":0.534,"q":"baja","n":8138,"im":1492721,"imed":1500000,"edu":[0.0,0.2087,0.2633,0.4957,0.0324],"ho":0,"ha":0},{"l":"Operarios en cemento armado, enfoscadores y afines","o":0.1,"og":"Muy baja o ninguna","a":5.353,"c":4.011,"t":0.559,"q":"baja","n":798,"im":1446493,"imed":1423500,"edu":[0.0,0.1153,0.0102,0.8206,0.054],"ho":0,"ha":0},{"l":"Obreros y peones de explotaciones agrícolas","o":0.09,"og":"Muy baja o ninguna","a":5.385,"c":4.502,"t":0.473,"q":"baja","n":1243208,"im":939966,"imed":840000,"edu":[0.0902,0.4942,0.1639,0.2254,0.0262],"ho":0,"ha":0},{"l":"Obreros y peones de la construcción de edificios","o":0.09,"og":"Muy baja o ninguna","a":5.253,"c":3.907,"t":0.565,"q":"baja","n":664834,"im":1185068,"imed":1200000,"edu":[0.0365,0.3026,0.2271,0.3839,0.05],"ho":0,"ha":0},{"l":"Albañiles","o":0.09,"og":"Muy baja o ninguna","a":5.36,"c":3.962,"t":0.571,"q":"baja","n":196790,"im":1402560,"imed":1400000,"edu":[0.0386,0.3283,0.2216,0.3625,0.049],"ho":0,"ha":0},{"l":"Recolectores de basura y material reciclable","o":0.09,"og":"Muy baja o ninguna","a":5.778,"c":4.156,"t":0.587,"q":"baja","n":81246,"im":726323,"imed":500000,"edu":[0.1084,0.4337,0.1925,0.2202,0.0453],"ho":0,"ha":0},{"l":"Lavadores de vehículos","o":0.09,"og":"Muy baja o ninguna","a":5.3,"c":4.134,"t":0.529,"q":"baja","n":57936,"im":884575,"imed":800000,"edu":[0.0617,0.2714,0.2251,0.4014,0.0404],"ho":0,"ha":0},{"l":"Obreros y peones de obras públicas y mantenimiento","o":0.09,"og":"Muy baja o ninguna","a":5.369,"c":3.728,"t":0.614,"q":"baja","n":29159,"im":1592585,"imed":1423500,"edu":[0.0179,0.1426,0.1449,0.5523,0.1423],"ho":0,"ha":0},{"l":"Barrenderos y afines","o":0.09,"og":"Muy baja o ninguna","a":5.368,"c":3.99,"t":0.566,"q":"baja","n":22396,"im":1480543,"imed":1423500,"edu":[0.0442,0.2032,0.1653,0.5465,0.0408],"ho":0,"ha":0},{"l":"Oficiales y operarios de la construcción de obra gruesa y afines no clasificados en otros grupos primarios","o":0.09,"og":"Muy baja o ninguna","a":5.51,"c":3.821,"t":0.616,"q":"baja","n":13393,"im":1714659,"imed":1600000,"edu":[0.0211,0.2176,0.1899,0.4462,0.1252],"ho":0,"ha":0},{"l":"Obreros y peones forestales","o":0.09,"og":"Muy baja o ninguna","a":5.554,"c":3.873,"t":0.611,"q":"baja","n":8330,"im":887302,"imed":632852,"edu":[0.1405,0.3584,0.1279,0.3196,0.0535],"ho":0,"ha":0},{"l":"Acarreadores de agua y recolectores de leña","o":0.09,"og":"Muy baja o ninguna","a":5.264,"c":4.078,"t":0.534,"q":"baja","n":821,"im":797187,"imed":640000,"edu":[0.4079,0.3544,0.0,0.1493,0.0884],"ho":0,"ha":0},{"l":"Limpiadores de fachadas y deshollinadores","o":0.09,"og":"Muy baja o ninguna","a":5.379,"c":4.568,"t":0.46,"q":"baja","n":441,"im":1435078,"imed":1642406,"edu":[0.0,0.2121,0.6873,0.1006,0.0],"ho":0,"ha":0},{"l":"Cazadores y tramperos","o":0.09,"og":"Muy baja o ninguna","a":5.631,"c":4.09,"t":0.58,"q":"baja","n":222,"im":150000,"imed":150000,"edu":[0.4058,0.5942,0.0,0.0,0.0],"ho":0,"ha":0},{"l":"Conductores de camionetas y vehículos livianos","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":339765,"im":1601308,"imed":1500000,"edu":[0.006,0.1476,0.1101,0.5235,0.2128]},{"l":"Conductores de taxis","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":154250,"im":1460430,"imed":1420000,"edu":[0.0112,0.2161,0.1541,0.5035,0.1151]},{"l":"Tejedores con agujas","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":69491,"im":344474,"imed":250000,"edu":[0.2788,0.261,0.1705,0.2147,0.075]},{"l":"Otros gerentes de servicios no clasificados en otros grupos primarios","o":null,"og":"Sin correspondencia 4d","a":6.471,"c":4.418,"t":0.626,"q":"complementa","n":42178,"im":3872455,"imed":2000000,"edu":[0.0151,0.0501,0.0526,0.1997,0.6824],"ha":1},{"l":"Cesteros y mimbreros","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":33083,"im":270503,"imed":200000,"edu":[0.2658,0.3543,0.0929,0.256,0.031]},{"l":"Artesanos de otros materiales no clasificados en otros grupos primarios","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":29359,"im":803516,"imed":628168,"edu":[0.0097,0.117,0.1362,0.4532,0.2839]},{"l":"Tejedores con telares","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":24055,"im":340549,"imed":200000,"edu":[0.2817,0.2903,0.0927,0.238,0.0972]},{"l":"Otros técnicos y profesionales del nivel medio en actividades culturales y artísticas","o":null,"og":"Sin correspondencia 4d","a":5.994,"c":4.592,"t":0.542,"q":"riesgo","n":16484,"im":1575170,"imed":1500000,"edu":[0.0,0.0565,0.0772,0.5433,0.323],"ha":0},{"l":"Otros vendedores no clasificados en otros grupos primarios","o":null,"og":"Sin correspondencia 4d","a":6.302,"c":5.209,"t":0.484,"q":"riesgo","n":14387,"im":1447322,"imed":1000000,"edu":[0.0039,0.1987,0.1501,0.4136,0.2337],"ha":1},{"l":"Sombrereros artesanales","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":10235,"im":405099,"imed":294550,"edu":[0.118,0.5575,0.0857,0.2356,0.0033]},{"l":"Bisutero","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":9182,"im":975074,"imed":300000,"edu":[0.0125,0.0785,0.1723,0.2795,0.4572]},{"l":"Otros tejedores","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":9068,"im":342590,"imed":200000,"edu":[0.2432,0.1117,0.187,0.3042,0.1539]},{"l":"Otros miembros de las Fuerzas Militares","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":8757,"im":3166033,"imed":2800000,"edu":[0.0,0.0427,0.0685,0.5905,0.2983]},{"l":"Joyeros","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":7468,"im":1734245,"imed":1423500,"edu":[0.0,0.0258,0.0774,0.48,0.4169]},{"l":"Artesanos del cuero","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":7266,"im":1080516,"imed":1000000,"edu":[0.0045,0.1704,0.247,0.4017,0.1765]},{"l":"Suboficiales de las Fuerzas Militares","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":6664,"im":4355945,"imed":4000000,"edu":[0.0,0.0003,0.0,0.2358,0.7639]},{"l":"Lectores de medidores","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":6101,"im":1801789,"imed":1500000,"edu":[0.005,0.035,0.0,0.4405,0.5194]},{"l":"Tallador piezas artesanales de madera","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":4679,"im":1149763,"imed":1019190,"edu":[0.0241,0.2493,0.167,0.3644,0.1951]},{"l":"Técnicos en control de procesos no clasificados en otros grupos primarios","o":null,"og":"Sin correspondencia 4d","a":6.024,"c":4.734,"t":0.523,"q":"riesgo","n":3312,"im":1581469,"imed":1684466,"edu":[0.0307,0.1271,0.0,0.444,0.3982],"ha":0},{"l":"Otros operadores de máquinas y de instalaciones fijas no clasificados en otros grupos primarios","o":null,"og":"Sin correspondencia 4d","a":5.622,"c":4.496,"t":0.51,"q":"baja","n":3048,"im":1752534,"imed":1564701,"edu":[0.0,0.0,0.0183,0.5388,0.4429],"ha":0},{"l":"Oficiales de las Fuerzas Militares","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":2849,"im":5037195,"imed":4000000,"edu":[0.0,0.0,0.0,0.0202,0.9798]},{"l":"Decoradores de piezas artesanales en madera","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":1132,"im":1085512,"imed":1426908,"edu":[0.1736,0.0892,0.0053,0.6295,0.1024]},{"l":"Artesanos de papel","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":880,"im":348847,"imed":166359,"edu":[0.0,0.1615,0.1402,0.2039,0.4943]},{"l":"Artesanos del hierro y otros metales","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":689,"im":995265,"imed":600000,"edu":[0.2065,0.0,0.1021,0.3699,0.3215]},{"l":"Artesanos de las semillas y cortezas vegetales","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":660,"im":442150,"imed":390344,"edu":[0.1018,0.4737,0.0,0.2753,0.1492]},{"l":"Orfebres y plateros","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":502,"im":1905697,"imed":1500000,"edu":[0.0,0.0,0.3167,0.4102,0.2731]},{"l":"Recolectores de dinero y surtidores de máquinas de venta automática","o":null,"og":"Sin correspondencia 4d","a":null,"c":null,"t":null,"q":"sin_datos","n":16,"im":1300000,"imed":1300000,"edu":[0.0,0.0,0.0,1.0,0.0]}],"groups":{"quintil":{"title":"Quintil de ingreso","items":[{"key":"1","label":"Quintil 1 (más bajo)","n":4590672,"oit":0.211,"aioe":5.755,"caioe":4.506,"complementa":0.1467,"riesgo":0.1961,"baja":0.6131,"razon":0.748,"alto":0.123766,"bajo":0.698458,"incierto":0.177776},{"key":"2","label":"Quintil 2","n":5001574,"oit":0.208,"aioe":5.711,"caioe":4.443,"complementa":0.1363,"riesgo":0.1638,"baja":0.6674,"razon":0.832,"alto":0.09768,"bajo":0.717108,"incierto":0.185212},{"key":"3","label":"Quintil 3","n":4594077,"oit":0.263,"aioe":5.833,"caioe":4.514,"complementa":0.2123,"riesgo":0.2333,"baja":0.5232,"razon":0.91,"alto":0.19284,"bajo":0.579208,"incierto":0.227952},{"key":"4","label":"Quintil 4","n":4185678,"oit":0.285,"aioe":5.933,"caioe":4.518,"complementa":0.3128,"riesgo":0.2275,"baja":0.4254,"razon":1.375,"alto":0.282462,"bajo":0.513458,"incierto":0.20408},{"key":"5","label":"Quintil 5 (más alto)","n":4577096,"oit":0.358,"aioe":6.306,"caioe":4.517,"complementa":0.6213,"riesgo":0.2223,"baja":0.1403,"razon":2.795,"alto":0.669915,"bajo":0.185483,"incierto":0.144602}]},"departamento":{"title":"Departamento","items":[{"key":"Bogotá D.C.","label":"Bogotá D.C.","n":4160820,"oit":0.319,"aioe":6.079,"caioe":4.607,"complementa":0.3878,"riesgo":0.2647,"baja":0.3145,"razon":1.465,"alto":0.439305,"bajo":0.368115,"incierto":0.19258},{"key":"Antioquia","label":"Antioquia","n":3311770,"oit":0.273,"aioe":5.918,"caioe":4.522,"complementa":0.2772,"riesgo":0.2207,"baja":0.4686,"razon":1.256,"alto":0.291782,"bajo":0.526183,"incierto":0.182035},{"key":"Atlántico","label":"Atlántico","n":1256860,"oit":0.27,"aioe":5.918,"caioe":4.508,"complementa":0.2879,"riesgo":0.2233,"baja":0.4556,"razon":1.289,"alto":0.265563,"bajo":0.530518,"incierto":0.203919},{"key":"Valle del Cauca","label":"Valle del Cauca","n":2011697,"oit":0.269,"aioe":5.915,"caioe":4.528,"complementa":0.2705,"riesgo":0.2404,"baja":0.4613,"razon":1.125,"alto":0.260246,"bajo":0.535171,"incierto":0.204583},{"key":"Risaralda","label":"Risaralda","n":449848,"oit":0.265,"aioe":5.891,"caioe":4.52,"complementa":0.2793,"riesgo":0.2194,"baja":0.4716,"razon":1.273,"alto":0.260567,"bajo":0.527494,"incierto":0.21194},{"key":"Santander","label":"Santander","n":1045570,"oit":0.263,"aioe":5.902,"caioe":4.473,"complementa":0.3124,"riesgo":0.1956,"baja":0.4678,"razon":1.597,"alto":0.266673,"bajo":0.534373,"incierto":0.198954},{"key":"Cundinamarca","label":"Cundinamarca","n":1706608,"oit":0.263,"aioe":5.897,"caioe":4.484,"complementa":0.3082,"riesgo":0.1863,"baja":0.485,"razon":1.654,"alto":0.266341,"bajo":0.551391,"incierto":0.182268},{"key":"Quindío","label":"Quindío","n":256407,"oit":0.261,"aioe":5.879,"caioe":4.523,"complementa":0.2596,"riesgo":0.2369,"baja":0.4767,"razon":1.096,"alto":0.242778,"bajo":0.539178,"incierto":0.218044},{"key":"Caldas","label":"Caldas","n":466840,"oit":0.26,"aioe":5.863,"caioe":4.482,"complementa":0.2603,"riesgo":0.209,"baja":0.5048,"razon":1.246,"alto":0.250778,"bajo":0.557968,"incierto":0.191254},{"key":"Norte de Santander","label":"Norte de Santander","n":673287,"oit":0.253,"aioe":5.867,"caioe":4.493,"complementa":0.2609,"riesgo":0.1942,"baja":0.5193,"razon":1.343,"alto":0.241914,"bajo":0.56514,"incierto":0.192946},{"key":"Meta","label":"Meta","n":524443,"oit":0.249,"aioe":5.856,"caioe":4.451,"complementa":0.2643,"riesgo":0.2052,"baja":0.5042,"razon":1.288,"alto":0.204045,"bajo":0.575218,"incierto":0.220737},{"key":"Caquetá","label":"Caquetá","n":153618,"oit":0.244,"aioe":5.849,"caioe":4.361,"complementa":0.331,"riesgo":0.1641,"baja":0.4835,"razon":2.017,"alto":0.185557,"bajo":0.525086,"incierto":0.289358},{"key":"Cesar","label":"Cesar","n":515871,"oit":0.239,"aioe":5.849,"caioe":4.438,"complementa":0.2434,"riesgo":0.1962,"baja":0.5309,"razon":1.241,"alto":0.193149,"bajo":0.610152,"incierto":0.196699},{"key":"Bolívar","label":"Bolívar","n":885761,"oit":0.237,"aioe":5.824,"caioe":4.448,"complementa":0.224,"riesgo":0.1852,"baja":0.5656,"razon":1.21,"alto":0.184213,"bajo":0.6319,"incierto":0.183887},{"key":"Magdalena","label":"Magdalena","n":594008,"oit":0.236,"aioe":5.84,"caioe":4.428,"complementa":0.2453,"riesgo":0.178,"baja":0.5587,"razon":1.379,"alto":0.190716,"bajo":0.620774,"incierto":0.18851},{"key":"Tolima","label":"Tolima","n":580410,"oit":0.235,"aioe":5.818,"caioe":4.436,"complementa":0.2659,"riesgo":0.1736,"baja":0.533,"razon":1.532,"alto":0.193547,"bajo":0.589025,"incierto":0.217428},{"key":"Boyacá","label":"Boyacá","n":522604,"oit":0.232,"aioe":5.802,"caioe":4.403,"complementa":0.2434,"riesgo":0.162,"baja":0.5706,"razon":1.502,"alto":0.196997,"bajo":0.632573,"incierto":0.17043},{"key":"Sucre","label":"Sucre","n":403196,"oit":0.231,"aioe":5.824,"caioe":4.446,"complementa":0.2048,"riesgo":0.1863,"baja":0.5824,"razon":1.099,"alto":0.18001,"bajo":0.648895,"incierto":0.171095},{"key":"Córdoba","label":"Córdoba","n":791370,"oit":0.231,"aioe":5.821,"caioe":4.431,"complementa":0.2096,"riesgo":0.1742,"baja":0.5709,"razon":1.203,"alto":0.187616,"bajo":0.649459,"incierto":0.162925},{"key":"La Guajira","label":"La Guajira","n":348364,"oit":0.223,"aioe":5.817,"caioe":4.376,"complementa":0.1871,"riesgo":0.1068,"baja":0.5077,"razon":1.751,"alto":0.151757,"bajo":0.684745,"incierto":0.163499},{"key":"Chocó","label":"Chocó","n":137366,"oit":0.215,"aioe":5.784,"caioe":4.278,"complementa":0.2119,"riesgo":0.1298,"baja":0.6428,"razon":1.632,"alto":0.141155,"bajo":0.693253,"incierto":0.165592},{"key":"Nariño","label":"Nariño","n":849083,"oit":0.211,"aioe":5.759,"caioe":4.4,"complementa":0.1732,"riesgo":0.1276,"baja":0.6617,"razon":1.357,"alto":0.153043,"bajo":0.718888,"incierto":0.12807},{"key":"Cauca","label":"Cauca","n":627654,"oit":0.21,"aioe":5.751,"caioe":4.398,"complementa":0.192,"riesgo":0.1246,"baja":0.6634,"razon":1.54,"alto":0.146897,"bajo":0.705913,"incierto":0.147191},{"key":"Huila","label":"Huila","n":467606,"oit":0.2,"aioe":5.706,"caioe":4.462,"complementa":0.1828,"riesgo":0.1331,"baja":0.6658,"razon":1.373,"alto":0.151725,"bajo":0.71083,"incierto":0.137445}]},"sector":{"title":"Actividad económica","items":[{"key":"Actividades financieras y de seguros","label":"Actividades financieras y de seguros","n":426554,"oit":0.478,"aioe":6.456,"caioe":4.952,"complementa":0.4507,"riesgo":0.5014,"baja":0.0445,"razon":0.899,"alto":0.844641,"bajo":0.059171,"incierto":0.096188},{"key":"Información y comunicaciones","label":"Información y comunicaciones","n":398053,"oit":0.455,"aioe":6.393,"caioe":4.861,"complementa":0.4809,"riesgo":0.4171,"baja":0.0951,"razon":1.153,"alto":0.846198,"bajo":0.097448,"incierto":0.056354},{"key":"Organizaciones extraterritoriales","label":"Organizaciones extraterritoriales","n":9390,"oit":0.381,"aioe":6.431,"caioe":4.653,"complementa":0.7341,"riesgo":0.1797,"baja":0.0412,"razon":4.086,"alto":0.818766,"bajo":0.146768,"incierto":0.034466},{"key":"Comercio y reparación","label":"Comercio y reparación","n":3902759,"oit":0.354,"aioe":6.091,"caioe":4.596,"complementa":0.275,"riesgo":0.4892,"baja":0.2293,"razon":0.562,"alto":0.361877,"bajo":0.207286,"incierto":0.430836},{"key":"Administración pública y defensa","label":"Administración pública y defensa","n":812268,"oit":0.352,"aioe":6.275,"caioe":4.538,"complementa":0.5059,"riesgo":0.2622,"baja":0.2001,"razon":1.929,"alto":0.656227,"bajo":0.259246,"incierto":0.084527},{"key":"Inmobiliarias, profesionales y administrativas","label":"Inmobiliarias, profesionales y administrativas","n":2081979,"oit":0.322,"aioe":6.057,"caioe":4.758,"complementa":0.3852,"riesgo":0.2742,"baja":0.338,"razon":1.405,"alto":0.500083,"bajo":0.457966,"incierto":0.041951},{"key":"Educación","label":"Educación","n":1007559,"oit":0.309,"aioe":6.356,"caioe":4.449,"complementa":0.8041,"riesgo":0.0922,"baja":0.1024,"razon":8.722,"alto":0.598328,"bajo":0.149034,"incierto":0.252638},{"key":"Salud y asistencia social","label":"Salud y asistencia social","n":1013371,"oit":0.283,"aioe":6.116,"caioe":4.416,"complementa":0.5203,"riesgo":0.1701,"baja":0.2986,"razon":3.058,"alto":0.410883,"bajo":0.390573,"incierto":0.198543},{"key":"Transporte y almacenamiento","label":"Transporte y almacenamiento","n":1792508,"oit":0.268,"aioe":5.846,"caioe":4.277,"complementa":0.2647,"riesgo":0.0467,"baja":0.46,"razon":5.669,"alto":0.128922,"bajo":0.751316,"incierto":0.119762},{"key":"Industrias manufactureras","label":"Industrias manufactureras","n":2513307,"oit":0.247,"aioe":5.83,"caioe":4.621,"complementa":0.1768,"riesgo":0.1964,"baja":0.5435,"razon":0.9,"alto":0.20144,"bajo":0.647765,"incierto":0.150795},{"key":"Alojamiento y servicios de comida","label":"Alojamiento y servicios de comida","n":1733840,"oit":0.241,"aioe":5.786,"caioe":4.597,"complementa":0.1433,"riesgo":0.1787,"baja":0.6775,"razon":0.802,"alto":0.06778,"bajo":0.517609,"incierto":0.414611},{"key":"Artes, recreación y otros servicios","label":"Artes, recreación y otros servicios","n":1235100,"oit":0.239,"aioe":5.957,"caioe":4.504,"complementa":0.416,"riesgo":0.3473,"baja":0.2328,"razon":1.198,"alto":0.221762,"bajo":0.673354,"incierto":0.104883},{"key":"Electricidad, gas, agua y saneamiento","label":"Electricidad, gas, agua y saneamiento","n":304637,"oit":0.222,"aioe":5.854,"caioe":4.276,"complementa":0.2426,"riesgo":0.0881,"baja":0.6362,"razon":2.754,"alto":0.257874,"bajo":0.679062,"incierto":0.063064},{"key":"Minas y canteras","label":"Minas y canteras","n":299824,"oit":0.181,"aioe":5.631,"caioe":4.017,"complementa":0.1607,"riesgo":0.0276,"baja":0.8068,"razon":5.822,"alto":0.12136,"bajo":0.852264,"incierto":0.026376},{"key":"Construcción","label":"Construcción","n":1580385,"oit":0.16,"aioe":5.585,"caioe":3.989,"complementa":0.2444,"riesgo":0.0284,"baja":0.725,"razon":8.616,"alto":0.11362,"bajo":0.740359,"incierto":0.146021},{"key":"Hogares como empleadores","label":"Hogares como empleadores","n":715904,"oit":0.153,"aioe":5.474,"caioe":4.858,"complementa":0.1531,"riesgo":0.0007,"baja":0.8334,"razon":213.201,"alto":0.000689,"bajo":0.915666,"incierto":0.083644},{"key":"Agricultura, ganadería, silvicultura y pesca","label":"Agricultura, ganadería, silvicultura y pesca","n":3127958,"oit":0.141,"aioe":5.546,"caioe":4.321,"complementa":0.0554,"riesgo":0.0081,"baja":0.9353,"razon":6.836,"alto":0.012689,"bajo":0.940766,"incierto":0.046545}]},"educacion":{"title":"Logro educativo","items":[{"key":"Ninguno","label":"Ninguno","n":665362,"oit":0.167,"aioe":5.629,"caioe":4.384,"complementa":0.0641,"riesgo":0.0985,"baja":0.7726,"razon":0.65,"alto":0.047711,"bajo":0.848057,"incierto":0.104232},{"key":"Preescolar","label":"Preescolar","n":1848,"oit":0.201,"aioe":5.66,"caioe":4.366,"complementa":0.2086,"riesgo":0.0923,"baja":0.699,"razon":2.259,"alto":0.052343,"bajo":0.724479,"incierto":0.223178},{"key":"Básica primaria","label":"Básica primaria","n":4153613,"oit":0.179,"aioe":5.648,"caioe":4.395,"complementa":0.1231,"riesgo":0.109,"baja":0.7354,"razon":1.129,"alto":0.062924,"bajo":0.804583,"incierto":0.132493},{"key":"Básica secundaria","label":"Básica secundaria","n":2488017,"oit":0.193,"aioe":5.672,"caioe":4.404,"complementa":0.1401,"riesgo":0.1319,"baja":0.6916,"razon":1.062,"alto":0.067607,"bajo":0.76334,"incierto":0.169054},{"key":"Media","label":"Media","n":7900966,"oit":0.243,"aioe":5.797,"caioe":4.477,"complementa":0.215,"riesgo":0.2037,"baja":0.5402,"razon":1.055,"alto":0.139746,"bajo":0.635537,"incierto":0.224717},{"key":"Superior o universitaria","label":"Superior o universitaria","n":7745591,"oit":0.361,"aioe":6.244,"caioe":4.613,"complementa":0.5016,"riesgo":0.2977,"baja":0.1836,"razon":1.685,"alto":0.595319,"bajo":0.212407,"incierto":0.192275}]},"sexo":{"title":"Género","items":[{"key":"Mujer","label":"Mujer","n":9458775,"oit":0.297,"aioe":5.999,"caioe":4.681,"complementa":0.3028,"riesgo":0.3058,"baja":0.3732,"razon":0.99,"alto":0.342119,"bajo":0.426526,"incierto":0.231355},{"key":"Hombre","label":"Hombre","n":13496623,"oit":0.24,"aioe":5.837,"caioe":4.367,"complementa":0.2684,"riesgo":0.1385,"baja":0.552,"razon":1.937,"alto":0.220292,"bajo":0.62365,"incierto":0.156058}]},"formalidad":{"title":"Formalidad","items":[{"key":"Formal","label":"Formal","n":10135949,"oit":0.32,"aioe":6.086,"caioe":4.557,"complementa":0.4198,"riesgo":0.2412,"baja":0.3189,"razon":1.74,"alto":0.443485,"bajo":0.377475,"incierto":0.17904},{"key":"Informal","label":"Informal","n":12457278,"oit":0.217,"aioe":5.749,"caioe":4.449,"complementa":0.1655,"riesgo":0.1801,"baja":0.614,"razon":0.919,"alto":0.123776,"bajo":0.682321,"incierto":0.193904}]}},"national":{"ocupados":22955398,"cobertura_oit":0.9649,"oit_promedio":0.264,"oit_alta_muy_alta":0.0801,"oit_grupos":[{"label":"Muy baja o ninguna","participacion":0.7105},{"label":"Baja","participacion":0.0882},{"label":"Media","participacion":0.0861},{"label":"Alta","participacion":0.0509},{"label":"Muy alta","participacion":0.0292},{"label":"Sin correspondencia 4d","participacion":0.0351}],"aioe_promedio":5.905,"caioe_promedio":4.498,"cobertura_aioe":0.9683,"correlacion_spearman":0.812,"cuadrantes":[{"label":"Alta exposición, alta complementariedad","participacion":0.2826,"ocupados":6486219},{"label":"Alta exposición, baja complementariedad","participacion":0.2074,"ocupados":4762071},{"label":"Baja exposición","participacion":0.4783,"ocupados":10980555},{"label":"Sin correspondencia AIOE","participacion":0.0317,"ocupados":726552}],"medianAioe":6.0391,"medianTheta":0.548,"alto":0.271209,"bajo":0.541263,"incierto":0.187528,"oitCutoff":0.27,"medianOit":0.27,"soloAioe":0.0509,"soloOit":0.1366},"eduOrder":["Ninguno o preescolar","Básica primaria","Básica secundaria","Media","Superior o universitaria"],"sensitivity":[{"p":30,"corteOit":0.19,"corteAioe":5.727,"alto":0.5059,"bajo":0.3583,"incierto":0.1357},{"p":40,"corteOit":0.22,"corteAioe":5.844,"alto":0.4013,"bajo":0.4278,"incierto":0.1708},{"p":50,"corteOit":0.27,"corteAioe":6.039,"alto":0.2712,"bajo":0.5413,"incierto":0.1875},{"p":60,"corteOit":0.32,"corteAioe":6.199,"alto":0.2286,"bajo":0.6054,"incierto":0.166},{"p":70,"corteOit":0.37,"corteAioe":6.427,"alto":0.1493,"bajo":0.629,"incierto":0.2217}],"perfil":{"alto":{"personas":6193629,"mujeres":0.5252,"superior":0.7502,"formales":0.7267,"edad":39.8975,"ingresoMediano":2200000.0,"ingresoMedio":3450039.3977},"bajo":{"personas":12427883,"mujeres":0.334,"superior":0.1336,"formales":0.3025,"edad":41.6522,"ingresoMediano":1200000.0,"ingresoMedio":1246131.1579},"incierto":{"personas":4362451,"mujeres":0.5199,"superior":0.3467,"formales":0.412,"edad":39.8226,"ingresoMediano":1423500.0,"ingresoMedio":1662824.2534},"total":{"mujeres":0.4208,"superior":0.3402,"formales":0.4376,"edad":40.8321,"ingresoMediano":1423500.0}},"serie":{"alto":[{"y":2021,"empleo":5674832,"ingreso":3234683},{"y":2022,"empleo":6025968,"ingreso":3256129},{"y":2023,"empleo":6073656,"ingreso":3373892},{"y":2024,"empleo":6106576,"ingreso":3472468},{"y":2025,"empleo":6193629,"ingreso":3450039}],"bajo":[{"y":2021,"empleo":10411182,"ingreso":1095729},{"y":2022,"empleo":11395754,"ingreso":1063947},{"y":2023,"empleo":11784011,"ingreso":1102447},{"y":2024,"empleo":11833673,"ingreso":1157182},{"y":2025,"empleo":12427883,"ingreso":1246131}],"incierto":[{"y":2021,"empleo":3526376,"ingreso":1481653},{"y":2022,"empleo":3828062,"ingreso":1445499},{"y":2023,"empleo":4131707,"ingreso":1472458},{"y":2024,"empleo":4253508,"ingreso":1567439},{"y":2025,"empleo":4362451,"ingreso":1662824}]}}</script>
+<script>
+(function(){
+  "use strict";
+  var DATA = JSON.parse(document.getElementById('ia-data').textContent);
+  var OCC = DATA.occupations, NAT = DATA.national;
+
+  /* ---------- formato ---------- */
+  var nf = function(o){ return function(x){ return x == null ? "—" : x.toLocaleString('es-CO', o); }; };
+  var fmtN = nf({});
+  var fmt1 = nf({minimumFractionDigits:1, maximumFractionDigits:1});
+  var fmt2 = nf({minimumFractionDigits:2, maximumFractionDigits:2});
+  var fmtPct = function(x){ return x == null ? "—" : (x*100).toLocaleString('es-CO', {maximumFractionDigits:1}) + "%"; };
+  var fmtM = function(v){ return v == null ? "—" : "$" + (v/1e6).toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2}) + "M"; };
+  var fmtMill = function(n){ return (n/1e6).toLocaleString('es-CO', {minimumFractionDigits:1, maximumFractionDigits:1}); };
+  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
+
+  var LABEL = {alto:'Potencial alto de automatización relativa', bajo:'Potencial bajo de automatización relativa', incierto:'Potencial incierto de automatización relativa'};
+  var SHORT = {alto:'Alto', bajo:'Bajo', incierto:'Incierto'};
+  var CATS = ['alto','bajo','incierto'];
+
+  /* ---------- clasificación ----------
+     Un índice es "alto" si el puntaje de la ocupación es igual o superior a su mediana entre las ocupaciones
+     con ambos puntajes. Alto: ambos altos. Bajo: ambos bajos. Incierto: solo uno alto. */
+  var MED_OIT = NAT.medianOit, MED_AIOE = NAT.medianAioe;
+  function potentialClass(o){
+    if(o.ho == null || o.ha == null) return null;
+    if(o.ho === 1 && o.ha === 1) return 'alto';
+    if(o.ho === 0 && o.ha === 0) return 'bajo';
+    return 'incierto';
+  }
+  OCC.forEach(function(o){ o.k = potentialClass(o); });
+
+  /* Escala 0-100 de cada índice: posición (percentil) de la ocupación entre las 418 ocupaciones con ambos
+     puntajes. Las que están bajo la mediana ocupan la mitad de abajo (0-50) y las que están en la mediana
+     o por encima, la mitad de arriba (50-100); los empates cuentan por la mitad. Así el corte queda
+     exactamente en 50 y coincide con la clasificación. */
+  function pctScale(key, flag, out){
+    var both = OCC.filter(function(o){ return o.ho != null && o.ha != null; });
+    [[0, 0], [1, 50]].forEach(function(g){
+      var grp = both.filter(function(o){ return o[flag] === g[0]; }), vals = grp.map(function(o){ return o[key]; });
+      grp.forEach(function(o){
+        var lt = 0, eq = 0;
+        vals.forEach(function(v){ if(v < o[key]) lt++; else if(v === o[key]) eq++; });
+        o[out] = g[1] + 50 * (lt + 0.5 * eq) / grp.length;
+      });
+    });
+  }
+  pctScale('o', 'ho', 'po'); pctScale('a', 'ha', 'pa');
+  var pInt = function(v){ return Math.round(v); };
+
+  /* ---------- tema ---------- */
+  var themeBtn = document.getElementById('theme-btn');
+  try{ var saved = localStorage.getItem('ia-theme'); if(saved) document.documentElement.setAttribute('data-theme', saved); }catch(e){}
+  themeBtn.addEventListener('click', function(){
+    var root = document.documentElement, cur = root.getAttribute('data-theme');
+    if(!cur) cur = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('ia-theme', next); }catch(e){}
+    renderAll();
+  });
+
+  /* ---------- tooltip ---------- */
+  var tip = document.getElementById('tip');
+  function showTip(evt, title, rows){
+    tip.innerHTML = '<div class="tt">' + title + '</div>' + rows;
+    tip.classList.add('show'); moveTip(evt);
+  }
+  function moveTip(evt){
+    var x = evt.clientX + 14, y = evt.clientY + 14, w = tip.offsetWidth, h = tip.offsetHeight;
+    if(x + w > window.innerWidth - 8) x = evt.clientX - w - 14;
+    if(y + h > window.innerHeight - 8) y = evt.clientY - h - 14;
+    tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+  }
+  function hideTip(){ tip.classList.remove('show'); }
+  function trow(label, value, cat){
+    return '<div class="tr"><span>' + (cat ? '<i class="bg-' + cat + '"></i>' : '') + label + '</span><b>' + value + '</b></div>';
+  }
+
+  /* ---------- portada ---------- */
+  var heroBar = document.getElementById('hero-bar');
+  heroBar.setAttribute('aria-label', 'Potencial alto de automatización relativa ' + fmtPct(NAT.alto) + ', bajo ' + fmtPct(NAT.bajo) + ', incierto ' + fmtPct(NAT.incierto));
+  heroBar.innerHTML = CATS.map(function(c){ return '<i class="bg-' + c + '" style="width:' + (NAT[c]*100) + '%"></i>'; }).join('');
+  document.querySelectorAll('[data-share]').forEach(function(el){
+    el.textContent = (NAT[el.dataset.share]*100).toLocaleString('es-CO', {minimumFractionDigits:1, maximumFractionDigits:1}) + ' %';
+  });
+  document.querySelectorAll('[data-people]').forEach(function(el){
+    el.textContent = '≈ ' + fmtMill(DATA.perfil[el.dataset.people].personas) + ' millones de personas';
+  });
+  document.querySelectorAll('[data-med]').forEach(function(el){
+    el.textContent = fmt2(el.dataset.med === 'oit' ? MED_OIT : MED_AIOE);
+  });
+
+  /* ---------- buscador y ficha ---------- */
+  var input = document.getElementById('occ-input'), combo = document.getElementById('combo'),
+      list = document.getElementById('occ-list'), toggle = document.getElementById('occ-toggle'),
+      detail = document.getElementById('occ-detail');
+  var alpha = OCC.slice().sort(function(a,b){ return a.l.localeCompare(b.l, 'es'); });
+  /* texto sin tildes ni mayúsculas, con el mismo largo que el original (para resaltar lo escrito) */
+  var fold = function(t){ return t.split('').map(function(c){ return c.normalize('NFD').charAt(0); }).join('').toLowerCase(); };
+  alpha.forEach(function(o){ o.f = fold(o.l); });
+  var current = null, results = [], activeIdx = -1, MAXSHOW = 40;
+
+  function highlight(o, tokens){
+    var rng = [];
+    tokens.forEach(function(t){ var i = o.f.indexOf(t); if(i >= 0) rng.push([i, i + t.length]); });
+    rng.sort(function(x,y){ return x[0] - y[0]; });
+    var merged = [];
+    rng.forEach(function(r){
+      var last = merged[merged.length - 1];
+      if(last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]); else merged.push(r.slice());
+    });
+    var out = '', pos = 0;
+    merged.forEach(function(r){ out += esc(o.l.slice(pos, r[0])) + '<mark>' + esc(o.l.slice(r[0], r[1])) + '</mark>'; pos = r[1]; });
+    return out + esc(o.l.slice(pos));
+  }
+  function search(q){
+    var tokens = fold(q).split(/\s+/).filter(Boolean);
+    if(!tokens.length) return {tokens: tokens, hits: alpha};
+    var hits = alpha.filter(function(o){ return tokens.every(function(t){ return o.f.indexOf(t) >= 0; }); });
+    var rank = function(o){ return o.f.indexOf(tokens[0]) === 0 ? 0 : (o.f.indexOf(' ' + tokens[0]) >= 0 ? 1 : 2); };
+    hits = hits.map(function(o, i){ return {o: o, r: rank(o), i: i}; })
+      .sort(function(a,b){ return a.r - b.r || a.i - b.i; }).map(function(x){ return x.o; });
+    return {tokens: tokens, hits: hits};
+  }
+  function openList(showAll){
+    var res = search(showAll ? '' : input.value);
+    results = showAll || !res.tokens.length ? res.hits : res.hits.slice(0, MAXSHOW);
+    var html = results.map(function(o, i){
+      var dot = o.k ? '<i class="dot bg-' + o.k + '"></i>' : '<i class="dot" style="background:var(--axis)"></i>';
+      return '<li role="option" id="opt-' + i + '" data-i="' + i + '"' + (current && current.l === o.l ? ' aria-selected="true"' : '') + '>' + dot +
+        '<span class="nm">' + highlight(o, res.tokens) + '</span></li>';
+    }).join('');
+    if(!results.length) html = '<li class="none" role="presentation">No encontramos esa ocupación. Prueba con otra palabra, por ejemplo el oficio sin tildes.</li>';
+    else if(res.hits.length > results.length) html += '<li class="more" role="presentation">Hay ' + (res.hits.length - results.length) + ' más: sigue escribiendo para afinar.</li>';
+    list.innerHTML = html;
+    list.hidden = false; combo.classList.add('open'); input.setAttribute('aria-expanded', 'true');
+    var cur = current ? results.indexOf(current) : -1;
+    if(showAll && cur >= 0) setActive(cur, true);
+    else setActive(results.length && res.tokens.length ? 0 : -1, false);
+  }
+  function closeList(){
+    list.hidden = true; combo.classList.remove('open'); input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant'); activeIdx = -1;
+  }
+  function setActive(i, scroll){
+    var prev = list.querySelector('li.active'); if(prev) prev.classList.remove('active');
+    activeIdx = i;
+    var el = i >= 0 ? document.getElementById('opt-' + i) : null;
+    if(el){ el.classList.add('active'); input.setAttribute('aria-activedescendant', el.id); if(scroll !== false) el.scrollIntoView({block: 'nearest'}); }
+    else input.removeAttribute('aria-activedescendant');
+  }
+  function pick(o){ closeList(); choose(o); input.blur(); }
+  input.addEventListener('focus', function(){ input.select(); });
+  input.addEventListener('input', function(){ openList(false); });
+  input.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+      e.preventDefault();
+      if(list.hidden){ openList(!input.value || (current && input.value === current.l)); return; }
+      if(!results.length) return;
+      setActive(e.key === 'ArrowDown' ? (activeIdx + 1) % results.length : (activeIdx - 1 + results.length) % results.length);
+    } else if(e.key === 'Enter'){
+      if(!list.hidden && results.length){ e.preventDefault(); pick(results[activeIdx >= 0 ? activeIdx : 0]); }
+    } else if(e.key === 'Escape'){
+      closeList(); input.value = current ? current.l : '';
+    } else if(e.key === 'Tab'){ closeList(); }
+  });
+  input.addEventListener('blur', function(){ setTimeout(function(){ closeList(); input.value = current ? current.l : ''; }, 120); });
+  list.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  list.addEventListener('click', function(e){
+    var li = e.target.closest('li[data-i]'); if(li) pick(results[+li.dataset.i]);
+  });
+  list.addEventListener('mousemove', function(e){
+    var li = e.target.closest('li[data-i]'); if(li && +li.dataset.i !== activeIdx) setActive(+li.dataset.i, false);
+  });
+  toggle.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  toggle.addEventListener('click', function(){
+    if(!list.hidden){ closeList(); return; }
+    input.focus(); openList(true);
+  });
+
+  /* Posición (percentil 0-100) de cada ocupación entre las demás en ingreso mensual mediano y en personas
+     ocupadas; los empates cuentan por la mitad. */
+  function pctRank(key){
+    var vals = OCC.filter(function(o){ return o[key] != null; }).map(function(o){ return o[key]; }), N = vals.length;
+    OCC.forEach(function(o){
+      if(o[key] == null){ o['p_' + key] = null; return; }
+      var lo = 0, eq = 0; vals.forEach(function(v){ if(v < o[key]) lo++; else if(v === o[key]) eq++; });
+      o['p_' + key] = Math.round(100 * (lo + 0.5 * (eq - 1)) / (N - 1));
+    });
+    return N;
+  }
+  var N_INC = pctRank('imed'), N_PER = pctRank('n');
+  function tile(label, big, of, p, mid, cap){
+    return '<div class="tile"><div class="tl">' + label + '</div><div class="tv num">' + big + (of ? '<span class="of">' + of + '</span>' : '') + '</div>' +
+      (p == null ? '' : '<div class="track" role="img" aria-label="Percentil ' + p + ' de 100">' + (mid ? '<u></u>' : '') + '<i style="left:' + p + '%"></i></div>') +
+      '<div class="tc">' + cap + '</div></div>';
+  }
+  var EDU_COL = ['--edu-1','--edu-2','--edu-3','--edu-4','--edu-5'];
+  var VERDICT = {
+    alto: '<b>Potencial alto de automatización relativa de tareas.</b> Los dos índices coinciden: la IA puede realizar más de sus tareas y tiene más de las habilidades que exige que en la mayoría de ocupaciones.',
+    bajo: '<b>Potencial bajo de automatización relativa de tareas.</b> Los dos índices coinciden: la IA puede realizar menos de sus tareas y tiene menos de las habilidades que exige que en la mayoría de ocupaciones.',
+    incierto: '<b>Potencial incierto de automatización relativa de tareas.</b> Los índices no coinciden: uno la ubica en la mitad superior y el otro en la inferior, así que no podemos decir si es alto o bajo.',
+    sin: 'No pudimos clasificar esta ocupación: le falta información.'
+  };
+  var pinned = null;
+
+  var EDU_SHORT = ['Ninguno','Primaria','Secundaria','Media','Superior'];
+  function eduMarkup(o){
+    if(!o.edu) return '';
+    var labels = DATA.eduOrder, top = 0;
+    o.edu.forEach(function(v,i){ if(v > o.edu[top]) top = i; });
+    var segs = o.edu.map(function(v,i){
+      return v > 0 ? '<i style="width:' + Math.max(v*100, 1) + '%;background:var(' + EDU_COL[i] + ')" title="' + labels[i] + ': ' + fmtPct(v) + '"></i>' : '';
+    }).join('');
+    var leg = o.edu.map(function(v,i){
+      return '<span><i style="background:var(' + EDU_COL[i] + ')"></i>' + EDU_SHORT[i] + ' <b class="num">' + fmtPct(v) + '</b></span>';
+    }).join('');
+    return '<div class="edu"><h4>Nivel educativo de quienes la ejercen: <b>' + fmtPct(o.edu[top]) + '</b> tiene ' + labels[top].toLowerCase() + '</h4>' +
+      '<div class="edubar" role="img" aria-label="Distribución del nivel educativo">' + segs + '</div><div class="edulegend">' + leg + '</div></div>';
+  }
+  function afMarkup(o){
+    if(!o.af || !o.af.length) return '';
+    var rows = o.af.map(function(j){
+      var a = OCC[j], d = '';
+      if(o.imed && a.imed){
+        var p = Math.round((a.imed/o.imed - 1)*100);
+        if(p !== 0) d = ' <small>(' + (p > 0 ? '+' : '') + p + '%)</small>';
+      }
+      return '<div class="af-row" tabindex="0" role="button" data-l="' + esc(a.l) + '"><span class="af-name">' + esc(a.l) + '</span><span class="af-inc num">' + fmtM(a.imed) + d + '</span><span class="af-n num">' + fmtN(a.n) + ' personas</span></div>';
+    }).join('');
+    return '<details class="af"><summary>Ocupaciones afines con potencial bajo de automatización relativa (' + o.af.length + ')</summary><p>Relacionadas con esta según el Catálogo Único de Ocupaciones; ingreso mensual mediano y, entre paréntesis, su diferencia con esta ocupación.</p>' + rows + '</details>';
+  }
+  function renderDetail(o, noScroll){
+    var k = o.k || 'sin';
+    var pill = k === 'sin' ? '<span class="pill">Sin información suficiente</span>' :
+      '<span class="pill ' + k + '"><i class="dot bg-' + k + '"></i>' + LABEL[k] + '</span>';
+    var hasIdx = o.o != null && o.a != null;
+    var mitad = function(p){ return p >= 50 ? 'En la mitad superior de las ocupaciones' : 'En la mitad inferior de las ocupaciones'; };
+    var tiles = (hasIdx ? tile('<b>Tareas</b> que la IA puede realizar (OIT-NASK)', pInt(o.po), 'percentil', pInt(o.po), true, mitad(o.po)) +
+      tile('<b>Habilidades</b> que la IA tiene (AIOE)', pInt(o.pa), 'percentil', pInt(o.pa), true, mitad(o.pa)) : '') +
+      tile('Personas que la ejercen', fmtN(o.n), '', o.p_n, false, '<b>Percentil ' + o.p_n + '</b> · ' + (o.n/NAT.ocupados*100).toLocaleString('es-CO', {maximumFractionDigits:2}) + '% del empleo') +
+      tile('Ingreso mensual mediano', fmtM(o.imed), '', o.p_imed, false, '<b>Percentil ' + o.p_imed + '</b> · promedio ' + fmtM(o.im));
+    detail.setAttribute('data-k', k);
+    detail.innerHTML = '<div class="chead">' + pill + '</div><h3>' + esc(o.l) + '</h3><p class="verdict">' + VERDICT[k] + '</p>' + (k === 'sin' ? '' : '<p class="vnote">Automatizar tareas no equivale a eliminar empleos: también puede abrir oportunidades de mayor productividad y mejores salarios.</p>') +
+      '<div class="tiles' + (hasIdx ? '' : ' t2') + '">' + tiles + '</div>' +
+      '<p class="tiles-note">Percentil: posición entre las ocupaciones, de 0 a 100. En los dos índices, 50 es el punto medio.</p>' +
+      eduMarkup(o) + afMarkup(o);
+    detail.querySelectorAll('.af-row').forEach(function(row){
+      var go = function(){ var t = OCC.filter(function(x){ return x.l === row.dataset.l; })[0]; if(t) choose(t); };
+      row.addEventListener('click', go);
+      row.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } });
+    });
+    pinned = o.l; renderMap(); renderPin(o);
+  }
+  function choose(o){ current = o; input.value = o.l; renderDetail(o); detail.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+
+  /* ---------- mapa ---------- */
+  var PTS = OCC.filter(function(o){ return o.o != null && o.a != null; });
+  var NMAX = Math.max.apply(null, PTS.map(function(o){ return o.n || 0; }));
+  var qmap = document.getElementById('qmap'), pinInfo = document.getElementById('pin-info');
+  function share(pred){
+    var tot = PTS.reduce(function(s,o){ return s + (o.n||0); }, 0);
+    return PTS.filter(pred).reduce(function(s,o){ return s + (o.n||0); }, 0) / tot;
+  }
+  function renderPin(o){
+    if(o.o == null || o.a == null){ pinInfo.innerHTML = ''; return; }
+    pinInfo.innerHTML = '<i class="dot bg-' + o.k + '"></i><span><b>' + esc(o.l) + '</b> está en la zona de ' + LABEL[o.k].toLowerCase() + '.</span>';
+  }
+  function renderMap(){
+    var W = Math.max(300, qmap.clientWidth || 640), narrow = W < 560;
+    var mL = narrow ? 40 : 52, mR = 14, mT = 14, mB = 50, H = narrow ? 320 : 400;
+    var pw = W - mL - mR, ph = H - mT - mB;
+    var oMin = -2, oMax = 102, aMin = -2, aMax = 102;
+    var x = function(v){ return mL + (v - oMin)/(oMax - oMin) * pw; };
+    var y = function(v){ return mT + (1 - (v - aMin)/(aMax - aMin)) * ph; };
+    var cx = x(50), cy = y(50);
+    var sA = share(function(o){ return o.k === 'alto'; }), sB = share(function(o){ return o.k === 'bajo'; });
+    var sTL = share(function(o){ return o.ho === 0 && o.ha === 1; }), sBR = share(function(o){ return o.ho === 1 && o.ha === 0; });
+    var p1 = function(v){ return (v*100).toLocaleString('es-CO', {maximumFractionDigits:1}) + '%'; };
+    var s = '';
+    s += '<rect class="zone-bg bajo" x="' + mL + '" y="' + cy + '" width="' + (cx - mL) + '" height="' + (mT + ph - cy) + '"></rect>';
+    s += '<rect class="zone-bg alto" x="' + cx + '" y="' + mT + '" width="' + (mL + pw - cx) + '" height="' + (cy - mT) + '"></rect>';
+    s += '<rect class="zone-bg incierto" x="' + mL + '" y="' + mT + '" width="' + (cx - mL) + '" height="' + (cy - mT) + '"></rect>';
+    s += '<rect class="zone-bg incierto" x="' + cx + '" y="' + cy + '" width="' + (mL + pw - cx) + '" height="' + (mT + ph - cy) + '"></rect>';
+    s += '<line class="cut" x1="' + cx + '" x2="' + cx + '" y1="' + mT + '" y2="' + (mT + ph) + '"></line><line class="cut" x1="' + mL + '" x2="' + (mL + pw) + '" y1="' + cy + '" y2="' + cy + '"></line>';
+    [0, 25, 50, 75, 100].forEach(function(v){
+      s += '<text class="ax" x="' + x(v) + '" y="' + (mT + ph + 16) + '" text-anchor="middle">' + v + '</text>';
+      s += '<text class="ax" x="' + (mL - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    });
+    PTS.slice().sort(function(a,b){ return (b.n||0) - (a.n||0); }).forEach(function(o){
+      var r = 2.8 + Math.sqrt((o.n||0)/NMAX) * 11, isP = pinned === o.l;
+      s += '<circle class="pt ' + o.k + (isP ? ' pinned' : '') + '" data-l="' + esc(o.l) + '" cx="' + x(o.po).toFixed(1) + '" cy="' + y(o.pa).toFixed(1) + '" r="' + (isP ? Math.max(r, 8) : r).toFixed(1) + '"></circle>';
+    });
+    var zl = function(c, v){ return W < 700 ? SHORT[c] + ' · ' + p1(v) : [LABEL[c], p1(v)]; };
+    var zt = function(x0, y0, anchor, c, v, up){
+      var t = zl(c, v), g = '<text class="zone" x="' + x0 + '" y="' + y0 + '"' + (anchor ? ' text-anchor="end"' : '') + '>';
+      if(typeof t === 'string') return g + t + '</text>';
+      return g + '<tspan x="' + x0 + '" dy="' + (up ? 0 : -15) + '">' + t[0] + '</tspan><tspan x="' + x0 + '" dy="15">' + t[1] + '</tspan></text>';
+    };
+    s += zt(mL + 8, mT + 18, false, 'incierto', sTL, true);
+    s += zt(mL + pw - 8, mT + 18, true, 'alto', sA, true);
+    s += zt(mL + 8, mT + ph - 10, false, 'bajo', sB, false);
+    s += zt(mL + pw - 8, mT + ph - 10, true, 'incierto', sBR, false);
+    var pinO = pinned && PTS.filter(function(o){ return o.l === pinned; })[0];
+    if(pinO){
+      var txt = pinO.l.length > (narrow ? 30 : 44) ? pinO.l.slice(0, narrow ? 29 : 43) + '…' : pinO.l;
+      var half = txt.length * 3.5 + 4, px = Math.min(Math.max(x(pinO.po), mL + half), mL + pw - half);
+      s += '<text class="pinlabel" x="' + px + '" y="' + Math.max(mT + 30, y(pinO.pa) - 14) + '" text-anchor="middle">' + esc(txt) + '</text>';
+    }
+    s += '<text class="axt" x="' + (mL + pw/2) + '" y="' + (H - 6) + '" text-anchor="middle">Tareas que la IA puede hacer (OIT-NASK) →</text>';
+    s += '<text class="axt" transform="translate(13 ' + (mT + ph/2) + ') rotate(-90)" text-anchor="middle">Habilidades que la IA tiene (AIOE) →</text>';
+    qmap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Mapa de ocupaciones según las tareas que la IA puede realizar y las habilidades que tiene">' + s + '</svg>';
+    qmap.querySelectorAll('.pt').forEach(function(c){
+      var o = PTS.filter(function(p){ return p.l === c.dataset.l; })[0];
+      c.addEventListener('mousemove', function(e){ showTip(e, esc(o.l), trow('Potencial', LABEL[o.k], o.k) + trow('Tareas', pInt(o.po)) + trow('Habilidades', pInt(o.pa)) + trow('Ocupados', fmtN(o.n))); });
+      c.addEventListener('mouseleave', hideTip);
+      c.addEventListener('click', function(){ choose(o); });
+    });
+  }
+
+  /* ---------- evolución ---------- */
+  var evoMetric = 'empleo';
+  function renderEvo(){
+    var wrap = document.getElementById('evo'), m = evoMetric;
+    var series = CATS.map(function(c){
+      var pts = DATA.serie[c], b = pts[0][m];
+      return {c:c, pts: pts.map(function(r){ return {y:r.y, idx:r[m]/b*100, val:r[m]}; })};
+    });
+    var W = Math.max(300, wrap.clientWidth || 640), narrow = W < 520;
+    var mL = 40, mR = 16, mT = 14, mB = 30, H = narrow ? 270 : 340, pw = W - mL - mR, ph = H - mT - mB;
+    var all = []; series.forEach(function(s){ s.pts.forEach(function(p){ all.push(p.idx); }); });
+    var lo = Math.floor((Math.min.apply(null, all.concat([100])) - 2)/5)*5, hi = Math.ceil((Math.max.apply(null, all) + 2)/5)*5;
+    var years = series[0].pts.map(function(p){ return p.y; });
+    var x = function(yr){ return mL + (yr - years[0])/(years[years.length-1] - years[0]) * pw; };
+    var y = function(v){ return mT + (1 - (v - lo)/(hi - lo)) * ph; };
+    var g = '';
+    for(var v = lo; v <= hi; v += 5){
+      g += '<line x1="' + mL + '" x2="' + (mL + pw) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="' + (v === 100 ? 'var(--axis)' : 'var(--grid)') + '" stroke-width="1"></line>';
+      g += '<text class="ax" x="' + (mL - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    }
+    years.forEach(function(yr){ g += '<text class="ax" x="' + x(yr) + '" y="' + (H - 8) + '" text-anchor="middle">' + yr + '</text>'; });
+    var cross = '<line id="evo-x" x1="0" x2="0" y1="' + mT + '" y2="' + (mT + ph) + '" stroke="var(--axis)" stroke-width="1" opacity="0"></line>';
+    var lines = '';
+    series.forEach(function(s){
+      var col = 'var(--' + s.c + ')';
+      lines += '<polyline fill="none" stroke="' + col + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="' + s.pts.map(function(p){ return x(p.y) + ',' + y(p.idx); }).join(' ') + '"></polyline>';
+      s.pts.forEach(function(p, i){
+        var last = i === s.pts.length - 1;
+        lines += '<circle cx="' + x(p.y) + '" cy="' + y(p.idx) + '" r="' + (last ? 5 : 4) + '" fill="' + col + '" stroke="var(--surface)" stroke-width="2"></circle>';
+      });
+    });
+    var hits = '';
+    years.forEach(function(yr, i){ hits += '<rect class="hit" data-i="' + i + '" x="' + (x(yr) - pw/(years.length-1)/2) + '" y="' + mT + '" width="' + (pw/(years.length-1)) + '" height="' + ph + '" fill="transparent"></rect>'; });
+    wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Evolución 2021-2025 de ' + (m === 'empleo' ? 'el empleo' : 'el ingreso real') + ' por potencial de automatización">' + g + cross + lines + hits + '</svg>';
+    var fmtVal = function(v){ return m === 'empleo' ? fmtMill(v) + ' millones' : fmtM(v); };
+    var xl = wrap.querySelector('#evo-x');
+    wrap.querySelectorAll('.hit').forEach(function(h){
+      h.addEventListener('mousemove', function(e){
+        var i = +h.dataset.i; xl.setAttribute('x1', x(years[i])); xl.setAttribute('x2', x(years[i])); xl.setAttribute('opacity', 1);
+        showTip(e, years[i], series.map(function(s){ return trow(LABEL[s.c], fmtVal(s.pts[i].val) + ' · ' + Math.round(s.pts[i].idx), s.c); }).join(''));
+      });
+      h.addEventListener('mouseleave', function(){ xl.setAttribute('opacity', 0); hideTip(); });
+    });
+    var chg = series.map(function(s){ return s.pts[s.pts.length-1].idx - 100; });
+    var sg = function(v){ return (v >= 0 ? '+' : '') + v.toLocaleString('es-CO', {maximumFractionDigits:0}) + '%'; };
+    document.getElementById('evo-insight').innerHTML = (m === 'empleo' ? 'El empleo' : 'El ingreso real') + ' entre 2021 y 2025 cambió <b>' + sg(chg[0]) + '</b> en el grupo de potencial alto de automatización relativa, <b>' + sg(chg[1]) + '</b> en el de potencial bajo y <b>' + sg(chg[2]) + '</b> en el de potencial incierto. Son cambios observados, no efectos de la IA.';
+    document.getElementById('evo-legend').innerHTML = series.map(function(s){
+      return '<span><i class="dot bg-' + s.c + '"></i>' + LABEL[s.c] + ' <b class="num">' + Math.round(s.pts[s.pts.length-1].idx) + '</b></span>';
+    }).join('');
+    document.getElementById('evo-table').innerHTML = '<table class="t"><thead><tr><th>Año</th>' + series.map(function(s){ return '<th>' + LABEL[s.c] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      years.map(function(yr, i){ return '<tr><td>' + yr + '</td>' + series.map(function(s){ return '<td>' + fmtVal(s.pts[i].val) + ' (' + Math.round(s.pts[i].idx) + ')</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
+  }
+  document.getElementById('evo-chips').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-metric]'); if(!b) return;
+    evoMetric = b.dataset.metric;
+    Array.prototype.forEach.call(b.parentElement.children, function(c){ c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
+    renderEvo();
+  });
+
+  /* ---------- por grupo ---------- */
+  var DIMS = [['quintil','Quintil de ingreso'],['departamento','Departamento'],['sector','Sector económico'],['educacion','Nivel educativo'],['sexo','Sexo'],['formalidad','Formalidad']];
+  var RANKED = {departamento:1, sector:1}, gDim = 'quintil';
+  var dimChips = document.getElementById('dim-chips');
+  dimChips.innerHTML = DIMS.map(function(d, i){ return '<button class="chip" type="button" data-dim="' + d[0] + '" aria-pressed="' + (i === 0) + '">' + d[1] + '</button>'; }).join('');
+  function renderGroups(){
+    var grp = DATA.groups[gDim];
+    var items = RANKED[gDim] ? grp.items.slice().sort(function(a,b){ return (b.alto||0) - (a.alto||0); }) : grp.items;
+    var top = items.reduce(function(a,b){ return b.alto > a.alto ? b : a; }), bot = items.reduce(function(a,b){ return b.alto < a.alto ? b : a; });
+    var p0 = function(v){ return Math.round(v*100) + '%'; };
+    var byLab = function(l){ return items.filter(function(i){ return i.label === l; })[0]; };
+    var ins = '<b>' + esc(top.label) + '</b> tiene la mayor proporción de su empleo en ocupaciones con potencial alto de automatización relativa (' + p0(top.alto) + '); <b>' + esc(bot.label) + '</b>, la menor (' + p0(bot.alto) + ').';
+    if(gDim === 'sexo' && byLab('Mujer') && byLab('Hombre')){
+      ins = 'El <b>' + p0(byLab('Mujer').alto) + '</b> de las mujeres trabaja en ocupaciones con potencial alto de automatización relativa, frente al <b>' + p0(byLab('Hombre').alto) + '</b> de los hombres.';
+    } else if(gDim === 'formalidad' && byLab('Formal') && byLab('Informal')){
+      ins = 'El <b>' + p0(byLab('Formal').alto) + '</b> de los ocupados formales trabaja en ocupaciones con potencial alto de automatización relativa, frente al <b>' + p0(byLab('Informal').alto) + '</b> de los informales.';
+    }
+    document.getElementById('g-insight').innerHTML = ins;
+    var h = '<div class="gcol"><span>' + grp.title + '</span><span></span><span>% potencial alto</span></div>';
+    items.forEach(function(it, i){
+      h += '<div class="grow" data-i="' + i + '"><div class="gl">' + esc(it.label) + '</div><div class="gb" role="img" aria-label="Alto ' + fmtPct(it.alto) + ', bajo ' + fmtPct(it.bajo) + ', incierto ' + fmtPct(it.incierto) + '">' +
+        CATS.map(function(c){ return '<i class="bg-' + c + '" style="width:' + (it[c]*100) + '%"></i>'; }).join('') + '</div><div class="gv num">' + fmtPct(it.alto) + '</div></div>';
+    });
+    var box = document.getElementById('gbars'); box.innerHTML = h;
+    box.querySelectorAll('.grow').forEach(function(r){
+      var it = items[+r.dataset.i];
+      r.addEventListener('mousemove', function(e){
+        showTip(e, esc(it.label), CATS.map(function(c){ return trow(LABEL[c], fmtPct(it[c]), c); }).join('') + (it.n ? trow('Ocupados', fmtN(it.n)) : ''));
+      });
+      r.addEventListener('mouseleave', hideTip);
+    });
+    document.getElementById('g-cap').innerHTML = 'Cada barra suma 100% del empleo del grupo. En todo el país: <b>' + fmtPct(NAT.alto) + '</b> potencial alto, <b>' + fmtPct(NAT.bajo) + '</b> bajo y <b>' + fmtPct(NAT.incierto) + '</b> incierto.';
+    document.getElementById('g-table').innerHTML = '<table class="t"><thead><tr><th>' + grp.title + '</th><th>Potencial alto</th><th>Potencial bajo</th><th>Potencial incierto</th></tr></thead><tbody>' +
+      items.map(function(it){ return '<tr><td>' + esc(it.label) + '</td><td>' + fmtPct(it.alto) + '</td><td>' + fmtPct(it.bajo) + '</td><td>' + fmtPct(it.incierto) + '</td></tr>'; }).join('') + '</tbody></table>';
+  }
+  dimChips.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-dim]'); if(!b) return;
+    gDim = b.dataset.dim;
+    Array.prototype.forEach.call(dimChips.children, function(c){ c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
+    renderGroups();
+  });
+
+  /* ---------- ranking ---------- */
+  var sorted = OCC.filter(function(o){ return o.a != null; }).sort(function(a,b){ return (b.n||0) - (a.n||0); });
+  var rankChips = document.getElementById('rank-chips'), rankList = document.getElementById('rank-list');
+  var moreBtn = document.getElementById('rank-more'), moreWrap = document.getElementById('rank-more-wrap');
+  var rState = 'all', rLimit = 10, NRMAX = Math.max.apply(null, sorted.map(function(o){ return o.n || 0; }));
+  var counts = {all: sorted.length}; sorted.forEach(function(o){ var c = o.k || 'sin'; counts[c] = (counts[c]||0) + 1; });
+  rankChips.innerHTML = [['alto',LABEL.alto],['bajo',LABEL.bajo],['incierto',LABEL.incierto]].map(function(c){
+    return '<button class="chip" type="button" data-q="' + c[0] + '" aria-pressed="false">' + c[1] + ' (' + counts[c[0]] + ')</button>';
+  }).join('');
+  function norm(t){ return (t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  function renderRank(){
+    var list = rState === 'all' ? sorted : sorted.filter(function(o){ return o.k === rState; });
+    var shown = list.slice(0, rLimit);
+    rankList.innerHTML = shown.map(function(o){
+      var w = Math.max(2, Math.sqrt((o.n||0)/NRMAX)*100);
+      return '<div class="rrow" tabindex="0" role="button" data-l="' + esc(o.l) + '"><span class="ri">' + (sorted.indexOf(o)+1) + '</span><span class="rl" title="' + esc(o.l) + '"><i class="dot rdot ' + (o.k ? 'bg-' + o.k : '') + '"></i>' + esc(o.l) +
+        '</span><span class="rt"><i class="' + (o.k ? 'bg-' + o.k : '') + '" style="width:' + w + '%;' + (o.k ? '' : 'background:var(--axis)') + '"></i></span><span class="rv">' + fmtPct((o.n||0)/NAT.ocupados) + '</span><span class="rn">' + fmtN(o.n) + '</span></div>';
+    }).join('');
+    rankList.querySelectorAll('.rrow').forEach(function(r, i){
+      var o = shown[i], go = function(){ choose(o); };
+      r.addEventListener('click', go);
+      r.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ go(); } });
+      r.addEventListener('mousemove', function(e){ showTip(e, esc(o.l), trow('Potencial', o.k ? LABEL[o.k] : 'Sin información', o.k) + trow('Ocupados', fmtN(o.n))); });
+      r.addEventListener('mouseleave', hideTip);
+    });
+    if(list.length > rLimit){ moreWrap.hidden = false; moreBtn.textContent = 'Mostrar más (' + list.length + ' en total)'; } else { moreWrap.hidden = true; }
+  }
+  rankChips.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-q]'); if(!b) return;
+    rState = (rState === b.dataset.q) ? 'all' : b.dataset.q; rLimit = 10;     // volver a tocar el filtro activo lo quita
+    Array.prototype.forEach.call(rankChips.children, function(c){ c.setAttribute('aria-pressed', c.dataset.q === rState ? 'true' : 'false'); });
+    renderRank();
+  });
+  moreBtn.addEventListener('click', function(){ rLimit = rLimit < 50 ? 50 : Infinity; renderRank(); });
+  var rs = document.getElementById('rank-search'), rr = document.getElementById('rank-results');
+  rs.addEventListener('input', function(){
+    var q = norm(rs.value);
+    if(q.length < 2){ rr.innerHTML = ''; return; }
+    var m = sorted.filter(function(o){ return norm(o.l).indexOf(q) !== -1; }).slice(0, 6);
+    rr.innerHTML = m.length ? m.map(function(o){ return '<button type="button" data-l="' + esc(o.l) + '">' + esc(o.l) + '<span>' + fmtN(o.n) + '</span></button>'; }).join('') :
+      '<button type="button" disabled>Sin resultados</button>';
+  });
+  rr.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-l]'); if(!b) return;
+    var o = OCC.filter(function(x){ return x.l === b.dataset.l; })[0]; if(o) choose(o);
+    rs.value = ''; rr.innerHTML = '';
+  });
+
+  /* ---------- pestañas de "Explora" ---------- */
+  var tabChips = document.getElementById('tab-chips');
+  tabChips.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-tab]'); if(!b) return;
+    Array.prototype.forEach.call(tabChips.children, function(c){
+      var on = c === b; c.setAttribute('aria-pressed', on ? 'true' : 'false');
+      document.getElementById('tab-' + c.dataset.tab).hidden = !on;
+    });
+    renderEvo(); renderGroups();
+  });
+
+  /* ---------- arranque ---------- */
+  function renderAll(){ renderMap(); renderEvo(); renderGroups(); }
+  renderGroups(); renderRank();
+  var start = OCC.filter(function(o){ return o.l.indexOf('Vendedores y auxiliares de venta en tiendas') === 0; })[0] || alpha[0];
+  current = start; input.value = start.l; renderDetail(start); renderEvo();
+  var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(renderAll, 180); });
+})();
+</script>
+</body>
+</html>

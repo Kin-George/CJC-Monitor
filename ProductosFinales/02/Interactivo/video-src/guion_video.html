@@ -1,0 +1,92 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>video</title>
+<style>
+  html,body{ margin:0; padding:0; width:1080px; height:1920px; overflow:hidden;
+    background:#0c1017; font-family: system-ui,-apple-system,"Segoe UI",sans-serif; }
+  *{ box-sizing:border-box; }
+  .serif{ font-family: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif; }
+  #stage{ position:relative; width:1080px; height:1920px; background:#0c1017; }
+  .scene{ position:absolute; inset:0; width:1080px; height:1920px; display:none; }
+  .scene.on{ display:block; }
+
+  .eyebrow{ font-size:30px; letter-spacing:0.10em; text-transform:uppercase; color:#e3a83a; font-weight:700; }
+  .brandmark{ display:flex; align-items:center; gap:14px; }
+  .dot{ width:26px; height:26px; border-radius:50%; display:inline-block; }
+  .brandname{ font-size:28px; color:#c3c2b7; font-weight:600; }
+
+  .safe-top{ position:absolute; top:96px; left:64px; right:64px; }
+
+  svg text{ font-family: system-ui,-apple-system,"Segoe UI",sans-serif; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- SCENE 1: PORTADA + PREGUNTA -->
+  <div class="scene" id="s1">
+    <div class="safe-top">
+      <div class="brandmark">
+        <span class="dot" style="background:#eda100"></span>
+        <span class="dot" style="background:#9a9890;margin-left:-14px"></span>
+        <span class="dot" style="background:#3987e5;margin-left:-14px"></span>
+        <span class="brandname">Centro Javeriano de Competitividad</span>
+      </div>
+      <div class="eyebrow" style="margin-top:26px;">Informe 02 · 2005–2025</div>
+    </div>
+    <div id="s1-title" class="serif" style="position:absolute; left:64px; right:64px; top:46%; transform:translateY(-50%);
+      font-size:92px; line-height:1.1; color:#ffffff; font-weight:800; text-wrap:balance;"></div>
+  </div>
+
+  <!-- SCENE 2: QUE ES LA PTF -->
+  <div class="scene" id="s2">
+    <div class="safe-top">
+      <div class="eyebrow">La Productividad Total de los Factores</div>
+    </div>
+    <div id="s2-formula" style="position:absolute; left:0; right:0; top:300px; bottom:420px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0px;"></div>
+  </div>
+
+  <!-- SCENE 3: RESULTADO NACIONAL -->
+  <div class="scene" id="s3">
+    <div class="safe-top">
+      <div class="eyebrow">¿Y qué pasó en Colombia?</div>
+    </div>
+    <div id="s3-chart" style="position:absolute; left:40px; right:40px; top:280px; bottom:420px; overflow:hidden; border-radius:24px;"></div>
+  </div>
+
+  <!-- SCENE 4: QUE TAN IMPORTANTE ES -->
+  <div class="scene" id="s4">
+    <div class="safe-top">
+      <div class="eyebrow">¿Qué tan importante es esto?</div>
+    </div>
+    <div id="s4-body" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 80px;"></div>
+  </div>
+
+  <!-- SCENE 5: SECTORES -->
+  <div class="scene" id="s5">
+    <div class="safe-top">
+      <div class="eyebrow">No todos los sectores tuvieron el mismo resultado</div>
+    </div>
+    <div id="s5-chart" style="position:absolute; left:40px; right:40px; top:280px; bottom:420px;"></div>
+  </div>
+
+  <!-- SCENE 6: CIERRE -->
+  <div class="scene" id="s6">
+    <div class="safe-top">
+      <div class="eyebrow">La prioridad</div>
+    </div>
+    <div id="s6-end" style="position:absolute; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:0 90px;">
+      <div class="brandmark" style="margin-bottom:56px;">
+        <span class="dot" style="background:#eda100"></span>
+        <span class="dot" style="background:#9a9890;margin-left:-14px"></span>
+        <span class="dot" style="background:#3987e5;margin-left:-14px"></span>
+      </div>
+      <div class="serif" style="font-size:58px; color:#fff; font-weight:800; line-height:1.32;">Identificar qué permitió los avances<br>y qué frenó a las actividades rezagadas.</div>
+      <div style="margin-top:48px; font-size:32px; color:#c3c2b7; font-weight:600;">Centro Javeriano de Competitividad</div>
+    </div>
+  </div>
+
+</div>
+<script src="guion_video_data.js?v=3"></script>
+<script src="guion_video_timeline.js?v=3"></script>
+</body></html>

@@ -1,0 +1,1393 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Colombia produce más por cada hora de trabajo? — Informe 01, CJC</title>
+<style>
+  :root{
+    color-scheme: light;
+    --page:#f7f5ee; --surface:#ffffff; --surface-2:#f0eee4;
+    --ink:#141c26; --ink-2:#4c5866; --muted:#8a8f97;
+    --border:rgba(11,11,11,0.10); --border-strong:rgba(11,11,11,0.18);
+    --navy:#16324f; --navy-ink:#0f2740; --gold:#a6710a;
+    --chart-surface:#fcfcfb; --chart-grid:#e4e2d8; --chart-axis:#c3c2b7; --chart-muted:#8a8880;
+    --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948; --gray-mid:#9a9890;
+    --good:#006300; --bad:#c23b3b;
+    --quad-a:rgba(235,104,52,0.10); --quad-b:rgba(27,175,122,0.10); --quad-c:rgba(154,152,144,0.10); --quad-d:rgba(42,120,214,0.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:where(:not([data-theme="light"])){
+      color-scheme: dark;
+      --page:#0e1116; --surface:#171b22; --surface-2:#1c212a;
+      --ink:#eef1f6; --ink-2:#b7c0cc; --muted:#8a8f97;
+      --border:rgba(255,255,255,0.10); --border-strong:rgba(255,255,255,0.18);
+      --navy:#8fb4de; --navy-ink:#bcd4ee; --gold:#e3a83a;
+      --chart-surface:#1a1a19; --chart-grid:#2c2c2a; --chart-axis:#3f3f3c; --chart-muted:#9a988f;
+      --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767; --gray-mid:#6f6d66;
+      --good:#0ca30c; --bad:#e66767;
+      --quad-a:rgba(217,89,38,0.14); --quad-b:rgba(25,158,112,0.14); --quad-c:rgba(111,109,102,0.14); --quad-d:rgba(57,135,229,0.14);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --page:#0e1116; --surface:#171b22; --surface-2:#1c212a;
+    --ink:#eef1f6; --ink-2:#b7c0cc; --muted:#8a8f97;
+    --border:rgba(255,255,255,0.10); --border-strong:rgba(255,255,255,0.18);
+    --navy:#8fb4de; --navy-ink:#bcd4ee; --gold:#e3a83a;
+    --chart-surface:#1a1a19; --chart-grid:#2c2c2a; --chart-axis:#3f3f3c; --chart-muted:#9a988f;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767; --gray-mid:#6f6d66;
+    --good:#0ca30c; --bad:#e66767;
+    --quad-a:rgba(217,89,38,0.14); --quad-b:rgba(25,158,112,0.14); --quad-c:rgba(111,109,102,0.14); --quad-d:rgba(57,135,229,0.14);
+  }
+  :root[data-theme="light"]{
+    color-scheme: light;
+    --page:#f7f5ee; --surface:#ffffff; --surface-2:#f0eee4;
+    --ink:#141c26; --ink-2:#4c5866; --muted:#8a8f97;
+    --border:rgba(11,11,11,0.10); --border-strong:rgba(11,11,11,0.18);
+    --navy:#16324f; --navy-ink:#0f2740; --gold:#a6710a;
+    --chart-surface:#fcfcfb; --chart-grid:#e4e2d8; --chart-axis:#c3c2b7; --chart-muted:#8a8880;
+    --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948; --gray-mid:#9a9890;
+    --good:#006300; --bad:#c23b3b;
+    --quad-a:rgba(235,104,52,0.10); --quad-b:rgba(27,175,122,0.10); --quad-c:rgba(154,152,144,0.10); --quad-d:rgba(42,120,214,0.10);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--page); color:var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height:1.6; font-size:16px;
+  }
+  ::selection{ background: var(--gold); color:#1a1206; }
+  .serif{ font-family: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif; }
+  h1,h2,h3{ font-family: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif; font-weight:700; text-wrap:balance; color:var(--ink); margin:0; }
+  a{ color:var(--navy); }
+  p{ margin:0; }
+  .tabular{ font-variant-numeric: tabular-nums; }
+
+  .wrap{ max-width:920px; margin:0 auto; padding:0 24px; }
+  .wrap-wide{ max-width:1080px; margin:0 auto; padding:0 24px; }
+
+  /* Top nav */
+  .topbar{
+    position:sticky; top:0; z-index:40; background:color-mix(in srgb, var(--page) 88%, transparent);
+    backdrop-filter: blur(10px); border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{ max-width:1080px; margin:0 auto; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .brand{ display:flex; align-items:center; gap:10px; font-size:0.85rem; color:var(--ink-2); white-space:nowrap; }
+  .brand b{ color:var(--ink); }
+  .brand-short{ display:none; }
+  .navlinks{ display:flex; gap:18px; flex-wrap:wrap; min-width:0; }
+  .navlinks a{ font-size:0.82rem; text-decoration:none; color:var(--ink-2); border-bottom:1px solid transparent; padding-bottom:2px; white-space:nowrap; }
+  .navlinks a:hover{ color:var(--navy); border-color:var(--navy); }
+  .theme-toggle{
+    border:1px solid var(--border-strong); background:var(--surface); color:var(--ink-2);
+    border-radius:20px; padding:5px 12px; font-size:0.78rem; cursor:pointer; white-space:nowrap;
+  }
+  .theme-toggle:hover{ color:var(--ink); }
+
+  /* Hero */
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{ font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:14px; }
+  .hero h1{ font-size:clamp(2rem,4.6vw,3.15rem); line-height:1.12; margin-bottom:18px; }
+  .hero .lead{ font-size:1.1rem; color:var(--ink-2); max-width:62ch; margin-bottom:8px;}
+  .hero .credit{ font-size:0.85rem; color:var(--muted); margin-top:14px; }
+
+  .hero-figure{
+    margin-top:36px; display:flex; gap:36px; flex-wrap:wrap; align-items:flex-end;
+    border-top:1px solid var(--border); padding-top:28px;
+  }
+  .hero-stat{ min-width:220px; }
+  .hero-stat .num{ font-family: system-ui, sans-serif; font-weight:800; font-size:clamp(2.4rem,6vw,3.4rem); color:var(--navy); line-height:1; }
+  .hero-stat .num .unit{ font-size:0.45em; font-weight:600; color:var(--ink-2); margin-left:4px;}
+  .hero-stat .cap{ font-size:0.92rem; color:var(--ink-2); margin-top:8px; max-width:32ch; }
+  .hero-stat.secondary .num{ font-size:clamp(1.5rem,3.4vw,1.9rem); color:var(--ink); }
+
+  section{ padding:52px 0; border-top:1px solid var(--border); }
+  section:first-of-type{ border-top:none; }
+  .section-head{ margin-bottom:26px; }
+  .kicker{ font-size:0.76rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:10px; }
+  .section-head h2{ font-size:clamp(1.5rem,3vw,2rem); margin-bottom:12px; }
+  .section-head p{ color:var(--ink-2); max-width:66ch; font-size:1rem; }
+
+  /* Explainer formula box */
+  .formula-box{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:26px 28px;
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center; margin-top:22px;
+  }
+  .formula-term{ text-align:center; min-width:140px; padding:10px; }
+  .formula-term .ttl{ font-weight:700; font-size:0.98rem; }
+  .formula-term .sub{ font-size:0.8rem; color:var(--ink-2); margin-top:4px; }
+  .formula-op{ font-size:1.4rem; color:var(--muted); font-weight:300; padding:0 4px;}
+
+  /* Stat tiles */
+  .tiles{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .tile{ background:var(--surface); padding:20px 18px; }
+  .tile .label{ font-size:0.78rem; color:var(--ink-2); font-weight:600; }
+  .tile .value{ font-size:1.55rem; font-weight:800; margin-top:8px; font-family: system-ui, sans-serif;}
+  .tile .value small{ font-size:0.6em; color:var(--ink-2); font-weight:600; }
+  .tile .growth{ font-size:0.85rem; margin-top:4px; font-weight:700; }
+  .tile .growth.up{ color:var(--good); } .tile .growth.down{ color:var(--bad); }
+  .tile svg{ display:block; margin-top:10px; width:100%; height:32px; }
+  .tile .yrs{ font-size:0.68rem; color:var(--muted); margin-top:2px; }
+
+  /* Chart cards */
+  .chart-card{ background:var(--chart-surface); border:1px solid var(--border); border-radius:14px; padding:22px 22px 16px; }
+  .chart-title{ font-size:0.95rem; font-weight:700; color:var(--ink); }
+  .chart-sub{ font-size:0.78rem; color:var(--chart-muted); margin-top:2px; margin-bottom:14px; }
+  .chart-card svg{ display:block; width:100%; height:auto; overflow:visible; }
+  .axis-label{ font-size:11px; fill:var(--chart-muted); font-family: system-ui, sans-serif; }
+  .grid-line{ stroke:var(--chart-grid); stroke-width:1; }
+  .baseline{ stroke:var(--chart-axis); stroke-width:1.2; }
+  .mark-label{ font-size:10.5px; fill:var(--ink-2); font-family: system-ui, sans-serif; }
+  .value-label{ font-size:11px; font-weight:700; fill:var(--ink); font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;}
+
+  .legend-row{ display:flex; flex-wrap:wrap; gap:14px 20px; margin:10px 0 4px; font-size:0.8rem; color:var(--ink-2); }
+  .legend-row .item{ display:flex; align-items:center; gap:6px; }
+  .legend-row .swatch{ width:11px; height:11px; border-radius:3px; display:inline-block; flex:none; }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+  .chip{
+    border:1px solid var(--border-strong); background:var(--surface); color:var(--ink-2);
+    border-radius:20px; padding:6px 13px; font-size:0.8rem; cursor:pointer; font-weight:600;
+    display:flex; align-items:center; gap:6px; transition:background .12s, color .12s, border-color .12s;
+  }
+  .chip .dot{ width:8px; height:8px; border-radius:50%; }
+  .chip[aria-pressed="true"]{ background:var(--ink); color:var(--page); border-color:var(--ink); }
+  .chip:hover{ border-color:var(--ink-2); }
+
+  .tooltip{
+    position:fixed; pointer-events:none; z-index:200; background:var(--surface); color:var(--ink);
+    border:1px solid var(--border-strong); border-radius:10px; padding:10px 13px; font-size:0.8rem;
+    box-shadow:0 8px 24px rgba(0,0,0,0.18); max-width:250px; opacity:0; transform:translateY(4px);
+    transition:opacity .1s, transform .1s;
+  }
+  .tooltip.show{ opacity:1; transform:translateY(0); }
+  .tooltip .tt-title{ font-weight:800; margin-bottom:6px; font-size:0.86rem; }
+  .tooltip .tt-row{ display:flex; justify-content:space-between; gap:14px; padding:2px 0; color:var(--ink-2); }
+  .tooltip .tt-row b{ color:var(--ink); font-variant-numeric: tabular-nums; }
+
+  .two-col{ display:grid; grid-template-columns:1.3fr 1fr; gap:32px; align-items:start; }
+  @media (max-width:820px){ .two-col{ grid-template-columns:1fr; } }
+
+  /* Ranking / gainer-loser lists */
+  .rank-list{ display:flex; flex-direction:column; gap:0; }
+  .rank-item{ display:grid; grid-template-columns:1fr auto; gap:10px; padding:11px 0; border-bottom:1px solid var(--border); align-items:baseline; }
+  .rank-item:last-child{ border-bottom:none; }
+  .rank-item .nm{ font-size:0.92rem; font-weight:600; }
+  .rank-item .tag{ font-size:0.72rem; color:var(--muted); font-weight:500; }
+  .rank-item .gv{ font-weight:800; font-variant-numeric: tabular-nums; text-align:right; white-space:nowrap; }
+  .rank-item .gv.up{ color:var(--good); } .rank-item .gv.down{ color:var(--bad); }
+
+  .card-pair{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:680px){ .card-pair{ grid-template-columns:1fr; } }
+  .mini-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 22px; }
+  .mini-card h3{ font-size:1rem; margin-bottom:4px; }
+  .mini-card .h3sub{ font-size:0.78rem; color:var(--muted); margin-bottom:12px; }
+
+  /* Table explorer */
+  .explorer-controls{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+  .explorer-controls input, .explorer-controls select{
+    background:var(--surface); border:1px solid var(--border-strong); color:var(--ink);
+    border-radius:9px; padding:9px 12px; font-size:0.86rem; font-family:inherit;
+  }
+  .explorer-controls input{ flex:1; min-width:180px; }
+  .table-wrap{ overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
+  table{ width:100%; border-collapse:collapse; font-size:0.85rem; min-width:560px; background:var(--surface); }
+  thead th{
+    text-align:left; padding:10px 14px; font-size:0.74rem; text-transform:uppercase; letter-spacing:0.04em;
+    color:var(--muted); border-bottom:1px solid var(--border); cursor:pointer; white-space:nowrap; user-select:none;
+    position:sticky; top:0; background:var(--surface);
+  }
+  thead th:hover{ color:var(--ink); }
+  thead th.num, tbody td.num{ text-align:right; font-variant-numeric: tabular-nums; }
+  thead th .arrow{ opacity:0.4; margin-left:3px; }
+  thead th.sorted .arrow{ opacity:1; color:var(--navy); }
+  tbody td{ padding:9px 14px; border-bottom:1px solid var(--border); }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:var(--surface-2); }
+  .grow-pos{ color:var(--good); font-weight:700; }
+  .grow-neg{ color:var(--bad); font-weight:700; }
+  .sector-tag{ font-size:0.72rem; color:var(--muted); }
+  .empty-row td{ text-align:center; color:var(--muted); padding:22px; }
+
+  .callout{
+    background:var(--surface-2); border-left:3px solid var(--gold); border-radius:0 10px 10px 0;
+    padding:16px 20px; font-size:0.92rem; color:var(--ink-2); margin-top:18px;
+  }
+  .callout b{ color:var(--ink); }
+
+  .conclusions{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  @media (max-width:820px){ .conclusions{ grid-template-columns:1fr; } }
+  .concl-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px; }
+  .concl-card .n{ font-size:0.75rem; font-weight:700; color:var(--gold); letter-spacing:0.06em; margin-bottom:10px; }
+  .concl-card p{ font-size:0.9rem; color:var(--ink-2); }
+  .concl-card p + p{ margin-top:10px; }
+
+  footer{ padding:44px 0 64px; border-top:1px solid var(--border); }
+  footer .foot-grid{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:24px; font-size:0.82rem; color:var(--ink-2); }
+  footer a{ color:var(--ink-2); text-decoration:underline; text-decoration-color:var(--border-strong); text-underline-offset:3px; }
+  footer a:hover{ color:var(--navy); }
+  .foot-block h4{ font-family:inherit; font-size:0.74rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:700; margin-bottom:8px; }
+  .foot-block p, .foot-block li{ line-height:1.7; }
+  .foot-block ul{ list-style:none; margin:0; padding:0; }
+
+  @media (max-width:680px){
+    .wrap, .wrap-wide{ padding:0 18px; }
+    .topbar-inner{ padding:10px 16px; gap:10px; }
+    .brand{ font-size:0.78rem; gap:6px; }
+    .brand-full{ display:none; }
+    .brand-short{ display:inline; }
+    .navlinks{
+      order:3; width:100%; flex-wrap:nowrap; gap:16px;
+      overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+      padding-top:2px; margin-top:-2px;
+    }
+    .navlinks::-webkit-scrollbar{ display:none; }
+    .navlinks a{ font-size:0.78rem; }
+    .topbar-inner{ flex-wrap:wrap; }
+
+    .hero{ padding:36px 0 24px; }
+    .hero h1{ max-width:100%; }
+    .hero-figure{ gap:24px; margin-top:26px; padding-top:20px; }
+    .hero-stat{ min-width:0; width:100%; }
+
+    section{ padding:36px 0; }
+    .section-head{ margin-bottom:20px; }
+
+    .formula-box{ padding:20px 16px; gap:6px 10px; }
+    .formula-term{ min-width:0; flex:1 1 40%; padding:8px 4px; }
+    .formula-op{ flex:0 0 auto; }
+
+    .chart-card{ padding:16px 14px 12px; }
+    .rank-item .nm{ font-size:0.88rem; }
+    .mini-card{ padding:16px 16px; }
+
+    .concl-card{ padding:18px; }
+
+    footer{ padding:32px 0 48px; }
+  }
+
+  /* ===== Motion & dynamism ===== */
+  .reveal{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion: no-preference){
+    .reveal{
+      opacity:0; transform:translateY(18px);
+      transition:opacity .7s cubic-bezier(.16,.8,.24,1), transform .7s cubic-bezier(.16,.8,.24,1);
+    }
+    .reveal.in{ opacity:1; transform:translateY(0); }
+  }
+
+  .topbar{ transition:box-shadow .25s ease; }
+  .topbar.scrolled{ box-shadow:0 1px 0 var(--border), 0 16px 28px -20px rgba(0,0,0,0.35); }
+
+  .navlinks a{ position:relative; }
+  .navlinks a::after{
+    content:''; position:absolute; left:0; bottom:-3px; width:100%; height:2px; background:var(--gold);
+    transform:scaleX(0); transform-origin:left; transition:transform .3s ease;
+  }
+  .navlinks a.active{ color:var(--ink); }
+  .navlinks a.active::after{ transform:scaleX(1); }
+
+  .theme-toggle{ transition:background .15s ease, transform .12s ease; }
+  .theme-toggle:active{ transform:scale(0.94); }
+
+  @media (prefers-reduced-motion: no-preference){
+    #quadChart g[data-bubble]{ transition:opacity .2s ease; }
+    #quadChart g[data-bubble] circle, #corrChart g[data-pt] circle{
+      transition:r .18s ease, stroke-width .18s ease, fill-opacity .18s ease;
+      transform-box:fill-box; transform-origin:center;
+    }
+    #quadChart g[data-bubble]:hover circle{ stroke-width:2.6; fill-opacity:0.72; }
+    #corrChart g[data-pt]:hover circle{ r:8.5; fill-opacity:0.85; }
+    .tile svg circle{ transition:r .2s ease; }
+    .tile:hover svg circle{ r:4; }
+  }
+
+  .chip{ transition:background .15s ease, color .15s ease, border-color .15s ease, transform .12s ease; }
+  .chip:active{ transform:scale(0.96); }
+
+  .rank-item{ transition:background-color .15s ease; }
+  .rank-item:hover{ background:var(--surface-2); margin:0 -10px; padding-left:10px; padding-right:10px; border-radius:8px; }
+
+  @media (prefers-reduced-motion: no-preference){
+    tbody tr{ animation:rowIn .35s cubic-bezier(.16,.8,.24,1) both; }
+  }
+  @keyframes rowIn{ from{ opacity:0; transform:translateY(-4px);} to{ opacity:1; transform:translateY(0);} }
+
+  .concl-card, .mini-card, .chart-card{ transition:transform .25s ease, box-shadow .25s ease; }
+  .concl-card:hover, .mini-card:hover{ transform:translateY(-3px); box-shadow:0 14px 30px -22px rgba(0,0,0,0.45); }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">🔵🟡 <span class="brand-full"><b>Centro Javeriano de Competitividad</b></span><b class="brand-short">CJC</b></div>
+    <div class="navlinks">
+      <a href="#resumen">Resumen</a>
+      <a href="#composicion">Composición</a>
+      <a href="#sectores">Sectores</a>
+      <a href="#ranking">Ranking</a>
+      <a href="#lupa">Lupa</a>
+      <a href="#empleo">Empleo</a>
+      <a href="#conclusiones">Conclusiones</a>
+    </div>
+    <button class="theme-toggle" id="themeToggle" type="button">Modo oscuro</button>
+  </div>
+</div>
+
+<div class="hero wrap" id="resumen">
+  <div class="eyebrow">Informe 01 · Informes sobre la Productividad en Colombia · 2010–2025</div>
+  <h1>¿Colombia produce más por cada hora de trabajo?</h1>
+  <p class="lead">Un resumen visual e interactivo de <em>«Dinámicas de la Productividad Laboral por Actividad Económica en Colombia, 2010–2025»</em>, de Oliver Pardo y Jorge Orozco (Centro Javeriano de Competitividad). Pensado para explorar los hallazgos sin necesidad de leer el informe completo.</p>
+  <p class="credit">Publicado el 19 de junio de 2026 · Fuente de los datos: Cuentas Nacionales del DANE y Gran Encuesta Integrada de Hogares (GEIH), 2010–2025 (sin dato comparable en 2020).</p>
+
+  <div class="hero-figure">
+    <div class="hero-stat">
+      <div class="num tabular" data-to="1.51"><span class="num-val">0,00</span><span class="unit">% anual</span></div>
+      <p class="cap">Creció el <b>PIB por hora trabajada</b> en Colombia entre 2010 y 2025 — la mejor medida de cuánto produce la economía por cada hora de trabajo.</p>
+    </div>
+    <div class="hero-stat secondary">
+      <div class="num tabular" data-to="1.05"><span class="num-val">0,00</span><span class="unit">% anual</span></div>
+      <p class="cap">Creció el PIB por trabajador en el mismo periodo — menos, porque cada persona trabaja hoy menos horas por semana.</p>
+    </div>
+    <div class="hero-stat secondary">
+      <div class="num tabular" data-to="3.16"><span class="num-val">0,00</span><span class="unit">% anual</span></div>
+      <p class="cap">Creció el PIB real total — explicado en su mayor parte por más personas trabajando, no por producir más en cada hora.</p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+<section>
+  <div class="section-head">
+    <div class="kicker">Para empezar</div>
+    <h2>¿Qué significa exactamente "productividad"?</h2>
+    <p>No es lo mismo trabajar más duro que producir más. La productividad laboral mide cuánto valor genera la economía por cada persona ocupada o por cada hora que esa persona trabaja. El informe descompone el crecimiento del PIB en tres piezas:</p>
+  </div>
+  <div class="formula-box">
+    <div class="formula-term">
+      <div class="ttl">👥 Ocupados</div>
+      <div class="sub">Cuánta gente trabaja</div>
+    </div>
+    <div class="formula-op">×</div>
+    <div class="formula-term">
+      <div class="ttl">⏱️ Horas por persona</div>
+      <div class="sub">Cuánto trabaja cada quien</div>
+    </div>
+    <div class="formula-op">×</div>
+    <div class="formula-term">
+      <div class="ttl">⚙️ PIB por hora</div>
+      <div class="sub">Cuánto se produce en cada hora — <em>la productividad</em></div>
+    </div>
+    <div class="formula-op">=</div>
+    <div class="formula-term">
+      <div class="ttl" style="color:var(--navy)">📈 PIB total</div>
+      <div class="sub">Lo que produce el país</div>
+    </div>
+  </div>
+  <p class="callout">En Colombia, mientras el número de <b>ocupados</b> creció con fuerza y las <b>horas por trabajador</b> cayeron levemente, el <b>PIB por hora trabajada</b> —la productividad propiamente dicha— avanzó de forma moderada. Las siguientes secciones muestran esa historia con datos.</p>
+</section>
+
+<section id="composicion-tiles">
+  <div class="section-head">
+    <div class="kicker">La foto agregada, 2010 → 2025</div>
+    <h2>Cinco números que resumen quince años</h2>
+    <p>Cada indicador muestra su valor en 2010, en 2025, y la trayectoria completa año a año (2020 no tiene dato GEIH comparable por la pandemia, por eso el salto en la línea).</p>
+  </div>
+  <div class="tiles" id="tiles"></div>
+</section>
+
+<section id="composicion">
+  <div class="section-head">
+    <div class="kicker">Descomposición</div>
+    <h2>¿De dónde vino el crecimiento del PIB?</h2>
+    <p>De los <b>+3,16%</b> anuales que creció el PIB real, solo una parte se explica por producir más en cada hora. El resto viene de que más personas entraron a trabajar — y se perdió algo por la caída en las horas trabajadas por persona.</p>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Descomposición del crecimiento anual del PIB, 2010–2025</div>
+    <div class="chart-sub">Contribuciones anualizadas, en puntos porcentuales</div>
+    <div id="decompChart"></div>
+  </div>
+</section>
+
+<section id="sectores">
+  <div class="section-head">
+    <div class="kicker">Interactivo · 13 grandes ramas</div>
+    <h2>No todas las actividades económicas mejoraron igual</h2>
+    <p>Cada burbuja es una gran rama de actividad económica. El eje horizontal muestra <b>cuánto produce hoy</b> cada hora trabajada (2025); el eje vertical, <b>cuánto creció</b> esa productividad entre 2010 y 2025. El tamaño de la burbuja es el peso de la actividad en el PIB de 2025. Pasa el cursor sobre una burbuja para ver el detalle, o filtra por categoría.</p>
+  </div>
+  <div class="chips" id="quadChips"></div>
+  <div class="chart-card">
+    <div class="chart-title">Nivel y crecimiento de la productividad por hora, 13 grandes ramas</div>
+    <div class="chart-sub">Eje horizontal: PIB por hora en 2025 (miles de $ de 2015) · Eje vertical: crecimiento anualizado 2010–2025 · Tamaño: PIB de la rama en 2025</div>
+    <div id="quadChart"></div>
+  </div>
+  <p class="callout">Las líneas discontinuas marcan el promedio del país: <b>19,6 mil pesos por hora</b> de nivel y <b>+1,51% anual</b> de crecimiento. Una burbuja arriba y a la izquierda (<b>aceleradoras</b>) todavía produce poco por hora, pero crece rápido; una burbuja abajo y a la derecha (<b>líderes en declive</b>) produce mucho, pero está perdiendo terreno.</p>
+</section>
+
+<section id="ranking">
+  <div class="section-head">
+    <div class="kicker">Ranking</div>
+    <h2>Quién ganó y quién perdió productividad</h2>
+    <p>Crecimiento anualizado del PIB por hora trabajada, 2010–2025, para las 13 grandes ramas. Arte, entretenimiento y recreación lidera con un crecimiento de más del 7% anual; minas, construcción y servicios públicos cayeron.</p>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Crecimiento anualizado del PIB por hora trabajada por rama, 2010–2025</div>
+    <div class="chart-sub">Ordenado de mayor a menor crecimiento</div>
+    <div id="rankChart"></div>
+  </div>
+</section>
+
+<section id="lupa">
+  <div class="section-head">
+    <div class="kicker">Con lupa · 50 subactividades</div>
+    <h2>Bajando al detalle: actividades específicas</h2>
+    <p>Dentro de cada gran rama hay actividades muy distintas entre sí. Estos son los extremos: las que más aumentaron su producto por hora trabajada, y las que más lo redujeron, entre 2010 y 2025.</p>
+  </div>
+  <div class="card-pair">
+    <div class="mini-card">
+      <h3>🚀 Las 8 que más crecieron</h3>
+      <div class="h3sub">PIB por hora trabajada, crecimiento anualizado</div>
+      <div class="rank-list" id="topGainers"></div>
+    </div>
+    <div class="mini-card">
+      <h3>📉 Las 8 que más cayeron</h3>
+      <div class="h3sub">PIB por hora trabajada, crecimiento anualizado</div>
+      <div class="rank-list" id="topLosers"></div>
+    </div>
+  </div>
+  <p class="callout"><b>Nota sobre reciclaje:</b> es la caída más extrema del informe (−19,8% anual en PIB por hora), pero parte de una base muy pequeña en 2010 (apenas 0,002 millones de ocupados) que luego se multiplicó casi 40 veces — un efecto de "base baja", no necesariamente un deterioro real de esa actividad.</p>
+
+  <div class="section-head" style="margin-top:40px;">
+    <div class="kicker">Explora tú mismo</div>
+    <h2>Busca una actividad económica</h2>
+    <p>Las 50 subactividades comparables del informe (Cuadro 24). Busca por nombre, filtra por gran rama, u ordena por columna.</p>
+  </div>
+  <div class="explorer-controls">
+    <input type="text" id="searchBox" placeholder="Buscar actividad… (ej. café, transporte, salud)" />
+    <select id="sectorFilter"></select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-key="name">Actividad económica <span class="arrow">↕</span></th>
+          <th data-key="sector">Gran rama <span class="arrow">↕</span></th>
+          <th class="num" data-key="hora2025">PIB/hora 2025 <span class="arrow">↕</span></th>
+          <th class="num" data-key="crecHora">Crecimiento anual <span class="arrow">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <p class="chart-sub" style="margin-top:10px;">PIB por hora en miles de pesos constantes de 2015. Fuente: cálculos propios con DANE y GEIH.</p>
+</section>
+
+<section id="empleo">
+  <div class="two-col">
+    <div>
+      <div class="section-head">
+        <div class="kicker">Un hallazgo incómodo</div>
+        <h2>El empleo no creció donde más creció la productividad</h2>
+        <p>El informe compara, para 50 subactividades, cuánto creció el empleo contra cuánto creció la productividad por hora. La correlación es fuertemente negativa (<b>r ≈ −0,85</b>): las actividades que más absorbieron trabajadores nuevos tienden a ser las que menos aumentaron su producto por hora.</p>
+      </div>
+      <p class="callout">Esto <b>no</b> significa necesariamente una mala asignación del empleo: varias de esas actividades ya partían de niveles de productividad relativamente altos en 2010. Pero sí sugiere una oportunidad perdida de acelerar el crecimiento económico si el empleo se hubiera orientado más hacia actividades con mayor dinamismo.</p>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Ilustración a nivel de 13 grandes ramas</div>
+      <div class="chart-sub">Crecimiento del empleo vs. crecimiento del PIB por hora, 2010–2025</div>
+      <div id="corrChart"></div>
+      <div class="chart-sub" id="corrStat" style="margin-top:6px;"></div>
+    </div>
+  </div>
+</section>
+
+<section id="conclusiones">
+  <div class="section-head">
+    <div class="kicker">En resumen</div>
+    <h2>Tres conclusiones del informe</h2>
+  </div>
+  <div class="conclusions">
+    <div class="concl-card">
+      <div class="n">01</div>
+      <p><b>Colombia produce más por hora de lo que sugiere el ingreso por trabajador.</b> El PIB por hora creció 1,51% anual frente a solo 1,05% del PIB por trabajador — la diferencia es la caída de casi 0,5% anual en las horas trabajadas por persona.</p>
+      <p>Eso puede leerse como una buena noticia: parte de la mejora se tradujo en más tiempo libre, no solo en más producción, siempre que esa reducción de horas no refleje desempleo involuntario.</p>
+    </div>
+    <div class="concl-card">
+      <div class="n">02</div>
+      <p><b>La heterogeneidad entre sectores es enorme.</b> Arte, recreación y otros servicios, e información y comunicaciones crecieron muy por encima del promedio; minería y construcción retrocedieron en productividad durante los últimos quince años.</p>
+      <p>Además, las actividades que más empleo absorbieron no fueron, en general, las de mayor crecimiento en productividad.</p>
+    </div>
+    <div class="concl-card">
+      <div class="n">03</div>
+      <p><b>Falta entender el porqué.</b> El informe no identifica las causas de esta dispersión — pueden ser factores tecnológicos, decisiones de inversión o incentivos que orientan el trabajo hacia actividades poco dinámicas.</p>
+      <p>El Centro Javeriano de Competitividad anuncia que profundizará en esta agenda en próximos informes.</p>
+    </div>
+  </div>
+</section>
+</div>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div class="foot-block" style="max-width:360px;">
+      <h4>Sobre esta página</h4>
+      <p>Material complementario e interactivo del Informe 01 del Centro Javeriano de Competitividad, elaborado para acompañar la lectura de los hallazgos a una audiencia no técnica. Todas las cifras provienen directamente de los cálculos publicados en el informe.</p>
+    </div>
+    <div class="foot-block">
+      <h4>Autores del informe</h4>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/oliver-pardo-4a606422/" target="_blank" rel="noopener">Oliver Pardo</a> — <a href="https://www.javeriana.edu.co/centro-competitividad/quienes-somos" target="_blank" rel="noopener">Centro Javeriano de Competitividad</a>, PUJ</li>
+        <li><a href="https://www.linkedin.com/in/eco-jorge-orozco/" target="_blank" rel="noopener">Jorge Orozco</a> — <a href="https://www.javeriana.edu.co/centro-competitividad/quienes-somos" target="_blank" rel="noopener">Centro Javeriano de Competitividad</a>, PUJ</li>
+        <li>Publicado el 19 de junio de 2026</li>
+      </ul>
+    </div>
+    <div class="foot-block">
+      <h4>Fuentes y enlaces</h4>
+      <ul>
+        <li>DANE — Cuentas Nacionales (PIB real, precios de 2015)</li>
+        <li>DANE — Gran Encuesta Integrada de Hogares (GEIH)</li>
+        <li><a href="https://github.com/Kin-George/CJC-Monitor" target="_blank" rel="noopener">Repositorio de datos y código</a></li>
+        <li><a href="https://drive.google.com/file/d/1GzcVAzd9G7jWSC-5kvfjWM26ayuxCwxY/view" target="_blank" rel="noopener">Informe 01 completo (PDF)</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ THEME ============ */
+var themeBtn = document.getElementById('themeToggle');
+function applyThemeLabel(){
+  var t = document.documentElement.getAttribute('data-theme');
+  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var isDark = t === 'dark' || (!t && prefersDark);
+  themeBtn.textContent = isDark ? 'Modo claro' : 'Modo oscuro';
+}
+themeBtn.addEventListener('click', function(){
+  var cur = document.documentElement.getAttribute('data-theme');
+  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var curIsDark = cur === 'dark' || (!cur && prefersDark);
+  document.documentElement.setAttribute('data-theme', curIsDark ? 'light' : 'dark');
+  applyThemeLabel();
+  renderAll();
+});
+applyThemeLabel();
+
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function fmtPct(v, digits){
+  digits = digits === undefined ? 2 : digits;
+  var s = (v*100).toFixed(digits).replace('.', ',');
+  return (v >= 0 ? '+' : '') + s + '%';
+}
+function fmtNum(v, digits){
+  digits = digits === undefined ? 1 : digits;
+  return v.toFixed(digits).replace('.', ',');
+}
+function svgEl(tag, attrs){
+  var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (var k in attrs){ el.setAttribute(k, attrs[k]); }
+  return el;
+}
+function measureW(host, fallback){
+  var w = host.clientWidth || (host.parentElement && host.parentElement.clientWidth) || fallback;
+  return Math.max(280, w);
+}
+function truncateLabel(label, maxWidthPx, fontSizePx){
+  var avgCharW = fontSizePx*0.56;
+  var maxChars = Math.floor(maxWidthPx/avgCharW);
+  if (label.length <= maxChars || maxChars < 4) return label;
+  return label.slice(0, maxChars-1) + '…';
+}
+
+/* ============ MOTION HELPERS ============ */
+var REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function easeOutCubic(t){ return 1 - Math.pow(1-t, 3); }
+function animateNumber(el, from, to, duration, formatFn, delay){
+  delay = delay || 0;
+  if (REDUCE_MOTION){ el.textContent = formatFn(to); return; }
+  setTimeout(function(){
+    var start = null;
+    function step(ts){
+      if (!start) start = ts;
+      var p = Math.min(1, (ts-start)/duration);
+      var v = from + (to-from)*easeOutCubic(p);
+      el.textContent = formatFn(v);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }, delay);
+}
+function animateNum(el, attr, from, to, duration, delay){
+  delay = delay || 0;
+  if (REDUCE_MOTION){ el.setAttribute(attr, to); return; }
+  el.setAttribute(attr, from);
+  setTimeout(function(){
+    var start = null;
+    function step(ts){
+      if (!start) start = ts;
+      var p = Math.min(1, (ts-start)/duration);
+      var v = from + (to-from)*easeOutCubic(p);
+      el.setAttribute(attr, v);
+      if (p < 1) requestAnimationFrame(step); else el.setAttribute(attr, to);
+    }
+    requestAnimationFrame(step);
+  }, delay);
+}
+function animateBar(rect, zeroY, y1, duration, delay){
+  delay = delay || 0;
+  function setFinal(){
+    var top = Math.min(zeroY,y1), hgt = Math.max(2, Math.abs(y1-zeroY));
+    rect.setAttribute('y', top); rect.setAttribute('height', hgt);
+  }
+  if (REDUCE_MOTION){ setFinal(); return; }
+  rect.setAttribute('y', zeroY); rect.setAttribute('height', 0);
+  setTimeout(function(){
+    var start = null;
+    function step(ts){
+      if (!start) start = ts;
+      var p = Math.min(1, (ts-start)/duration);
+      var e = easeOutCubic(p);
+      var curFar = zeroY + (y1-zeroY)*e;
+      var top = Math.min(zeroY,curFar), hgt = Math.max(0, Math.abs(curFar-zeroY));
+      rect.setAttribute('y', top); rect.setAttribute('height', hgt);
+      if (p < 1) requestAnimationFrame(step); else setFinal();
+    }
+    requestAnimationFrame(step);
+  }, delay);
+}
+function animateHBar(rect, baseX, farX, duration, delay){
+  delay = delay || 0;
+  function setFinal(){
+    var x = Math.min(baseX,farX), w = Math.max(1, Math.abs(farX-baseX));
+    rect.setAttribute('x', x); rect.setAttribute('width', w);
+  }
+  if (REDUCE_MOTION){ setFinal(); return; }
+  rect.setAttribute('x', baseX); rect.setAttribute('width', 0);
+  setTimeout(function(){
+    var start = null;
+    function step(ts){
+      if (!start) start = ts;
+      var p = Math.min(1, (ts-start)/duration);
+      var e = easeOutCubic(p);
+      var curFar = baseX + (farX-baseX)*e;
+      var x = Math.min(baseX,curFar), w = Math.max(0, Math.abs(curFar-baseX));
+      rect.setAttribute('x', x); rect.setAttribute('width', w);
+      if (p < 1) requestAnimationFrame(step); else setFinal();
+    }
+    requestAnimationFrame(step);
+  }, delay);
+}
+function fadeIn(el, duration, delay){
+  delay = delay || 0;
+  if (REDUCE_MOTION){ el.style.opacity = '1'; return; }
+  el.style.opacity = '0';
+  setTimeout(function(){
+    el.style.transition = 'opacity '+duration+'ms ease, transform '+duration+'ms ease';
+    el.style.opacity = '1';
+  }, delay);
+}
+function drawInPath(pathEl, duration, delay){
+  delay = delay || 0;
+  var len;
+  try{ len = pathEl.getTotalLength(); } catch(e){ return; }
+  if (REDUCE_MOTION || !len){ return; }
+  pathEl.style.strokeDasharray = len;
+  pathEl.style.strokeDashoffset = len;
+  setTimeout(function(){
+    pathEl.style.transition = 'stroke-dashoffset '+duration+'ms cubic-bezier(.16,.8,.24,1)';
+    pathEl.style.strokeDashoffset = '0';
+  }, delay);
+}
+function onceVisible(el, cb, threshold){
+  if (REDUCE_MOTION || !('IntersectionObserver' in window)){ cb(); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){ cb(); io.unobserve(e.target); }
+    });
+  }, {threshold: threshold === undefined ? 0.25 : threshold});
+  io.observe(el);
+}
+
+/* ============ DATA ============ */
+// Aggregate 15-year series (2020 has no comparable GEIH data)
+var YEARS = [2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2021,2022,2023,2024,2025];
+var TOTAL_SERIES = {
+  pib:   [640.151,684.628,711.415,747.939,781.589,804.692,821.489,832.656,854.008,881.224,906.243,972.655,980.843,995.490,1021.073],
+  ocup:  [16.841,17.425,17.780,17.904,18.166,18.561,18.518,18.483,18.680,19.554,17.587,20.637,21.555,21.645,22.955],
+  horas: [46.78,46.50,46.15,45.89,45.76,45.44,45.40,45.18,45.11,45.07,44.87,44.93,44.67,44.16,43.73],
+  trab:  [38.010,39.290,40.012,41.776,43.025,43.353,44.362,45.049,45.718,45.067,51.529,47.132,45.504,45.993,44.481],
+  hora:  [15.625,16.249,16.673,17.506,18.081,18.348,18.791,19.177,19.491,19.233,22.084,20.174,19.591,20.030,19.563]
+};
+var TOTAL_SUMMARY = {
+  pib:   {v2010:640.151, v2025:1021.073, g:0.0316},
+  ocup:  {v2010:16.841, v2025:22.955, g:0.0209},
+  horas: {v2010:46.78, v2025:43.73, g:-0.0045},
+  trab:  {v2010:38.010, v2025:44.481, g:0.0105},
+  hora:  {v2010:15.625, v2025:19.563, g:0.0151}
+};
+
+// 13 grandes ramas (sector_code -> full data), from Cuadros 1-23
+var SECTORS = [
+  {code:'A', name:'Agropecuario', short:'Agropecuario',
+    pib2010:39.943, pib2025:63.895, ocup2010:2.956, ocup2025:3.128,
+    horas2010:44.97, horas2025:41.96,
+    trab2010:13.511, trab2025:20.427, trabG:0.0279,
+    hora2010:5.778, hora2025:9.361, horaG:0.0327},
+  {code:'B', name:'Minas', short:'Minas',
+    pib2010:38.427, pib2025:34.718, ocup2010:0.191, ocup2025:0.300,
+    horas2010:49.74, horas2025:45.97,
+    trab2010:200.800, trab2025:115.793, trabG:-0.0360,
+    hora2010:77.628, hora2025:48.441, horaG:-0.0309},
+  {code:'C', name:'Manufactura', short:'Manufactura',
+    pib2010:87.980, pib2025:113.083, ocup2010:2.194, ocup2025:2.513,
+    horas2010:46.68, horas2025:44.30,
+    trab2010:40.104, trab2025:44.994, trabG:0.0077,
+    hora2010:16.522, hora2025:19.530, horaG:0.0112},
+  {code:'D+E', name:'Servicios públicos', short:'Serv. públicos',
+    pib2010:21.935, pib2025:30.300, ocup2010:0.124, ocup2025:0.305,
+    horas2010:48.50, horas2025:44.02,
+    trab2010:176.515, trab2025:99.462, trabG:-0.0375,
+    hora2010:69.987, hora2025:43.452, horaG:-0.0313},
+  {code:'F', name:'Construcción', short:'Construcción',
+    pib2010:40.048, pib2025:41.320, ocup2010:0.958, ocup2025:1.580,
+    horas2010:48.91, horas2025:45.66,
+    trab2010:41.783, trab2025:26.146, trabG:-0.0308,
+    hora2010:16.429, hora2025:11.011, horaG:-0.0263},
+  {code:'G+H+I', name:'Comercio, transporte y alojamiento', short:'Comercio/transporte',
+    pib2010:107.647, pib2025:179.126, ocup2010:5.160, ocup2025:7.429,
+    horas2010:50.58, horas2025:45.83,
+    trab2010:20.863, trab2025:24.111, trabG:0.0097,
+    hora2010:7.932, hora2025:10.118, horaG:0.0164},
+  {code:'J', name:'Información y comunicaciones', short:'Información y com.',
+    pib2010:18.256, pib2025:31.287, ocup2010:0.402, ocup2025:0.398,
+    horas2010:49.59, horas2025:44.40,
+    trab2010:45.409, trab2025:78.600, trabG:0.0373,
+    hora2010:17.610, hora2025:34.042, horaG:0.0449},
+  {code:'K', name:'Financieras', short:'Financieras',
+    pib2010:22.312, pib2025:53.112, ocup2010:0.221, ocup2025:0.427,
+    horas2010:45.21, horas2025:44.19,
+    trab2010:101.035, trab2025:124.515, trabG:0.0140,
+    hora2010:42.977, hora2025:54.186, horaG:0.0156},
+  {code:'L', name:'Inmobiliarias', short:'Inmobiliarias',
+    pib2010:59.932, pib2025:90.074, ocup2010:0.214, ocup2025:0.317,
+    horas2010:51.11, horas2025:45.78,
+    trab2010:279.994, trab2025:284.581, trabG:0.0011,
+    hora2010:105.347, hora2025:119.543, horaG:0.0085},
+  {code:'M+N', name:'Profesionales y administrativas', short:'Profesionales/admin.',
+    pib2010:45.354, pib2025:70.058, ocup2010:0.835, ocup2025:1.651,
+    horas2010:42.11, horas2025:39.58,
+    trab2010:54.290, trab2025:42.437, trabG:-0.0163,
+    hora2010:24.796, hora2025:20.619, horaG:-0.0122},
+  {code:'O+P+Q', name:'Adm. pública, educación y salud', short:'Adm. pública/salud',
+    pib2010:85.362, pib2025:165.339, ocup2010:1.945, ocup2025:2.833,
+    horas2010:43.26, horas2025:43.03,
+    trab2010:43.882, trab2025:58.358, trabG:0.0192,
+    hora2010:19.509, hora2025:26.080, horaG:0.0195},
+  {code:'R+S', name:'Arte, recreación y otros servicios', short:'Arte/recreación',
+    pib2010:10.994, pib2025:40.571, ocup2010:0.966, ocup2025:1.235,
+    horas2010:39.33, horas2025:39.58,
+    trab2010:11.382, trab2025:32.848, trabG:0.0732,
+    hora2010:5.566, hora2025:15.961, horaG:0.0728},
+  {code:'T', name:'Hogares como empleadores', short:'Hogares empleadores',
+    pib2010:4.276, pib2025:6.724, ocup2010:0.672, ocup2025:0.716,
+    horas2010:45.90, horas2025:40.51,
+    trab2010:6.360, trab2025:9.393, trabG:0.0263,
+    hora2010:2.665, hora2025:4.459, horaG:0.0349}
+];
+SECTORS.forEach(function(s){
+  s.pibG = Math.pow(s.pib2025/s.pib2010, 1/15) - 1;
+  s.ocupG = Math.pow(s.ocup2025/s.ocup2010, 1/15) - 1;
+  s.pibShare = s.pib2025 / TOTAL_SUMMARY.pib.v2025;
+  s.ocupShare = s.ocup2025 / TOTAL_SUMMARY.ocup.v2025;
+});
+
+var SECTOR_NAME = {}; SECTORS.forEach(function(s){ SECTOR_NAME[s.code] = s.short; });
+
+// 50 subactivities (Cuadro 24 / pib_geih_productividad_61_summary.csv)
+var SUB = [
+  ['Cultivos, apoyo agropecuario y mixtos','A',6.537,9.617,0.0261],
+  ['Café','A',3.081,4.136,0.0198],
+  ['Ganadería','A',5.704,12.033,0.0510],
+  ['Silvicultura','A',13.206,32.873,0.0627],
+  ['Pesca y acuicultura','A',4.697,10.857,0.0575],
+  ['Carbón','B',95.076,41.781,-0.0533],
+  ['Petróleo, gas y apoyo conexo','B',211.938,231.584,0.0059],
+  ['Minerales metalíferos','B',18.830,7.467,-0.0598],
+  ['Otras minas y canteras','B',21.093,19.709,-0.0045],
+  ['Alimentos, bebidas y tabaco','C',16.961,21.884,0.0171],
+  ['Textiles y confecciones','C',7.119,9.459,0.0191],
+  ['Cuero, calzado y artículos de viaje','C',4.732,2.933,-0.0314],
+  ['Madera','C',8.489,9.583,0.0081],
+  ['Papel y cartón','C',30.627,37.580,0.0137],
+  ['Impresión y reproducción','C',12.192,20.140,0.0340],
+  ['Coquización y refinación','C',933.861,882.799,-0.0037],
+  ['Químicos y farmacéuticos','C',39.498,36.670,-0.0049],
+  ['Caucho y plástico','C',13.302,11.737,-0.0083],
+  ['Minerales no metálicos','C',47.807,47.770,-0.0001],
+  ['Metalurgia y productos metálicos','C',12.308,12.783,0.0025],
+  ['Equipo eléctrico y electrónico','C',15.523,23.599,0.0283],
+  ['Maquinaria e instalación','C',17.761,16.483,-0.0050],
+  ['Vehículos y equipo de transporte','C',18.622,26.220,0.0231],
+  ['Muebles y colchones','C',5.293,5.580,0.0035],
+  ['Otras manufactureras','C',15.929,20.555,0.0171],
+  ['Energía eléctrica','D+E',118.924,124.960,0.0033],
+  ['Gas, vapor y aire acondicionado','D+E',61.383,64.518,0.0033],
+  ['Agua','D+E',24.719,15.614,-0.0302],
+  ['Aguas residuales, desechos y saneamiento','D+E',46.654,31.234,-0.0264],
+  ['Reciclaje','D+E',197.533,7.169,-0.1983],
+  ['Edificaciones','F',13.286,8.311,-0.0308],
+  ['Obras civiles','F',31.307,23.096,-0.0201],
+  ['Actividades especializadas de construcción','F',18.263,11.749,-0.0290],
+  ['Comercio; reparación de vehículos','G+H+I',6.340,9.538,0.0276],
+  ['Transporte terrestre y tuberías','G+H+I',8.873,9.326,0.0033],
+  ['Transporte acuático','G+H+I',6.040,4.626,-0.0176],
+  ['Transporte aéreo','G+H+I',72.928,126.413,0.0374],
+  ['Almacenamiento y apoyo al transporte','G+H+I',10.745,15.761,0.0259],
+  ['Correo y mensajería','G+H+I',4.510,2.682,-0.0341],
+  ['Alojamiento y comida','G+H+I',11.429,10.727,-0.0042],
+  ['Información y comunicaciones','J',17.610,34.042,0.0449],
+  ['Financieras y seguros','K',42.977,54.186,0.0156],
+  ['Inmobiliarias','L',105.347,119.543,0.0085],
+  ['Profesionales, científicas y técnicas','M+N',32.074,25.181,-0.0160],
+  ['Servicios administrativos y de apoyo','M+N',20.508,17.991,-0.0087],
+  ['Administración pública y defensa','O+P+Q',23.678,32.155,0.0206],
+  ['Educación de mercado; educación de no mercado','O+P+Q',21.357,25.813,0.0127],
+  ['Salud y servicios sociales','O+P+Q',14.741,21.256,0.0247],
+  ['Arte, recreación y otros servicios','R+S',5.566,15.961,0.0728],
+  ['Hogares como empleadores','T',2.665,4.459,0.0349]
+].map(function(r){ return {name:r[0], sector:r[1], hora2010:r[2], hora2025:r[3], crecHora:r[4]}; });
+
+/* ============ TOOLTIP ============ */
+var ttEl = document.getElementById('tooltip');
+function showTooltip(html, x, y){
+  ttEl.innerHTML = html;
+  ttEl.classList.add('show');
+  var pad = 14;
+  var w = ttEl.offsetWidth, h = ttEl.offsetHeight;
+  var left = x + pad, top = y + pad;
+  if (left + w > window.innerWidth - 8) left = x - w - pad;
+  if (top + h > window.innerHeight - 8) top = y - h - pad;
+  ttEl.style.left = left + 'px';
+  ttEl.style.top = top + 'px';
+}
+function hideTooltip(){ ttEl.classList.remove('show'); }
+
+/* ============ 1. HERO STAT TILES WITH SPARKLINES ============ */
+function sparkPath(arr, w, h, padY){
+  padY = padY || 3;
+  var min = Math.min.apply(null, arr), max = Math.max.apply(null, arr);
+  var range = (max - min) || 1;
+  var n = arr.length;
+  var pts = arr.map(function(v,i){
+    var x = (i/(n-1)) * w;
+    var y = h - padY - ((v - min)/range) * (h - padY*2);
+    return [x,y];
+  });
+  return pts;
+}
+function ptsToPath(pts){
+  return pts.map(function(p,i){ return (i===0?'M':'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+}
+function renderTiles(){
+  var host = document.getElementById('tiles');
+  host.innerHTML = '';
+  var defs = [
+    {key:'pib', label:'PIB real', unit:'billones $2015', digitsV:0, digitsG:2},
+    {key:'ocup', label:'Ocupados', unit:'millones', digitsV:1, digitsG:2},
+    {key:'horas', label:'Horas semanales / trabajador', unit:'horas', digitsV:1, digitsG:2},
+    {key:'trab', label:'PIB por trabajador', unit:'millones $2015', digitsV:1, digitsG:2},
+    {key:'hora', label:'PIB por hora trabajada', unit:'miles $2015', digitsV:2, digitsG:2}
+  ];
+  var gapIndex = YEARS.indexOf(2021); // gap between 2019(idx9) and 2021(idx10)
+  defs.forEach(function(d){
+    var s = TOTAL_SUMMARY[d.key];
+    var series = TOTAL_SERIES[d.key];
+    var w = 260, h = 34;
+    var pts = sparkPath(series, w, h);
+    var solid1 = pts.slice(0, gapIndex); // 2010..2019
+    var solid2 = pts.slice(gapIndex);    // 2021..2025
+    var tile = document.createElement('div');
+    tile.className = 'tile';
+    var growUp = s.g >= 0;
+    tile.innerHTML =
+      '<div class="label">'+d.label+'</div>' +
+      '<div class="value tabular"><span class="num-val">'+fmtNum(0, d.digitsV)+'</span> <small>'+d.unit+'</small></div>' +
+      '<div class="growth '+(growUp?'up':'down')+' tabular"><span class="grow-val">'+fmtPct(0, d.digitsG)+'</span> anual</div>' +
+      '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"></svg>' +
+      '<div class="yrs">2010 → 2025</div>';
+    host.appendChild(tile);
+    var svg = tile.querySelector('svg');
+    var strokeCol = cssVar('--navy');
+    var path1 = svgEl('path', {d:ptsToPath(solid1), fill:'none', stroke:strokeCol, 'stroke-width':1.8, 'stroke-linecap':'round', 'stroke-linejoin':'round'});
+    var path2 = svgEl('path', {d:ptsToPath(solid2), fill:'none', stroke:strokeCol, 'stroke-width':1.8, 'stroke-linecap':'round', 'stroke-linejoin':'round'});
+    svg.appendChild(path1);
+    svg.appendChild(path2);
+    svg.appendChild(svgEl('path', {d:ptsToPath([pts[gapIndex-1], pts[gapIndex]]), fill:'none', stroke:strokeCol, 'stroke-width':1.4, 'stroke-dasharray':'2,2.5', opacity:'0.5'}));
+    var last = pts[pts.length-1];
+    var dot = svgEl('circle', {cx:last[0], cy:last[1], r:2.6, fill:cssVar('--gold')});
+    svg.appendChild(dot);
+
+    var numVal = tile.querySelector('.num-val'), growVal = tile.querySelector('.grow-val');
+    fadeIn(dot, 300, 900);
+    onceVisible(tile, function(){
+      animateNumber(numVal, 0, s.v2025, 900, function(v){ return fmtNum(v, d.digitsV); });
+      animateNumber(growVal, 0, s.g, 900, function(v){ return fmtPct(v, d.digitsG); });
+      drawInPath(path1, 850, 60);
+      drawInPath(path2, 550, 620);
+    }, 0.4);
+  });
+}
+
+/* ============ 2. DECOMPOSITION BAR CHART ============ */
+function renderDecomp(){
+  var host = document.getElementById('decompChart');
+  host.innerHTML = '';
+  var w = measureW(host, 780);
+  var compact = w < 480;
+  var data = [
+    {label:'Ocupados', shortLabel:'Ocupados', sub:'más gente trabajando', v:0.0209, color:cssVar('--blue')},
+    {label:'Horas por trabajador', shortLabel:'Horas/trab.', sub:'menos horas por persona', v:-0.0045, color:cssVar('--red')},
+    {label:'PIB por hora', shortLabel:'PIB/hora', sub:'más producto por hora', v:0.0151, color:cssVar('--aqua')},
+    {label:'PIB total', shortLabel:'PIB total', sub:'resultado', v:0.0316, color:cssVar('--gray-mid'), isTotal:true}
+  ];
+  var h = compact ? 260 : 300, marginL = compact?10:20, marginR = compact?10:20, marginT = 20, marginB = compact?44:46;
+  var plotW = w - marginL - marginR, plotH = h - marginT - marginB;
+  var minV = -0.012, maxV = 0.036;
+  function yScale(v){ return marginT + plotH - ((v - minV)/(maxV-minV))*plotH; }
+  var svg = svgEl('svg', {viewBox:'0 0 '+w+' '+h});
+  // gridlines at 0%, 1%, 2%, 3%
+  [0,0.01,0.02,0.03].forEach(function(g){
+    var y = yScale(g);
+    svg.appendChild(svgEl('line', {x1:marginL, x2:w-marginR, y1:y, y2:y, class:'grid-line'}));
+    var t = svgEl('text', {x:marginL-6, y:y+3, class:'axis-label', 'text-anchor':'end'});
+    t.textContent = (g*100).toFixed(0)+'%';
+    svg.appendChild(t);
+  });
+  var zeroY = yScale(0);
+  svg.appendChild(svgEl('line', {x1:marginL, x2:w-marginR, y1:zeroY, y2:zeroY, class:'baseline'}));
+  var bw = plotW / data.length;
+  var bars = [];
+  data.forEach(function(d,i){
+    var cx = marginL + bw*i + bw/2;
+    var barW = bw*0.46;
+    var y0 = yScale(0), y1 = yScale(d.v);
+    var top = Math.min(y0,y1), hgt = Math.max(2, Math.abs(y1-y0));
+    var rect = svgEl('rect', {x:cx-barW/2, y:y0, width:barW, height:0, rx:4, fill:d.color, opacity: d.isTotal?1:0.92});
+    svg.appendChild(rect);
+    bars.push({rect:rect, y0:y0, y1:y1});
+    var lbl = svgEl('text', {x:cx, y: d.v>=0 ? top-8 : top+hgt+16, class:'value-label', 'text-anchor':'middle', 'font-size': compact?10:11});
+    lbl.textContent = fmtPct(d.v);
+    svg.appendChild(lbl);
+    var nm = svgEl('text', {x:cx, y: compact ? h-30 : h-28, class:'mark-label', 'text-anchor':'middle', 'font-weight':'700', 'font-size': compact?9.5:10.5});
+    nm.textContent = compact ? d.shortLabel : d.label;
+    svg.appendChild(nm);
+    fadeIn(lbl, 400, 500 + i*130);
+    fadeIn(nm, 400, 120);
+    if (!compact){
+      var sb = svgEl('text', {x:cx, y:h-14, class:'mark-label', 'text-anchor':'middle', fill:cssVar('--chart-muted')});
+      sb.textContent = d.sub;
+      svg.appendChild(sb);
+      fadeIn(sb, 400, 120);
+    }
+  });
+  host.appendChild(svg);
+  onceVisible(host, function(){
+    bars.forEach(function(b,i){ animateBar(b.rect, b.y0, b.y1, 700, i*130); });
+  }, 0.35);
+}
+
+/* ============ 3. QUADRANT BUBBLE CHART ============ */
+var QUAD_DEFS = [
+  {id:'acel', name:'Aceleradoras', desc:'Nivel bajo, crece rápido', color:'var(--orange)'},
+  {id:'auge', name:'Líderes en auge', desc:'Nivel alto, crece rápido', color:'var(--aqua)'},
+  {id:'rezag', name:'Rezagadas', desc:'Nivel bajo, crece poco', color:'var(--gray-mid)'},
+  {id:'decl', name:'Líderes en declive', desc:'Nivel alto, crece poco', color:'var(--blue)'}
+];
+function quadrantOf(s){
+  var levelHigh = s.hora2025 >= TOTAL_SUMMARY.hora.v2025;
+  var growHigh = s.horaG >= TOTAL_SUMMARY.hora.g;
+  if (!levelHigh && growHigh) return 'acel';
+  if (levelHigh && growHigh) return 'auge';
+  if (!levelHigh && !growHigh) return 'rezag';
+  return 'decl';
+}
+var quadActiveFilter = 'all';
+function renderQuadChips(){
+  var host = document.getElementById('quadChips');
+  host.innerHTML = '';
+  var all = document.createElement('button');
+  all.className = 'chip'; all.type='button'; all.setAttribute('aria-pressed', quadActiveFilter==='all');
+  all.textContent = 'Todas las ramas';
+  all.addEventListener('click', function(){ quadActiveFilter='all'; renderQuadChips(); renderQuad(); });
+  host.appendChild(all);
+  QUAD_DEFS.forEach(function(q){
+    var b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button'; b.setAttribute('aria-pressed', quadActiveFilter===q.id);
+    b.innerHTML = '<span class="dot" style="background:'+q.color+'"></span>' + q.name;
+    b.addEventListener('click', function(){ quadActiveFilter = (quadActiveFilter===q.id? 'all': q.id); renderQuadChips(); renderQuad(); });
+    host.appendChild(b);
+  });
+}
+function renderQuad(){
+  var host = document.getElementById('quadChart');
+  host.innerHTML = '';
+  var w = measureW(host, 900);
+  var compact = w < 480;
+  var h = compact ? Math.round(w*0.98) : 520, marginL = compact?32:56, marginR = compact?12:24, marginT = compact?14:24, marginB = compact?34:46;
+  var plotW = w-marginL-marginR, plotH = h-marginT-marginB;
+  var xMax = 130, yMin = -5, yMax = 8.5;
+  function xScale(v){ return marginL + (v/xMax)*plotW; }
+  function yScale(v){ return marginT + plotH - ((v-yMin)/(yMax-yMin))*plotH; }
+  var xThresh = TOTAL_SUMMARY.hora.v2025, yThresh = TOTAL_SUMMARY.hora.g*100;
+  var svg = svgEl('svg', {viewBox:'0 0 '+w+' '+h});
+
+  var qdefByCode = {acel:QUAD_DEFS[0], auge:QUAD_DEFS[1], rezag:QUAD_DEFS[2], decl:QUAD_DEFS[3]};
+  // quadrant background tints
+  var regions = [
+    {id:'acel', x:marginL, y:marginT, w:xScale(xThresh)-marginL, h:yScale(yThresh)-marginT, fill:'var(--quad-a)'},
+    {id:'auge', x:xScale(xThresh), y:marginT, w:(marginL+plotW)-xScale(xThresh), h:yScale(yThresh)-marginT, fill:'var(--quad-b)'},
+    {id:'rezag', x:marginL, y:yScale(yThresh), w:xScale(xThresh)-marginL, h:(marginT+plotH)-yScale(yThresh), fill:'var(--quad-c)'},
+    {id:'decl', x:xScale(xThresh), y:yScale(yThresh), w:(marginL+plotW)-xScale(xThresh), h:(marginT+plotH)-yScale(yThresh), fill:'var(--quad-d)'}
+  ];
+  regions.forEach(function(r){
+    svg.appendChild(svgEl('rect', {x:r.x, y:r.y, width:Math.max(0,r.w), height:Math.max(0,r.h), fill:r.fill}));
+  });
+  // quadrant labels
+  var qLabelPos = {
+    acel:[marginL+10, marginT+18, 'start'],
+    auge:[marginL+plotW-10, marginT+18, 'end'],
+    rezag:[marginL+10, marginT+plotH-10, 'start'],
+    decl:[marginL+plotW-10, marginT+plotH-10, 'end']
+  };
+  QUAD_DEFS.forEach(function(q){
+    var p = qLabelPos[q.id];
+    var t = svgEl('text', {x:p[0], y:p[1], class:'mark-label', 'text-anchor':p[2], 'font-weight':'800', fill:'var(--ink-2)', 'font-size': compact?7.5:10.5});
+    t.textContent = q.name.toUpperCase();
+    svg.appendChild(t);
+  });
+  // grid + axes
+  for (var gx=0; gx<=xMax; gx+=20){
+    svg.appendChild(svgEl('line', {x1:xScale(gx), x2:xScale(gx), y1:marginT, y2:marginT+plotH, class:'grid-line'}));
+    var lx = svgEl('text', {x:xScale(gx), y:h-14, class:'axis-label', 'text-anchor':'middle', 'font-size': compact?9:11}); lx.textContent = gx; svg.appendChild(lx);
+  }
+  for (var gy=-4; gy<=8; gy+=2){
+    svg.appendChild(svgEl('line', {x1:marginL, x2:marginL+plotW, y1:yScale(gy), y2:yScale(gy), class:'grid-line'}));
+    var ly = svgEl('text', {x:marginL-8, y:yScale(gy)+3, class:'axis-label', 'text-anchor':'end', 'font-size': compact?9:11}); ly.textContent = gy+'%'; svg.appendChild(ly);
+  }
+  var xAxTitle = svgEl('text', {x:marginL+plotW/2, y:h-2, class:'axis-label', 'text-anchor':'middle', 'font-size': compact?9:11}); xAxTitle.textContent = compact ? 'PIB/hora 2025 (miles $2015)' : 'PIB por hora trabajada en 2025 (miles $ de 2015)'; svg.appendChild(xAxTitle);
+  var yAxTitle = svgEl('text', {x:compact?11:14, y:marginT+plotH/2, class:'axis-label', 'text-anchor':'middle', 'font-size': compact?9:11, transform:'rotate(-90 '+(compact?11:14)+' '+(marginT+plotH/2)+')'}); yAxTitle.textContent = compact ? 'Crecimiento PIB/hora' : 'Crecimiento anual del PIB por hora'; svg.appendChild(yAxTitle);
+  // threshold lines
+  svg.appendChild(svgEl('line', {x1:xScale(xThresh), x2:xScale(xThresh), y1:marginT, y2:marginT+plotH, stroke:'var(--navy)', 'stroke-width':1, 'stroke-dasharray':'4,3', opacity:0.55}));
+  svg.appendChild(svgEl('line', {x1:marginL, x2:marginL+plotW, y1:yScale(yThresh), y2:yScale(yThresh), stroke:'var(--navy)', 'stroke-width':1, 'stroke-dasharray':'4,3', opacity:0.55}));
+
+  var rMax = compact?26:46, rMin = compact?7:12;
+  var pibMax = Math.max.apply(null, SECTORS.map(function(s){return s.pib2025;}));
+  function rScale(v){ return rMin + Math.sqrt(v/pibMax) * (rMax-rMin); }
+
+  var bubbles = [];
+  SECTORS.forEach(function(s){
+    var q = quadrantOf(s);
+    var col = 'var(--' + ({acel:'orange',auge:'aqua',rezag:'gray-mid',decl:'blue'})[q] + ')';
+    var cx = xScale(s.hora2025), cy = yScale(s.horaG*100), r = rScale(s.pib2025);
+    var dim = (quadActiveFilter !== 'all' && quadActiveFilter !== q);
+    var g = svgEl('g', {'data-bubble':'1', opacity: dim ? 0.18 : 1, style:'cursor:pointer'});
+    var circ = svgEl('circle', {cx:cx, cy:cy, r:r, fill:col, 'fill-opacity':0.5, stroke:col, 'stroke-width':1.6});
+    g.appendChild(circ);
+    var labelY = cy - r - 6;
+    if (labelY < marginT+10) labelY = cy + r + 13;
+    var lbl = svgEl('text', {x:cx, y:labelY, class:'mark-label', 'text-anchor':'middle', 'font-weight':'700', 'font-size': compact?8:10.5});
+    lbl.textContent = s.short;
+    g.appendChild(lbl);
+    g.addEventListener('mousemove', function(ev){
+      showTooltip(
+        '<div class="tt-title">'+s.name+'</div>' +
+        '<div class="tt-row"><span>PIB por hora 2025</span><b>'+fmtNum(s.hora2025,1)+' mil $</b></div>' +
+        '<div class="tt-row"><span>Crecimiento PIB/hora</span><b>'+fmtPct(s.horaG)+'</b></div>' +
+        '<div class="tt-row"><span>Crecimiento PIB/trabajador</span><b>'+fmtPct(s.trabG)+'</b></div>' +
+        '<div class="tt-row"><span>Peso en el PIB 2025</span><b>'+fmtNum(s.pibShare*100,1)+'%</b></div>' +
+        '<div class="tt-row"><span>Peso en ocupados 2025</span><b>'+fmtNum(s.ocupShare*100,1)+'%</b></div>' +
+        '<div class="tt-row"><span>Categoría</span><b>'+qdefByCode[q].name+'</b></div>',
+        ev.clientX, ev.clientY);
+    });
+    g.addEventListener('mouseleave', hideTooltip);
+    svg.appendChild(g);
+    bubbles.push({circ:circ, r:r, lbl:lbl});
+  });
+  host.appendChild(svg);
+  onceVisible(host, function(){
+    bubbles.forEach(function(b,i){
+      animateNum(b.circ, 'r', 0, b.r, 550, i*55);
+      fadeIn(b.lbl, 350, 250 + i*55);
+    });
+  }, 0.3);
+}
+
+/* ============ 4. RANKING BAR CHART ============ */
+function renderRank(){
+  var host = document.getElementById('rankChart');
+  host.innerHTML = '';
+  var data = SECTORS.slice().sort(function(a,b){ return b.horaG - a.horaG; });
+  var w = measureW(host, 780);
+  var compact = w < 480;
+  var rowH = compact?30:34, marginL = compact?98:190, marginR = compact?34:60, marginT = 10, marginB = compact?34:30;
+  var fs = compact?9:10.5, fsVal = compact?9.5:11;
+  var plotW = w - marginL - marginR;
+  var h = marginT + marginB + rowH*data.length;
+  var maxAbs = Math.max.apply(null, data.map(function(d){return Math.abs(d.horaG);})) * 1.15;
+  function xScale(v){ return (v/maxAbs) * (plotW/2); }
+  var midX = marginL + plotW/2;
+  var svg = svgEl('svg', {viewBox:'0 0 '+w+' '+h});
+  svg.appendChild(svgEl('line', {x1:midX, x2:midX, y1:marginT, y2:h-marginB, class:'baseline'}));
+  var hbars = [];
+  data.forEach(function(d,i){
+    var cy = marginT + rowH*i + rowH/2;
+    var barW = xScale(Math.abs(d.horaG));
+    var isPos = d.horaG >= 0;
+    var farX = isPos ? midX+barW : midX-barW;
+    var col = isPos ? cssVar('--blue') : cssVar('--red');
+    var rect = svgEl('rect', {x:midX, y:cy-9, width:0, height:18, rx:4, fill:col, opacity:0.88});
+    svg.appendChild(rect);
+    hbars.push({rect:rect, farX:farX});
+    var nm = svgEl('text', {x:marginL-10, y:cy+4, class:'mark-label', 'text-anchor':'end', 'font-weight':'700', 'font-size':fs});
+    nm.textContent = truncateLabel(d.short, marginL-16, fs);
+    svg.appendChild(nm);
+    var val = svgEl('text', {x: isPos ? midX+barW+7 : midX-barW-7, y:cy+4, class:'value-label', 'text-anchor': isPos?'start':'end', 'font-size':fsVal});
+    val.textContent = fmtPct(d.horaG);
+    svg.appendChild(val);
+    fadeIn(nm, 300, 100);
+    fadeIn(val, 300, 400 + i*55);
+  });
+  var lblAgg = svgEl('text', {x:midX, y:h-marginB+18, class:'axis-label', 'text-anchor':'middle', 'font-size': compact?9:11});
+  lblAgg.textContent = compact ? 'Promedio país: '+fmtPct(TOTAL_SUMMARY.hora.g) : '0% · promedio del país: '+fmtPct(TOTAL_SUMMARY.hora.g);
+  svg.appendChild(lblAgg);
+  host.appendChild(svg);
+  host.querySelector('svg').style.height = h + 'px';
+  onceVisible(host, function(){
+    hbars.forEach(function(b,i){ animateHBar(b.rect, midX, b.farX, 600, i*55); });
+  }, 0.3);
+}
+
+/* ============ 5. GAINERS / LOSERS LISTS ============ */
+function renderGainersLosers(){
+  var sorted = SUB.slice().sort(function(a,b){ return b.crecHora - a.crecHora; });
+  var gainers = sorted.slice(0,8);
+  var losers = sorted.slice(-8).reverse();
+  function fill(hostId, list){
+    var host = document.getElementById(hostId);
+    host.innerHTML = '';
+    list.forEach(function(d){
+      var up = d.crecHora >= 0;
+      var row = document.createElement('div');
+      row.className = 'rank-item';
+      row.innerHTML =
+        '<div><div class="nm">'+d.name+'</div><div class="tag">'+SECTOR_NAME[d.sector]+'</div></div>' +
+        '<div class="gv '+(up?'up':'down')+' tabular">'+fmtPct(d.crecHora)+'</div>';
+      host.appendChild(row);
+    });
+  }
+  fill('topGainers', gainers);
+  fill('topLosers', losers);
+}
+
+/* ============ 6. SUBACTIVITY EXPLORER TABLE ============ */
+var tableSort = {key:'crecHora', dir:-1};
+function initExplorer(){
+  var sel = document.getElementById('sectorFilter');
+  sel.innerHTML = '<option value="">Todas las ramas</option>' + SECTORS.map(function(s){ return '<option value="'+s.code+'">'+s.short+'</option>'; }).join('');
+  document.getElementById('searchBox').addEventListener('input', renderTable);
+  sel.addEventListener('change', renderTable);
+  document.querySelectorAll('thead th[data-key]').forEach(function(th){
+    th.addEventListener('click', function(){
+      var key = th.getAttribute('data-key');
+      if (tableSort.key === key) tableSort.dir *= -1; else { tableSort.key = key; tableSort.dir = key==='name'||key==='sector' ? 1 : -1; }
+      renderTable();
+    });
+  });
+}
+function renderTable(){
+  var q = document.getElementById('searchBox').value.trim().toLowerCase();
+  var sectorFilter = document.getElementById('sectorFilter').value;
+  var rows = SUB.filter(function(d){
+    var matchesQ = !q || d.name.toLowerCase().indexOf(q) !== -1 || SECTOR_NAME[d.sector].toLowerCase().indexOf(q) !== -1;
+    var matchesSector = !sectorFilter || d.sector === sectorFilter;
+    return matchesQ && matchesSector;
+  });
+  rows.sort(function(a,b){
+    var k = tableSort.key, dir = tableSort.dir;
+    var av = k==='sector' ? SECTOR_NAME[a.sector] : (k==='name' ? a.name : a[k]);
+    var bv = k==='sector' ? SECTOR_NAME[b.sector] : (k==='name' ? b.name : b[k]);
+    if (typeof av === 'string') return av.localeCompare(bv) * dir;
+    return (av - bv) * dir;
+  });
+  document.querySelectorAll('thead th[data-key]').forEach(function(th){
+    th.classList.toggle('sorted', th.getAttribute('data-key') === tableSort.key);
+    var arrow = th.querySelector('.arrow');
+    if (th.getAttribute('data-key') === tableSort.key) arrow.textContent = tableSort.dir === 1 ? '↑' : '↓'; else arrow.textContent = '↕';
+  });
+  var body = document.getElementById('tableBody');
+  body.innerHTML = '';
+  if (!rows.length){
+    body.innerHTML = '<tr class="empty-row"><td colspan="4">No se encontraron actividades con ese filtro.</td></tr>';
+    return;
+  }
+  rows.forEach(function(d){
+    var tr = document.createElement('tr');
+    var growClass = d.crecHora >= 0 ? 'grow-pos' : 'grow-neg';
+    tr.innerHTML =
+      '<td>'+d.name+'</td>' +
+      '<td class="sector-tag">'+SECTOR_NAME[d.sector]+'</td>' +
+      '<td class="num tabular">'+fmtNum(d.hora2025,1)+'</td>' +
+      '<td class="num tabular '+growClass+'">'+fmtPct(d.crecHora)+'</td>';
+    body.appendChild(tr);
+  });
+}
+
+/* ============ 7. EMPLOYMENT vs PRODUCTIVITY SCATTER ============ */
+function renderCorr(){
+  var host = document.getElementById('corrChart');
+  host.innerHTML = '';
+  var w = measureW(host, 420);
+  var compact = w < 380;
+  var h = compact ? Math.round(w*0.86) : 340, marginL = compact?38:46, marginR = compact?12:16, marginT = compact?12:16, marginB = compact?34:40;
+  var plotW = w-marginL-marginR, plotH = h-marginT-marginB;
+  var xs = SECTORS.map(function(s){ return s.ocupG*100; });
+  var ys = SECTORS.map(function(s){ return s.horaG*100; });
+  var xMin = Math.min.apply(null,xs)-0.5, xMax = Math.max.apply(null,xs)+0.5;
+  var yMin = Math.min.apply(null,ys)-0.5, yMax = Math.max.apply(null,ys)+0.5;
+  function xScale(v){ return marginL + ((v-xMin)/(xMax-xMin))*plotW; }
+  function yScale(v){ return marginT + plotH - ((v-yMin)/(yMax-yMin))*plotH; }
+  // linear regression + pearson r
+  var n = xs.length, sx=0,sy=0,sxx=0,syy=0,sxy=0;
+  for (var i=0;i<n;i++){ sx+=xs[i]; sy+=ys[i]; sxx+=xs[i]*xs[i]; syy+=ys[i]*ys[i]; sxy+=xs[i]*ys[i]; }
+  var mx=sx/n, my=sy/n;
+  var num = sxy - n*mx*my;
+  var den = Math.sqrt((sxx-n*mx*mx)*(syy-n*my*my));
+  var r = den ? num/den : 0;
+  var slope = (sxx-n*mx*mx) ? num/(sxx-n*mx*mx) : 0;
+  var intercept = my - slope*mx;
+
+  var fs = compact?9:11;
+  var svg = svgEl('svg', {viewBox:'0 0 '+w+' '+h});
+  for (var gx=Math.ceil(xMin); gx<=xMax; gx+=2){
+    svg.appendChild(svgEl('line', {x1:xScale(gx), x2:xScale(gx), y1:marginT, y2:marginT+plotH, class:'grid-line'}));
+    var lx = svgEl('text', {x:xScale(gx), y:h-16, class:'axis-label', 'text-anchor':'middle', 'font-size':fs}); lx.textContent=gx+'%'; svg.appendChild(lx);
+  }
+  for (var gy=Math.ceil(yMin); gy<=yMax; gy+=2){
+    svg.appendChild(svgEl('line', {x1:marginL, x2:marginL+plotW, y1:yScale(gy), y2:yScale(gy), class:'grid-line'}));
+    var ly = svgEl('text', {x:marginL-8, y:yScale(gy)+3, class:'axis-label', 'text-anchor':'end', 'font-size':fs}); ly.textContent=gy+'%'; svg.appendChild(ly);
+  }
+  var xt = svgEl('text', {x:marginL+plotW/2, y:h-2, class:'axis-label', 'text-anchor':'middle', 'font-size':fs}); xt.textContent='Crecimiento del empleo'; svg.appendChild(xt);
+  var yt = svgEl('text', {x:compact?10:12, y:marginT+plotH/2, class:'axis-label', 'text-anchor':'middle', 'font-size':fs, transform:'rotate(-90 '+(compact?10:12)+' '+(marginT+plotH/2)+')'}); yt.textContent='Crecimiento PIB/hora'; svg.appendChild(yt);
+
+  var x1 = xMin, x2 = xMax;
+  var trendLine = svgEl('line', {x1:xScale(x1), x2:xScale(x2), y1:yScale(intercept+slope*x1), y2:yScale(intercept+slope*x2), stroke:'var(--red)', 'stroke-width':1.6, 'stroke-dasharray':'5,3', opacity:0.75});
+  svg.appendChild(trendLine);
+
+  var points = [];
+  SECTORS.forEach(function(s){
+    var cx = xScale(s.ocupG*100), cy = yScale(s.horaG*100);
+    var g = svgEl('g', {'data-pt':'1', style:'cursor:pointer'});
+    var circ = svgEl('circle', {cx:cx, cy:cy, r:0, fill:'var(--blue)', 'fill-opacity':0.6, stroke:'var(--blue)', 'stroke-width':1.4});
+    g.appendChild(circ);
+    g.addEventListener('mousemove', function(ev){
+      showTooltip('<div class="tt-title">'+s.name+'</div>' +
+        '<div class="tt-row"><span>Crecimiento empleo</span><b>'+fmtPct(s.ocupG)+'</b></div>' +
+        '<div class="tt-row"><span>Crecimiento PIB/hora</span><b>'+fmtPct(s.horaG)+'</b></div>', ev.clientX, ev.clientY);
+    });
+    g.addEventListener('mouseleave', hideTooltip);
+    svg.appendChild(g);
+    points.push(circ);
+  });
+  host.appendChild(svg);
+  document.getElementById('corrStat').textContent = 'Correlación en esta muestra de 13 ramas: r = ' + r.toFixed(2).replace('.', ',') + ' · el informe completo usa 50 subactividades y reporta r ≈ −0,85.';
+  onceVisible(host, function(){
+    points.forEach(function(c,i){ animateNum(c, 'r', 0, 6, 450, 350 + i*45); });
+    drawInPath(trendLine, 700, 60);
+  }, 0.3);
+}
+
+/* ============ RENDER ALL (re-run on theme change for CSS var colors baked into SVG) ============ */
+function renderAll(){
+  renderTiles();
+  renderDecomp();
+  renderQuad();
+  renderRank();
+  renderCorr();
+}
+
+renderTiles();
+renderDecomp();
+renderQuadChips();
+renderQuad();
+renderRank();
+renderGainersLosers();
+initExplorer();
+renderTable();
+renderCorr();
+
+var resizeTimer;
+window.addEventListener('resize', function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    renderDecomp();
+    renderQuad();
+    renderRank();
+    renderCorr();
+  }, 200);
+});
+
+/* ============ SCROLL-DRIVEN POLISH ============ */
+function setupReveal(){
+  var els = document.querySelectorAll('.section-head, .chart-card, .mini-card, .concl-card, .formula-box, .callout');
+  if (REDUCE_MOTION || !('IntersectionObserver' in window)){
+    els.forEach(function(el){ el.classList.add('reveal','in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:0.12});
+  els.forEach(function(el){ el.classList.add('reveal'); io.observe(el); });
+}
+setupReveal();
+
+function animateHeroStats(){
+  document.querySelectorAll('.hero-stat .num[data-to]').forEach(function(el, i){
+    var to = parseFloat(el.getAttribute('data-to'));
+    var span = el.querySelector('.num-val');
+    animateNumber(span, 0, to, 1100, function(v){ return (v>=0?'+':'')+v.toFixed(2).replace('.',','); }, 250 + i*120);
+  });
+}
+animateHeroStats();
+
+(function setupScrollSpy(){
+  var ids = ['resumen','composicion','sectores','ranking','lupa','empleo','conclusiones'];
+  var navMap = {};
+  document.querySelectorAll('.navlinks a').forEach(function(a){ navMap[a.getAttribute('href').slice(1)] = a; });
+  if (!('IntersectionObserver' in window)) return;
+  var spyIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){
+        Object.keys(navMap).forEach(function(k){ navMap[k].classList.remove('active'); });
+        var link = navMap[e.target.id];
+        if (link) link.classList.add('active');
+      }
+    });
+  }, {rootMargin:'-45% 0px -50% 0px', threshold:0});
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) spyIO.observe(el);
+  });
+})();
+
+window.addEventListener('scroll', function(){
+  document.querySelector('.topbar').classList.toggle('scrolled', window.scrollY > 8);
+}, {passive:true});
+
+})();
+</script>

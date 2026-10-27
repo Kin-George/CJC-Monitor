@@ -1,0 +1,98 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>video</title>
+<style>
+  html,body{ margin:0; padding:0; width:1080px; height:1920px; overflow:hidden;
+    background:#0c1017; font-family: system-ui,-apple-system,"Segoe UI",sans-serif; }
+  *{ box-sizing:border-box; }
+  .serif{ font-family: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif; }
+  #stage{ position:relative; width:1080px; height:1920px; background:#0c1017; }
+  .scene{ position:absolute; inset:0; width:1080px; height:1920px; display:none; }
+  .scene.on{ display:block; }
+
+  .eyebrow{ font-size:30px; letter-spacing:0.10em; text-transform:uppercase; color:#e3a83a; font-weight:700; }
+  .brandmark{ display:flex; align-items:center; gap:14px; }
+  .dot{ width:26px; height:26px; border-radius:50%; display:inline-block; }
+  .brandname{ font-size:28px; color:#c3c2b7; font-weight:600; }
+
+  .safe-top{ position:absolute; top:96px; left:64px; right:64px; }
+
+  svg text{ font-family: system-ui,-apple-system,"Segoe UI",sans-serif; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- SCENE 1: PORTADA -->
+  <div class="scene" id="s1">
+    <div class="safe-top">
+      <div class="brandmark">
+        <span class="dot" style="background:#eda100"></span>
+        <span class="dot" style="background:#9a9890;margin-left:-14px"></span>
+        <span class="dot" style="background:#3987e5;margin-left:-14px"></span>
+        <span class="brandname">Centro Javeriano de Competitividad</span>
+      </div>
+      <div class="eyebrow" style="margin-top:26px;">Informe 01 · 2010–2025</div>
+    </div>
+    <div id="s1-title" class="serif" style="position:absolute; left:64px; right:64px; top:46%; transform:translateY(-50%);
+      font-size:96px; line-height:1.08; color:#ffffff; font-weight:800; text-wrap:balance;"></div>
+  </div>
+
+  <!-- SCENE 2: QUE ES PRODUCTIVIDAD -->
+  <div class="scene" id="s2">
+    <div class="safe-top">
+      <div class="eyebrow">¿Qué significa productividad?</div>
+    </div>
+    <div id="s2-formula" style="position:absolute; left:0; right:0; top:300px; bottom:420px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0px;"></div>
+  </div>
+
+  <!-- SCENE 3: RESULTADO COLOMBIA -->
+  <div class="scene" id="s3">
+    <div class="safe-top">
+      <div class="eyebrow">¿Y qué pasó en Colombia?</div>
+    </div>
+    <div id="s3-chart" style="position:absolute; left:40px; right:40px; top:280px; bottom:420px; overflow:hidden; border-radius:24px;"></div>
+  </div>
+
+  <!-- SCENE 4: BURBUJAS -->
+  <div class="scene" id="s4">
+    <div class="safe-top">
+      <div class="eyebrow">13 grandes ramas de la economía</div>
+    </div>
+    <div id="s4-chart" style="position:absolute; left:20px; right:20px; top:260px; bottom:420px;"></div>
+    <div id="s4-cursor" style="position:absolute; width:34px; height:34px; margin:-17px 0 0 -17px; border-radius:50%; background:rgba(255,255,255,0.92); box-shadow:0 0 0 8px rgba(255,255,255,0.18), 0 6px 20px rgba(0,0,0,0.4); pointer-events:none; opacity:0;"></div>
+    <div id="s4-tooltip" style="position:absolute; display:none; background:#171b22; border:2px solid rgba(255,255,255,0.16); border-radius:16px; padding:22px 26px; color:#fff; min-width:340px;"></div>
+  </div>
+
+  <!-- SCENE 5: RANKING + BUSCADOR -->
+  <div class="scene" id="s5">
+    <div class="safe-top">
+      <div class="eyebrow" id="s5-eyebrow">Ranking de productividad</div>
+    </div>
+    <div id="s5-body" style="position:absolute; left:64px; right:64px; top:260px; bottom:420px;"></div>
+  </div>
+
+  <!-- SCENE 6: EMPLEO VS PRODUCTIVIDAD + CIERRE -->
+  <div class="scene" id="s6">
+    <div class="safe-top">
+      <div class="eyebrow" id="s6-eyebrow">Un hallazgo importante</div>
+    </div>
+    <div id="s6-chart" style="position:absolute; left:60px; right:60px; top:280px; bottom:420px;"></div>
+    <div id="s6-end" style="position:absolute; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:0 90px;">
+      <div class="brandmark" style="margin-bottom:56px;">
+        <span class="dot" style="background:#eda100"></span>
+        <span class="dot" style="background:#9a9890;margin-left:-14px"></span>
+        <span class="dot" style="background:#3987e5;margin-left:-14px"></span>
+      </div>
+      <div class="serif" style="font-size:72px; color:#fff; font-weight:800; line-height:1.25;">Explora los datos.<br>Entiende la productividad de Colombia.</div>
+      <div style="margin-top:48px; font-size:32px; color:#c3c2b7; font-weight:600;">Centro Javeriano de Competitividad</div>
+    </div>
+    <div id="s6-flash" style="position:absolute; inset:0; display:none; align-items:center; justify-content:center;">
+      <div class="serif" style="font-size:64px; color:#fff; font-weight:800; text-align:center; padding:0 90px;">Tres conclusiones del informe</div>
+    </div>
+  </div>
+
+</div>
+<script src="video_data.js?v=5"></script>
+<script src="video_timeline.js?v=5"></script>
+</body></html>
